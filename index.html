@@ -1111,7 +1111,7 @@
                                             </div>
                                             <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                                                 ${shakeBtn}
-                                                <button type="button" class="btn btn-outline" onclick="resetCurrentStageClock(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Reset Day</button>
+                                                <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Set Days</button>
                                                 <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Edit</a>
                                                 ${actionBtn}
                                             </div>
@@ -1185,25 +1185,50 @@
             renderPipeline();
         }
 
-        async function resetCurrentStageClock(dbId) {
+        function formatLocalIsoDateOffset(daysAgo) {
+            const d = new Date();
+            const localDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() - Number(daysAgo || 0));
+            return `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+        }
+
+        async function setStageDays(dbId, dayCount) {
             const batch = batches.find(b => b.dbId === dbId);
             if (!batch) return;
-            const now = new Date();
-            const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const parsedDays = Math.max(0, Math.floor(Number(dayCount)));
+            if (Number.isNaN(parsedDays)) return;
+
+            const targetStartDate = formatLocalIsoDateOffset(parsedDays);
             const stageCode = batch.stage === 'Bulk Substrate' ? 'SUB' : (batch.stage === 'Fruiting' ? 'FRT' : 'GRN');
-            const stageTag = `[Stage:${stageCode}:${todayLocal}]`;
+            const stageTag = `[Stage:${stageCode}:${targetStartDate}]`;
+
             let updatedNotes = batch.notes || '';
             if (updatedNotes.includes(`[Stage:${stageCode}:`)) {
                 updatedNotes = updatedNotes.replace(new RegExp(`\\[Stage:${stageCode}:\\d{4}-\\d{2}-\\d{2}\\]`), stageTag);
             } else {
                 updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
             }
+
             batch.notes = updatedNotes;
-            setStageClockDate(dbId, batch.stage, todayLocal);
+            setStageClockDate(dbId, batch.stage, targetStartDate);
             renderAll();
+
             try {
                 await _supabase.from('batches').update({ notes: updatedNotes }).eq('id', dbId);
             } catch (e) {}
+        }
+
+        function setStageDaysPrompt(dbId) {
+            const batch = batches.find(b => b.dbId === dbId);
+            if (!batch) return;
+            const currentDays = Math.max(0, getDaysActive(getEffectiveStageDate(batch)));
+            const input = prompt(`Set how many days ${batch.batchId} has been in ${batch.stage} (0 = today):`, String(currentDays));
+            if (input === null) return;
+            const trimmed = input.trim();
+            if (trimmed === '' || Number.isNaN(Number(trimmed))) {
+                alert('Please enter a whole number of days (0 or greater).');
+                return;
+            }
+            setStageDays(dbId, Number(trimmed));
         }
 
         async function advanceStage(dbId) {
