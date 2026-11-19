@@ -793,8 +793,8 @@
 
         function renderKPIs() {
             const active = batches.filter(b => b.status === 'Active');
-            const totalJars = active.filter(b => b.container === 'Jar').reduce((sum, b) => sum + Number(b.quantity), 0);
-            const totalBags = active.filter(b => b.container === 'Bag').reduce((sum, b) => sum + Number(b.quantity), 0);
+            const totalJars = active.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
+            const totalBags = active.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
             const totalFruiting = active.filter(b => b.stage === 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
             const totalYield = batches.reduce((sum, b) => sum + Number(b.harvestWeight || 0), 0);
 
@@ -866,9 +866,23 @@
             localStorage.setItem(STAGE_CLOCK_KEY, JSON.stringify(map));
         }
 
+        function getStageClockFromNotes(notesStr, stageName) {
+            if (!notesStr || !stageName) return null;
+            const stageCode = stageName === 'Bulk Substrate' ? 'SUB' : (stageName === 'Fruiting' ? 'FRT' : 'GRN');
+            const match = String(notesStr).match(new RegExp(`\\[Stage:${stageCode}:(\\d{4}-\\d{2}-\\d{2})\\]`));
+            return match ? match[1] : null;
+        }
+
         function getEffectiveStageDate(item) {
             const map = getStageClockMap();
             const key = `${item.dbId}::${item.stage}`;
+            const noteDate = getStageClockFromNotes(item.notes, item.stage);
+            if (noteDate) {
+                if (!map[key]) {
+                    setStageClockDate(item.dbId, item.stage, noteDate);
+                }
+                return noteDate;
+            }
             return map[key] || item.date;
         }
 
@@ -981,9 +995,9 @@
                 : activeBatches;
             renderUpcomingTasks(filteredActive);
 
-            // Update Production summary strip (Jars, Bags, Fruiting + Batch counts)
-            const jarBatches = filteredActive.filter(b => b.container === 'Jar');
-            const bagBatches = filteredActive.filter(b => b.container === 'Bag');
+            // Update Production summary strip (Jars, Bags, Fruiting + Batch counts) — Fruiting batches separate from Bags/Jars
+            const jarBatches = filteredActive.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting');
+            const bagBatches = filteredActive.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
             const fruitBatches = filteredActive.filter(b => b.stage === 'Fruiting');
 
             const prodJars = jarBatches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
@@ -1095,8 +1109,9 @@
                                                 <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(item.batchId)} ${itemShake}</div>
                                                 <div style="font-size: 0.68rem; color: var(--text-muted);">${escapeAttr(item.date)} • ${item.quantity} ${escapeAttr(item.container || '')}${yieldTag}</div>
                                             </div>
-                                            <div style="display: flex; gap: 0.3rem; align-items: center;">
+                                            <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                                                 ${shakeBtn}
+                                                <button type="button" class="btn btn-outline" onclick="resetCurrentStageClock(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Reset Day</button>
                                                 <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Edit</a>
                                                 ${actionBtn}
                                             </div>
@@ -1170,6 +1185,28 @@
             renderPipeline();
         }
 
+        async function resetCurrentStageClock(dbId) {
+            const batch = batches.find(b => b.dbId === dbId);
+            if (!batch) return;
+            const now = new Date();
+            const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const stageCode = batch.stage === 'Bulk Substrate' ? 'SUB' : (batch.stage === 'Fruiting' ? 'FRT' : 'GRN');
+            const stageTag = `[Stage:${stageCode}:${todayLocal}]`;
+            let updatedNotes = batch.notes || '';
+            if (updatedNotes.includes(`[Stage:${stageCode}:`)) {
+                updatedNotes = updatedNotes.replace(new RegExp(`\\[Stage:${stageCode}:\\d{4}-\\d{2}-\\d{2}\\]`), stageTag);
+            } else {
+                updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
+            }
+            const { error } = await _supabase.from('batches').update({ notes: updatedNotes }).eq('id', dbId);
+            setStageClockDate(dbId, batch.stage, todayLocal);
+            if (!error) {
+                await loadBatches();
+            } else {
+                renderAll();
+            }
+        }
+
         async function advanceStage(dbId) {
             const stages = ['Grain Spawn', 'Bulk Substrate', 'Fruiting', 'Harvested'];
             const batch = batches.find(b => b.dbId === dbId);
@@ -1186,7 +1223,16 @@
                 const now = new Date();
                 const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-                const updatePayload = { stage: nextStage };
+                const stageCode = nextStage === 'Bulk Substrate' ? 'SUB' : (nextStage === 'Fruiting' ? 'FRT' : 'GRN');
+                const stageTag = `[Stage:${stageCode}:${todayLocal}]`;
+                let updatedNotes = batch.notes || '';
+                if (updatedNotes.includes(`[Stage:${stageCode}:`)) {
+                    updatedNotes = updatedNotes.replace(new RegExp(`\\[Stage:${stageCode}:\\d{4}-\\d{2}-\\d{2}\\]`), stageTag);
+                } else {
+                    updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
+                }
+
+                const updatePayload = { stage: nextStage, notes: updatedNotes };
                 if (nextStage === 'Bulk Substrate' && batch.container === 'Jar') {
                     updatePayload.container = 'Bag';
                 }

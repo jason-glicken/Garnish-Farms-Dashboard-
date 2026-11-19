@@ -416,8 +416,8 @@ const STAGE_CLOCK_KEY = 'garnish_farms_stage_clock_v1';
 
         function renderPage() {
             const active = batches.filter(b => b.status === 'Active');
-            const totalJars = active.filter(b => b.container === 'Jar').reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-            const totalBags = active.filter(b => b.container === 'Bag').reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+            const totalJars = active.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+            const totalBags = active.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity || 0), 0);
             const totalYield = batches.reduce((sum, b) => sum + Number(b.harvestWeight || 0), 0);
 
             document.getElementById('kpi-active').innerText = active.length;
@@ -427,9 +427,9 @@ const STAGE_CLOCK_KEY = 'garnish_farms_stage_clock_v1';
 
             let filtered = active;
             if (listType === 'jars') {
-                filtered = active.filter(b => b.container === 'Jar');
+                filtered = active.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting');
             } else if (listType === 'bags') {
-                filtered = active.filter(b => b.container === 'Bag');
+                filtered = active.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
             } else if (listType === 'fruiting') {
                 filtered = active.filter(b => b.stage === 'Fruiting');
             }
