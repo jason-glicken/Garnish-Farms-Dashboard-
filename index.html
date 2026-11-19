@@ -980,9 +980,6 @@
                 ? activeBatches.filter(b => b.strain === selectedPipelineStrainFilter)
                 : activeBatches;
             renderUpcomingTasks(filteredActive);
-            const filteredActive = selectedPipelineStrainFilter
-                ? activeBatches.filter(b => b.strain === selectedPipelineStrainFilter)
-                : activeBatches;
 
             // Update Production summary strip (Jars, Bags, Fruiting + Batch counts)
             const jarBatches = filteredActive.filter(b => b.container === 'Jar');
