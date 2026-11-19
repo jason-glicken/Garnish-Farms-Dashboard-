@@ -891,12 +891,56 @@
             return Math.floor(diffTime / (1000 * 60 * 60 * 24));
         }
 
-        function formatDisplayBatchId(batchId, strain) {
-            const raw = String(batchId || '');
-            if (/blue\s*oyster/i.test(String(strain || ''))) {
-                return raw.replace(/^GF(?=[-\s]|$)/i, 'BO');
+        function formatStrainCode(strain) {
+            const cleaned = String(strain || '').trim();
+            if (!cleaned) return 'BATCH';
+            const lower = cleaned.toLowerCase();
+            if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
+            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LI';
+            if (lower.includes('reishi')) return 'RE';
+            if (lower.includes('chestnut')) return 'CH';
+            if (lower.includes('shiitake')) return 'SH';
+            if (lower.includes('pink oyster')) return 'PO';
+            if (lower.includes('pearl oyster')) return 'OY';
+
+            const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+            if (words.length >= 2) {
+                return (words[0][0] + words[1][0]).toUpperCase();
             }
-            return raw;
+            return words[0].slice(0, 2).toUpperCase();
+        }
+
+        function formatMMDDYY(dateStr) {
+            if (!dateStr) return '';
+            const isoMatch = String(dateStr).match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+                const yy = isoMatch[1].slice(2);
+                const mm = isoMatch[2];
+                const dd = isoMatch[3];
+                return `${mm}${dd}${yy}`;
+            }
+            const slashMatch = String(dateStr).match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+            if (slashMatch) {
+                const mm = slashMatch[1].padStart(2, '0');
+                const dd = slashMatch[2].padStart(2, '0');
+                const yy = slashMatch[3].length === 4 ? slashMatch[3].slice(2) : slashMatch[3].padStart(2, '0');
+                return `${mm}${dd}${yy}`;
+            }
+            return '';
+        }
+
+        function formatDisplayBatchId(batchId, strain, dateStr) {
+            const strainCode = formatStrainCode(strain);
+            const mmddyy = formatMMDDYY(dateStr);
+            if (mmddyy) {
+                return `${strainCode}-${mmddyy}`;
+            }
+            const raw = String(batchId || '').trim();
+            const embeddedDate = raw.match(/(\d{6})/);
+            if (embeddedDate) {
+                return `${strainCode}-${embeddedDate[1]}`;
+            }
+            return raw ? `${strainCode}-${raw}` : strainCode;
         }
 
         function jumpToUpcomingBatch(dbId, strain, stage) {
@@ -986,7 +1030,7 @@
                     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.55rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.74rem;">
                             <a href="#pipeline-${t.item.dbId}" class="upcoming-jump-link" data-dbid="${t.item.dbId}" data-strain="${escapeAttr(t.item.strain)}" data-stage="${escapeAttr(t.item.stage)}" style="color: var(--text-main); text-decoration: none;">
-                                <strong>${escapeAttr(formatDisplayBatchId(t.item.batchId, t.item.strain))}</strong> • ${escapeAttr(t.item.strain)} (${t.item.quantity} ${escapeAttr(t.item.container || '')})${shakeTag}
+                                <strong>${escapeAttr(formatDisplayBatchId(t.item.batchId, t.item.strain, t.item.date))}</strong> • ${escapeAttr(t.item.strain)} (${t.item.quantity} ${escapeAttr(t.item.container || '')})${shakeTag}
                             </a>
                             ${stageActionLink}
                         </div>
@@ -1090,7 +1134,7 @@
             listEl.innerHTML = topFive.map(act => `
                 <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.55rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.72rem;">
                     <div style="min-width: 0;">
-                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
+                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
                     </div>
                     <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap;">${escapeAttr(act.date || '')}</span>
                 </div>
@@ -1186,7 +1230,7 @@
                                     <div class="sub-batch-row" style="flex-direction: column; align-items: stretch;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                             <div>
-                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain))} ${itemShake}</div>
+                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date))} ${itemShake}</div>
                                                 <div style="font-size: 0.68rem; color: var(--text-muted);">${escapeAttr(item.date)} • ${item.quantity} ${escapeAttr(item.container || '')}${yieldTag}</div>
                                             </div>
                                             <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
@@ -1301,7 +1345,7 @@
             const batch = batches.find(b => b.dbId === dbId);
             if (!batch) return;
             const currentDays = Math.max(0, getDaysActive(getEffectiveStageDate(batch)));
-            const input = prompt(`Set how many days ${formatDisplayBatchId(batch.batchId, batch.strain)} has been in ${batch.stage} (0 = today):`, String(currentDays));
+            const input = prompt(`Set how many days ${formatDisplayBatchId(batch.batchId, batch.strain, batch.date)} has been in ${batch.stage} (0 = today):`, String(currentDays));
             if (input === null) return;
             const trimmed = input.trim();
             if (trimmed === '' || Number.isNaN(Number(trimmed))) {
@@ -1387,7 +1431,7 @@
             const statusFilter = document.getElementById('filterStatus').value;
 
             const filtered = batches.filter(b => {
-                const displayId = formatDisplayBatchId(b.batchId, b.strain); const matchSearch = b.batchId.toLowerCase().includes(search) || displayId.toLowerCase().includes(search) || b.strain.toLowerCase().includes(search);
+                const displayId = formatDisplayBatchId(b.batchId, b.strain, b.date); const matchSearch = b.batchId.toLowerCase().includes(search) || displayId.toLowerCase().includes(search) || b.strain.toLowerCase().includes(search);
                 const matchStrain = strainFilter === '' || b.strain === strainFilter;
                 const matchStatus = statusFilter === '' || b.status === statusFilter;
                 return matchSearch && matchStrain && matchStatus;
@@ -1403,7 +1447,7 @@
                 const badgeClass = b.status === 'Active' ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
                 return `
                     <tr>
-                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain))}</strong></td>
+                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date))}</strong></td>
                         <td>${b.date}</td>
                         <td>${b.strain}</td>
                         <td>${b.stage}</td>
