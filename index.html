@@ -1198,13 +1198,12 @@
             } else {
                 updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
             }
-            const { error } = await _supabase.from('batches').update({ notes: updatedNotes }).eq('id', dbId);
+            batch.notes = updatedNotes;
             setStageClockDate(dbId, batch.stage, todayLocal);
-            if (!error) {
-                await loadBatches();
-            } else {
-                renderAll();
-            }
+            renderAll();
+            try {
+                await _supabase.from('batches').update({ notes: updatedNotes }).eq('id', dbId);
+            } catch (e) {}
         }
 
         async function advanceStage(dbId) {
