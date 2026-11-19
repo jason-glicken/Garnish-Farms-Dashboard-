@@ -891,6 +891,14 @@
             return Math.floor(diffTime / (1000 * 60 * 60 * 24));
         }
 
+        function formatDisplayBatchId(batchId, strain) {
+            const raw = String(batchId || '');
+            if (/blue\s*oyster/i.test(String(strain || ''))) {
+                return raw.replace(/^GF(?=[-\s]|$)/i, 'BO');
+            }
+            return raw;
+        }
+
         function jumpToUpcomingBatch(dbId, strain, stage) {
             const cardKey = `${stage}::${strain}`;
             expandedPipelineCards.add(cardKey);
@@ -978,7 +986,7 @@
                     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.55rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.74rem;">
                             <a href="#pipeline-${t.item.dbId}" class="upcoming-jump-link" data-dbid="${t.item.dbId}" data-strain="${escapeAttr(t.item.strain)}" data-stage="${escapeAttr(t.item.stage)}" style="color: var(--text-main); text-decoration: none;">
-                                <strong>${escapeAttr(t.item.batchId)}</strong> • ${escapeAttr(t.item.strain)} (${t.item.quantity} ${escapeAttr(t.item.container || '')})${shakeTag}
+                                <strong>${escapeAttr(formatDisplayBatchId(t.item.batchId, t.item.strain))}</strong> • ${escapeAttr(t.item.strain)} (${t.item.quantity} ${escapeAttr(t.item.container || '')})${shakeTag}
                             </a>
                             ${stageActionLink}
                         </div>
@@ -1082,7 +1090,7 @@
             listEl.innerHTML = topFive.map(act => `
                 <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.55rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.72rem;">
                     <div style="min-width: 0;">
-                        <strong>${escapeAttr(act.batchId)}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
+                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
                     </div>
                     <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap;">${escapeAttr(act.date || '')}</span>
                 </div>
@@ -1178,7 +1186,7 @@
                                     <div class="sub-batch-row" style="flex-direction: column; align-items: stretch;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                             <div>
-                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(item.batchId)} ${itemShake}</div>
+                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain))} ${itemShake}</div>
                                                 <div style="font-size: 0.68rem; color: var(--text-muted);">${escapeAttr(item.date)} • ${item.quantity} ${escapeAttr(item.container || '')}${yieldTag}</div>
                                             </div>
                                             <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
@@ -1293,7 +1301,7 @@
             const batch = batches.find(b => b.dbId === dbId);
             if (!batch) return;
             const currentDays = Math.max(0, getDaysActive(getEffectiveStageDate(batch)));
-            const input = prompt(`Set how many days ${batch.batchId} has been in ${batch.stage} (0 = today):`, String(currentDays));
+            const input = prompt(`Set how many days ${formatDisplayBatchId(batch.batchId, batch.strain)} has been in ${batch.stage} (0 = today):`, String(currentDays));
             if (input === null) return;
             const trimmed = input.trim();
             if (trimmed === '' || Number.isNaN(Number(trimmed))) {
@@ -1379,7 +1387,7 @@
             const statusFilter = document.getElementById('filterStatus').value;
 
             const filtered = batches.filter(b => {
-                const matchSearch = b.batchId.toLowerCase().includes(search) || b.strain.toLowerCase().includes(search);
+                const displayId = formatDisplayBatchId(b.batchId, b.strain); const matchSearch = b.batchId.toLowerCase().includes(search) || displayId.toLowerCase().includes(search) || b.strain.toLowerCase().includes(search);
                 const matchStrain = strainFilter === '' || b.strain === strainFilter;
                 const matchStatus = statusFilter === '' || b.status === statusFilter;
                 return matchSearch && matchStrain && matchStatus;
@@ -1395,7 +1403,7 @@
                 const badgeClass = b.status === 'Active' ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
                 return `
                     <tr>
-                        <td><strong>${b.batchId}</strong></td>
+                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain))}</strong></td>
                         <td>${b.date}</td>
                         <td>${b.strain}</td>
                         <td>${b.stage}</td>
