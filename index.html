@@ -484,23 +484,13 @@
                 </div>
                 <div id="upcomingTasksList" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
             </div>
-            <!-- Production Qty Summary: Jars, Bags, Fruiting + Batch Counts -->
-            <div class="pipeline-summary-strip">
-                <a href="list.html?type=jars" id="link-prod-jars" class="pipeline-stat-btn">
-                    <div class="pipeline-stat-label">Jars ➔</div>
-                    <div class="pipeline-stat-val" id="prod-qty-jars">0</div>
-                    <div style="font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem;" id="prod-batches-jars">0 batches</div>
-                </a>
-                <a href="list.html?type=bags" id="link-prod-bags" class="pipeline-stat-btn">
-                    <div class="pipeline-stat-label">Bags ➔</div>
-                    <div class="pipeline-stat-val" id="prod-qty-bags">0</div>
-                    <div style="font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem;" id="prod-batches-bags">0 batches</div>
-                </a>
-                <a href="list.html?type=fruiting" id="link-prod-fruiting" class="pipeline-stat-btn">
-                    <div class="pipeline-stat-label">Fruiting ➔</div>
-                    <div class="pipeline-stat-val" id="prod-qty-fruiting">0</div>
-                    <div style="font-size: 0.62rem; color: var(--text-muted); margin-top: 0.1rem;" id="prod-batches-fruiting">0 batches</div>
-                </a>
+            <!-- Last 5 Activities Feed -->
+            <div id="recentActivitiesBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Last 5 Activities</span>
+                    <span style="font-size: 0.68rem; color: var(--text-muted);" id="recentActivitiesCount">Recent</span>
+                </div>
+                <div id="recentActivitiesList" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
             </div>
             <div class="pipeline-container" id="pipelineContainer">
                 <div class="pipeline-stage" id="stage-grain">
@@ -914,10 +904,12 @@
                 for (const c of cards) {
                     if (c.getAttribute('data-stage') === stage && c.getAttribute('data-strain') === strain) {
                         c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        c.style.outline = '2px solid var(--accent)';
+                        setTimeout(() => { c.style.outline = ''; }, 1400);
                         break;
                     }
                 }
-            }, 60);
+            }, 80);
         }
 
         function renderUpcomingTasks(filteredActive) {
@@ -1011,6 +1003,92 @@
             return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
+        function renderRecentActivities(filteredActive) {
+            const listEl = document.getElementById('recentActivitiesList');
+            const countEl = document.getElementById('recentActivitiesCount');
+            if (!listEl) return;
+
+            const sourceBatches = selectedPipelineStrainFilter
+                ? batches.filter(b => b.strain === selectedPipelineStrainFilter)
+                : batches;
+
+            const activities = [];
+
+            sourceBatches.forEach(b => {
+                const notesStr = String(b.notes || '');
+                const subMatch = notesStr.match(/\[Stage:SUB:(\d{4}-\d{2}-\d{2})\]/);
+                const frtMatch = notesStr.match(/\[Stage:FRT:(\d{4}-\d{2}-\d{2})\]/);
+                const shakeMatches = [...notesStr.matchAll(/\[Shaken (\d{4}-\d{2}-\d{2})\]/g)];
+
+                if (frtMatch) {
+                    activities.push({
+                        date: frtMatch[1],
+                        label: `Moved to Fruiting`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: `${b.quantity} ${b.container || ''}`.trim()
+                    });
+                }
+                if (subMatch) {
+                    activities.push({
+                        date: subMatch[1],
+                        label: `Moved to Bulk Substrate`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: `${b.quantity} ${b.container || ''}`.trim()
+                    });
+                }
+                shakeMatches.forEach(m => {
+                    activities.push({
+                        date: m[1],
+                        label: `Grain Shaken`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: `${b.quantity} ${b.container || ''}`.trim()
+                    });
+                });
+
+                if (Number(b.harvestWeight || 0) > 0) {
+                    activities.push({
+                        date: b.date,
+                        label: `Harvested ${Number(b.harvestWeight).toFixed(1)} lbs`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: b.stage || ''
+                    });
+                }
+
+                activities.push({
+                    date: b.date,
+                    label: `Logged batch (${b.stage || 'Grain Spawn'})`,
+                    batchId: b.batchId,
+                    strain: b.strain,
+                    meta: `${b.quantity} ${b.container || ''}`.trim()
+                });
+            });
+
+            activities.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+            const topFive = activities.slice(0, 5);
+
+            if (countEl) {
+                countEl.innerText = `${topFive.length} shown`;
+            }
+
+            if (topFive.length === 0) {
+                listEl.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 0.25rem 0;">No recent activity logged yet.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = topFive.map(act => `
+                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.55rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.72rem;">
+                    <div style="min-width: 0;">
+                        <strong>${escapeAttr(act.batchId)}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
+                    </div>
+                    <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap;">${escapeAttr(act.date || '')}</span>
+                </div>
+            `).join('');
+        }
+
         function renderPipeline() {
             const activeBatches = batches.filter(b => b.status === 'Active');
             const filteredActive = selectedPipelineStrainFilter
@@ -1018,36 +1096,7 @@
                 : activeBatches;
             renderUpcomingTasks(filteredActive);
 
-            // Update Production summary strip (Jars, Bags, Fruiting + Batch counts) — Fruiting batches separate from Bags/Jars
-            const jarBatches = filteredActive.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting');
-            const bagBatches = filteredActive.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
-            const fruitBatches = filteredActive.filter(b => b.stage === 'Fruiting');
-
-            const prodJars = jarBatches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-            const prodBags = bagBatches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-            const prodFruiting = fruitBatches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-
-            const elJars = document.getElementById('prod-qty-jars');
-            const elBags = document.getElementById('prod-qty-bags');
-            const elFruiting = document.getElementById('prod-qty-fruiting');
-            if (elJars) elJars.innerText = prodJars;
-            if (elBags) elBags.innerText = prodBags;
-            if (elFruiting) elFruiting.innerText = prodFruiting;
-
-            const elBJars = document.getElementById('prod-batches-jars');
-            const elBBags = document.getElementById('prod-batches-bags');
-            const elBFruit = document.getElementById('prod-batches-fruiting');
-            if (elBJars) elBJars.innerText = `${jarBatches.length} batch${jarBatches.length === 1 ? '' : 'es'}`;
-            if (elBBags) elBBags.innerText = `${bagBatches.length} batch${bagBatches.length === 1 ? '' : 'es'}`;
-            if (elBFruit) elBFruit.innerText = `${fruitBatches.length} batch${fruitBatches.length === 1 ? '' : 'es'}`;
-
-            const strainParam = selectedPipelineStrainFilter ? `&strain=${encodeURIComponent(selectedPipelineStrainFilter)}` : '';
-            const linkJars = document.getElementById('link-prod-jars');
-            const linkBags = document.getElementById('link-prod-bags');
-            const linkFruiting = document.getElementById('link-prod-fruiting');
-            if (linkJars) linkJars.href = `list.html?type=jars${strainParam}`;
-            if (linkBags) linkBags.href = `list.html?type=bags${strainParam}`;
-            if (linkFruiting) linkFruiting.href = `list.html?type=fruiting${strainParam}`;
+            renderRecentActivities(filteredActive);
 
             const stageMeta = [
                 { name: 'Grain Spawn', countId: 'stage-count-grain' },
