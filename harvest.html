@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Harvest Log & Capture - Garnish Farms - Mushrooms</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --primary-hover: #1e3d1a;
+            --accent: #4c9a2a;
+            --bg-light: #f4f7f2;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo-area h1 {
+            font-size: 1.15rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .logo-area p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            display: inline-block;
+        }
+        .sync-dot.connected { background-color: #16a34a; }
+        .sync-dot.error { background-color: #dc2626; }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.55rem 0.9rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        main {
+            flex: 1;
+            padding: 0.85rem;
+            max-width: 720px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .card-header h2 {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .form-group {
+            margin-bottom: 0.85rem;
+        }
+        label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.35rem;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #fff;
+            color: var(--text-main);
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+        }
+        .flush-pills {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.4rem;
+        }
+        .flush-btn {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.5rem 0.35rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+        }
+        .flush-btn.selected {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .outcome-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.55rem;
+        }
+        .outcome-option {
+            border: 1.5px solid var(--border);
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 0.6rem;
+            cursor: pointer;
+            text-align: left;
+        }
+        .outcome-option.selected {
+            border-color: var(--primary);
+            background: #e6f4ea;
+        }
+        .outcome-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+        .outcome-desc {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 0.15rem;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.8rem;
+        }
+        th, td {
+            padding: 0.55rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            background-color: var(--bg-light);
+        }
+        .flush-badge {
+            background: #e6f4ea;
+            color: #137333;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .summary-banner {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.45rem;
+            margin-bottom: 0.8rem;
+            text-align: center;
+        }
+        .summary-box {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.45rem;
+        }
+        .summary-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .summary-val {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo-area" style="text-decoration: none;">
+            <h1>Garnish Farms - Mushrooms</h1>
+            <p><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Connecting...</span></p>
+        </a>
+        <a href="index.html" class="btn btn-outline" style="padding: 0.4rem 0.75rem; font-size: 0.78rem;">← Home</a>
+    </header>
+
+    <main>
+        <!-- Capture Harvest Form -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Capture Harvest Details</h2>
+                <span id="batchPrevYieldBadge" style="font-size: 0.72rem; color: var(--primary); font-weight: 700;"></span>
+            </div>
+
+            <form id="harvestForm">
+                <div class="form-group">
+                    <label for="batchSelect">Select Batch</label>
+                    <select id="batchSelect" required onchange="onBatchChange()">
+                        <option value="">Loading batches...</option>
+                    </select>
+                </div>
+
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="harvestDate">Harvest Date (Editable)</label>
+                        <input type="date" id="harvestDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="harvestWeight">Harvest Weight (lbs)</label>
+                        <input type="number" step="0.01" min="0.01" id="harvestWeight" required placeholder="e.g. 2.45">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Which Flush is This Block On?</label>
+                    <div class="flush-pills" id="flushPills">
+                        <button type="button" class="flush-btn selected" data-flush="1">1st Flush</button>
+                        <button type="button" class="flush-btn" data-flush="2">2nd Flush</button>
+                        <button type="button" class="flush-btn" data-flush="3">3rd Flush</button>
+                        <button type="button" class="flush-btn" data-flush="4">4th+ Flush</button>
+                    </div>
+                    <input type="hidden" id="flushNumber" value="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Block Status After This Harvest</label>
+                    <div class="outcome-cards" id="outcomeCards">
+                        <div class="outcome-option selected" data-outcome="keep_fruiting">
+                            <div class="outcome-title">Keep in Fruiting</div>
+                            <div class="outcome-desc">Stays on dashboard for next flush</div>
+                        </div>
+                        <div class="outcome-option" data-outcome="complete_harvest">
+                            <div class="outcome-title">Final Harvest / Done</div>
+                            <div class="outcome-desc">Moves batch to Harvested status</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="batchOutcome" value="keep_fruiting">
+                </div>
+
+                <div class="form-group">
+                    <label for="harvestNotes">Harvest Notes (Optional)</label>
+                    <input type="text" id="harvestNotes" placeholder="Cap size, quality, soak before next flush...">
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%;" id="saveHarvestBtn">Save Harvest Entry</button>
+            </form>
+        </div>
+
+        <!-- Harvest History -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Harvest History</h2>
+                <select id="historyFilterStrain" onchange="renderHistory()" style="width: auto; padding: 0.35rem 0.6rem; font-size: 0.78rem;">
+                    <option value="">All Strains</option>
+                </select>
+            </div>
+
+            <div class="summary-banner">
+                <div class="summary-box">
+                    <div class="summary-label">Total Harvests</div>
+                    <div class="summary-val" id="histCount">0</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-label">Total Weight</div>
+                    <div class="summary-val" id="histTotalLbs">0.0 lbs</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-label">Avg / Harvest</div>
+                    <div class="summary-val" id="histAvgLbs">0.0 lbs</div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Batch ID</th>
+                            <th>Strain</th>
+                            <th>Flush</th>
+                            <th>Weight</th>
+                            <th>Notes</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="harvestHistoryBody">
+                        <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading harvest history...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const params = new URLSearchParams(window.location.search);
+        const preselectBatchId = params.get('id');
+
+        const LOCAL_HARVEST_KEY = 'garnish_farms_harvest_history_v1';
+        let batches = [];
+        let harvests = [];
+
+        function getTodayLocalISO() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            return new Date(now.getTime() - offset * 60000).toISOString().split('T')[0];
+        }
+
+        function setSyncState(state, message) {
+            document.getElementById('syncDot').className = 'sync-dot ' + state;
+            document.getElementById('syncStatus').innerText = message;
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function formatFlushLabel(num) {
+            const n = Number(num || 1);
+            if (n === 1) return '1st Flush';
+            if (n === 2) return '2nd Flush';
+            if (n === 3) return '3rd Flush';
+            return `${n}th+ Flush`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('harvestDate').value = getTodayLocalISO();
+            await loadBatches();
+            await loadHarvestHistory();
+        });
+
+        document.getElementById('flushPills').addEventListener('click', (e) => {
+            const btn = e.target.closest('.flush-btn');
+            if (!btn) return;
+            document.querySelectorAll('.flush-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            document.getElementById('flushNumber').value = btn.getAttribute('data-flush');
+        });
+
+        document.getElementById('outcomeCards').addEventListener('click', (e) => {
+            const card = e.target.closest('.outcome-option');
+            if (!card) return;
+            document.querySelectorAll('.outcome-option').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            document.getElementById('batchOutcome').value = card.getAttribute('data-outcome');
+        });
+
+        async function loadBatches() {
+            setSyncState('', 'Syncing...');
+            const { data, error } = await _supabase
+                .from('batches')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                setSyncState('error', 'Sync Error');
+                return;
+            }
+
+            batches = data || [];
+            setSyncState('connected', 'Cloud Synced');
+
+            const select = document.getElementById('batchSelect');
+            // Prioritize active fruiting batches first, then other active batches, then harvested batches
+            const sorted = [...batches].sort((a, b) => {
+                const score = (x) => (x.status === 'Active' && x.stage === 'Fruiting') ? 0 : (x.status === 'Active' ? 1 : 2);
+                return score(a) - score(b);
+            });
+
+            select.innerHTML = sorted.map(b => {
+                const statusTag = b.status === 'Active' ? b.stage : b.status;
+                return `<option value="${b.id}">${escapeHtml(b.batch_id)} — ${escapeHtml(b.strain)} (${statusTag}, Qty: ${b.quantity})</option>`;
+            }).join('');
+
+            if (preselectBatchId) {
+                select.value = preselectBatchId;
+            }
+            onBatchChange();
+        }
+
+        function onBatchChange() {
+            const selectedId = document.getElementById('batchSelect').value;
+            const batch = batches.find(b => String(b.id) === String(selectedId));
+            const badge = document.getElementById('batchPrevYieldBadge');
+            if (!batch) {
+                badge.innerText = '';
+                return;
+            }
+            const prevYield = Number(batch.harvest_weight || 0);
+            badge.innerText = `Logged to date: ${prevYield.toFixed(2)} lbs`;
+
+            // Auto-suggest next flush based on existing harvest history for this batch
+            const priorForBatch = harvests.filter(h => String(h.batch_db_id) === String(batch.id) || h.batch_id === batch.batch_id);
+            const nextFlush = Math.min(4, priorForBatch.length + 1);
+            document.querySelectorAll('.flush-btn').forEach(b => {
+                b.classList.toggle('selected', Number(b.getAttribute('data-flush')) === nextFlush);
+            });
+            document.getElementById('flushNumber').value = String(nextFlush);
+        }
+
+        async function loadHarvestHistory() {
+            let dbRecords = [];
+            try {
+                const { data, error } = await _supabase
+                    .from('harvests')
+                    .select('*')
+                    .order('harvest_date', { ascending: false });
+                if (!error && data) {
+                    dbRecords = data.map(r => ({
+                        id: r.id,
+                        source: 'supabase',
+                        batch_db_id: r.batch_db_id,
+                        batch_id: r.batch_id,
+                        strain: r.strain,
+                        harvest_date: r.harvest_date,
+                        flush_number: r.flush_number,
+                        weight_lbs: Number(r.weight_lbs || 0),
+                        notes: r.notes || ''
+                    }));
+                }
+            } catch (e) {}
+
+            let localRecords = [];
+            try {
+                localRecords = JSON.parse(localStorage.getItem(LOCAL_HARVEST_KEY) || '[]');
+            } catch (e) {}
+
+            // Combine cloud records + any local-only records (avoid duplicates if synced)
+            const cloudKeys = new Set(dbRecords.map(r => `${r.batch_id}|${r.harvest_date}|${r.flush_number}|${r.weight_lbs}`));
+            const uniqueLocal = localRecords.filter(r => !cloudKeys.has(`${r.batch_id}|${r.harvest_date}|${r.flush_number}|${r.weight_lbs}`));
+
+            harvests = [...dbRecords, ...uniqueLocal].sort((a, b) => (b.harvest_date || '').localeCompare(a.harvest_date || ''));
+
+            // Also backfill legacy batches that had harvest_weight > 0 before harvest history existed
+            if (harvests.length === 0 && batches.length > 0) {
+                const legacy = batches.filter(b => Number(b.harvest_weight || 0) > 0).map(b => ({
+                    id: 'legacy-' + b.id,
+                    source: 'legacy',
+                    batch_db_id: b.id,
+                    batch_id: b.batch_id,
+                    strain: b.strain,
+                    harvest_date: b.date,
+                    flush_number: 1,
+                    weight_lbs: Number(b.harvest_weight || 0),
+                    notes: b.notes || 'Recorded on batch'
+                }));
+                harvests = legacy;
+            }
+
+            populateStrainDropdown();
+            onBatchChange();
+            renderHistory();
+        }
+
+        function populateStrainDropdown() {
+            const select = document.getElementById('historyFilterStrain');
+            const current = select.value;
+            const strains = [...new Set(harvests.map(h => h.strain).filter(Boolean))];
+            select.innerHTML = `<option value="">All Strains</option>` + strains.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            select.value = current;
+        }
+
+        function renderHistory() {
+            const strainFilter = document.getElementById('historyFilterStrain').value;
+            const filtered = strainFilter ? harvests.filter(h => h.strain === strainFilter) : harvests;
+
+            const totalLbs = filtered.reduce((sum, h) => sum + Number(h.weight_lbs || 0), 0);
+            const avgLbs = filtered.length ? (totalLbs / filtered.length) : 0;
+
+            document.getElementById('histCount').innerText = filtered.length;
+            document.getElementById('histTotalLbs').innerText = `${totalLbs.toFixed(2)} lbs`;
+            document.getElementById('histAvgLbs').innerText = `${avgLbs.toFixed(2)} lbs`;
+
+            const tbody = document.getElementById('harvestHistoryBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No harvests logged yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(h => `
+                <tr>
+                    <td>${escapeHtml(h.harvest_date)}</td>
+                    <td><strong>${escapeHtml(h.batch_id)}</strong></td>
+                    <td>${escapeHtml(h.strain)}</td>
+                    <td><span class="flush-badge">${formatFlushLabel(h.flush_number)}</span></td>
+                    <td><strong>${Number(h.weight_lbs).toFixed(2)} lbs</strong></td>
+                    <td style="color: var(--text-muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(h.notes || '—')}</td>
+                    <td>
+                        ${h.source !== 'legacy' ? `<button type="button" class="btn btn-outline" style="padding: 0.2rem 0.45rem; font-size: 0.68rem; color: #c5221f; border-color: #c5221f;" onclick="deleteHarvest('${escapeHtml(h.id)}', '${escapeHtml(h.source)}')">Del</button>` : '<span style="font-size:0.68rem;color:var(--text-muted);">Batch</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('harvestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveHarvestBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving Harvest...';
+
+            const batchDbId = document.getElementById('batchSelect').value;
+            const batch = batches.find(b => String(b.id) === String(batchDbId));
+            if (!batch) {
+                alert('Please select a valid batch.');
+                btn.disabled = false;
+                btn.innerText = 'Save Harvest Entry';
+                return;
+            }
+
+            const harvestDate = document.getElementById('harvestDate').value;
+            const weightLbs = Number(document.getElementById('harvestWeight').value || 0);
+            const flushNum = Number(document.getElementById('flushNumber').value || 1);
+            const outcome = document.getElementById('batchOutcome').value;
+            const notes = document.getElementById('harvestNotes').value.trim();
+
+            const entry = {
+                batch_db_id: batch.id,
+                batch_id: batch.batch_id,
+                strain: batch.strain,
+                harvest_date: harvestDate,
+                flush_number: flushNum,
+                weight_lbs: weightLbs,
+                notes: notes
+            };
+
+            // 1. Try saving to Supabase `harvests` table, and always mirror to localStorage if table doesn't exist yet
+            const { error: insertErr } = await _supabase.from('harvests').insert([entry]);
+            if (insertErr) {
+                const localList = JSON.parse(localStorage.getItem(LOCAL_HARVEST_KEY) || '[]');
+                localList.unshift({ ...entry, id: 'loc-' + Date.now(), source: 'local' });
+                localStorage.setItem(LOCAL_HARVEST_KEY, JSON.stringify(localList));
+            }
+
+            // 2. Update cumulative harvest_weight and stage/status on the batch in Supabase
+            const newTotalYield = Number(batch.harvest_weight || 0) + weightLbs;
+            const flushSummary = `[${harvestDate} Flush #${flushNum}: ${weightLbs.toFixed(2)} lbs${notes ? ' - ' + notes : ''}]`;
+            const updatedNotes = batch.notes ? `${batch.notes} ${flushSummary}` : flushSummary;
+
+            const batchUpdate = {
+                harvest_weight: Number(newTotalYield.toFixed(2)),
+                notes: updatedNotes
+            };
+
+            if (outcome === 'complete_harvest') {
+                batchUpdate.stage = 'Harvested';
+                batchUpdate.status = 'Harvested';
+            } else {
+                batchUpdate.stage = 'Fruiting';
+                batchUpdate.status = 'Active';
+            }
+
+            const { error: batchErr } = await _supabase
+                .from('batches')
+                .update(batchUpdate)
+                .eq('id', batch.id);
+
+            if (batchErr) {
+                alert('Error updating batch yield: ' + batchErr.message);
+            }
+
+            document.getElementById('harvestWeight').value = '';
+            document.getElementById('harvestNotes').value = '';
+            btn.disabled = false;
+            btn.innerText = 'Save Harvest Entry';
+
+            await loadBatches();
+            await loadHarvestHistory();
+        });
+
+        async function deleteHarvest(id, source) {
+            if (!confirm('Delete this harvest entry?')) return;
+            if (source === 'supabase') {
+                await _supabase.from('harvests').delete().eq('id', id);
+            } else if (source === 'local') {
+                const localList = JSON.parse(localStorage.getItem(LOCAL_HARVEST_KEY) || '[]');
+                localStorage.setItem(LOCAL_HARVEST_KEY, JSON.stringify(localList.filter(x => String(x.id) !== String(id))));
+            }
+            await loadHarvestHistory();
+        }
+    </script>
+</body>
+</html>

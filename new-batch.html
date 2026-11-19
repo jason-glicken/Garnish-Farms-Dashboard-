@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Batch Entry - Garnish Farms - Mushrooms</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --primary-hover: #1e3d1a;
+            --accent: #4c9a2a;
+            --bg-light: #f4f7f2;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo-area h1 {
+            font-size: 1.15rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .logo-area p {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.55rem 0.95rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+        main {
+            flex: 1;
+            padding: 0.85rem;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+        .form-group {
+            margin-bottom: 0.9rem;
+        }
+        label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.35rem;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #fff;
+            color: var(--text-main);
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.65rem;
+        }
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .pill-btn {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.4rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .pill-btn.selected {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="index.html" class="logo-area" style="text-decoration: none;">
+            <h1>Garnish Farms - Mushrooms</h1>
+            <p id="pageSubtitle">New Production Batch</p>
+        </a>
+        <a href="index.html" class="btn btn-outline" style="padding: 0.4rem 0.75rem; font-size: 0.78rem;">← Home</a>
+    </header>
+
+    <main>
+        <div class="card">
+            <form id="batchForm">
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="batchId">Batch ID</label>
+                        <input type="text" id="batchId" required placeholder="e.g. GF-2026-01">
+                    </div>
+                    <div class="form-group">
+                        <label for="batchDate">Date (Editable)</label>
+                        <input type="date" id="batchDate" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="strain">Strain</label>
+                    <div class="pill-group" id="strainPresets" style="margin-bottom: 0.45rem;">
+                        <button type="button" class="pill-btn" data-val="Blue Oyster">Blue Oyster</button>
+                        <button type="button" class="pill-btn" data-val="Lion's Mane">Lion's Mane</button>
+                        <button type="button" class="pill-btn" data-val="Chestnut">Chestnut</button>
+                        <button type="button" class="pill-btn" data-val="Pioppino">Pioppino</button>
+                        <button type="button" class="pill-btn" data-val="King Trumpet">King Trumpet</button>
+                        <button type="button" class="pill-btn" data-val="Shiitake">Shiitake</button>
+                    </div>
+                    <input type="text" id="strain" required placeholder="Select preset or type strain...">
+                </div>
+
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="stage">Production Stage</label>
+                        <select id="stage">
+                            <option value="Grain Spawn">Grain Spawn</option>
+                            <option value="Bulk Substrate">Bulk Substrate</option>
+                            <option value="Fruiting">Fruiting</option>
+                            <option value="Harvested">Harvested</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status</label>
+                        <select id="status">
+                            <option value="Active">Active</option>
+                            <option value="Harvested">Harvested</option>
+                            <option value="Contaminated">Contaminated</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" min="1" value="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="container">Container Type</label>
+                        <select id="container">
+                            <option value="Jar">Jar</option>
+                            <option value="Bag">Bag</option>
+                            <option value="Tub">Tub</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row-2">
+                    <div class="form-group">
+                        <label for="substrate">Substrate</label>
+                        <input type="text" id="substrate" placeholder="e.g. Rye, Master's Mix">
+                    </div>
+                    <div class="form-group">
+                        <label for="harvestWeight">Total Harvest Yield (lbs)</label>
+                        <input type="number" step="0.01" min="0" id="harvestWeight" value="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Notes</label>
+                    <textarea id="notes" rows="2" placeholder="Inoculation source, shake notes, flush notes..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button type="submit" class="btn" style="flex: 1;" id="saveBtn">Save Batch</button>
+                    <a id="logHarvestLink" href="#" class="btn btn-outline" style="display: none;">Log Harvest ➔</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const params = new URLSearchParams(window.location.search);
+        const editId = params.get('id');
+
+        function getTodayLocalISO() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            const local = new Date(now.getTime() - offset * 60000);
+            return local.toISOString().split('T')[0];
+        }
+
+        let userEditedBatchId = false;
+
+        function formatMMDDY(isoDateStr) {
+            const parts = (isoDateStr || getTodayLocalISO()).split('-');
+            if (parts.length !== 3) return '';
+            const mm = parts[1];
+            const dd = parts[2];
+            const y = parts[0].slice(-1);
+            return `${mm}${dd}${y}`;
+        }
+
+        function getStrainPrefix(strainName) {
+            const cleaned = (strainName || '').trim().toLowerCase();
+            if (!cleaned) return 'GF';
+            if (cleaned === "lion's mane" || cleaned === "lions mane" || cleaned === 'li' || cleaned === 'lm') return 'LM';
+            if (cleaned === 'blue oyster' || cleaned === 'bo') return 'BO';
+            if (cleaned === 'chestnut' || cleaned === 'ch') return 'CH';
+            if (cleaned === 'pioppino' || cleaned === 'pi') return 'PI';
+            if (cleaned === 'king trumpet' || cleaned === 'kt') return 'KT';
+            if (cleaned === 'shiitake' || cleaned === 'sh') return 'SH';
+            const words = cleaned.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+            if (words.length >= 2) {
+                return (words[0][0] + words[1][0]).toUpperCase();
+            }
+            return cleaned.slice(0, 2).toUpperCase();
+        }
+
+        function updateAutoBatchId() {
+            if (editId || userEditedBatchId) return;
+            const strainVal = document.getElementById('strain').value;
+            const dateVal = document.getElementById('batchDate').value;
+            const prefix = getStrainPrefix(strainVal);
+            const stamp = formatMMDDY(dateVal);
+            document.getElementById('batchId').value = `${prefix} - ${stamp}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Default date field to today's local date, while keeping it fully editable
+            const dateInput = document.getElementById('batchDate');
+            dateInput.value = getTodayLocalISO();
+
+            if (editId) {
+                document.getElementById('pageSubtitle').innerText = 'Edit Production Batch';
+                document.getElementById('saveBtn').innerText = 'Update Batch';
+                const harvestLink = document.getElementById('logHarvestLink');
+                harvestLink.style.display = 'inline-flex';
+                harvestLink.href = `harvest.html?id=${encodeURIComponent(editId)}`;
+                await loadBatchForEdit(editId);
+            } else {
+                updateAutoBatchId();
+            }
+        });
+
+        document.getElementById('batchId').addEventListener('input', () => {
+            userEditedBatchId = true;
+        });
+
+        document.getElementById('batchDate').addEventListener('change', () => {
+            updateAutoBatchId();
+        });
+
+        document.getElementById('strain').addEventListener('input', () => {
+            updateAutoBatchId();
+        });
+
+        document.getElementById('strainPresets').addEventListener('click', (e) => {
+            const btn = e.target.closest('.pill-btn');
+            if (!btn) return;
+            const val = btn.getAttribute('data-val');
+            document.getElementById('strain').value = val;
+            document.querySelectorAll('#strainPresets .pill-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            userEditedBatchId = false;
+            updateAutoBatchId();
+        });
+
+        async function loadBatchForEdit(id) {
+            const { data, error } = await _supabase.from('batches').select('*').eq('id', id).single();
+            if (error || !data) return;
+
+            document.getElementById('batchId').value = data.batch_id || '';
+            if (data.date) document.getElementById('batchDate').value = data.date;
+            document.getElementById('strain').value = data.strain || '';
+            document.getElementById('stage').value = data.stage || 'Grain Spawn';
+            document.getElementById('status').value = data.status || 'Active';
+            document.getElementById('quantity').value = data.quantity || 1;
+            document.getElementById('container').value = data.container || 'Jar';
+            document.getElementById('substrate').value = data.substrate || '';
+            document.getElementById('harvestWeight').value = data.harvest_weight || 0;
+            document.getElementById('notes').value = data.notes || '';
+
+            document.querySelectorAll('#strainPresets .pill-btn').forEach(b => {
+                if (b.getAttribute('data-val') === data.strain) b.classList.add('selected');
+            });
+        }
+
+        document.getElementById('batchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const payload = {
+                batch_id: document.getElementById('batchId').value.trim(),
+                date: document.getElementById('batchDate').value,
+                strain: document.getElementById('strain').value.trim(),
+                stage: document.getElementById('stage').value,
+                status: document.getElementById('status').value,
+                quantity: Number(document.getElementById('quantity').value || 1),
+                container: document.getElementById('container').value,
+                substrate: document.getElementById('substrate').value.trim(),
+                harvest_weight: Number(document.getElementById('harvestWeight').value || 0),
+                notes: document.getElementById('notes').value.trim()
+            };
+
+            let res;
+            if (editId) {
+                res = await _supabase.from('batches').update(payload).eq('id', editId);
+            } else {
+                res = await _supabase.from('batches').insert([payload]);
+            }
+
+            if (res.error) {
+                alert('Error saving batch: ' + res.error.message);
+                btn.disabled = false;
+                btn.innerText = editId ? 'Update Batch' : 'Save Batch';
+                return;
+            }
+
+            window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
