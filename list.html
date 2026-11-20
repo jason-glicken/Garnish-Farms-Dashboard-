@@ -107,6 +107,20 @@
         function formatContainerUnitId(batchId, strain, dateStr, index) {
             return `${getBaseBatchId(batchId, strain, dateStr)}-${index}`;
         }
+        function getStrainCardTheme(strain) {
+            const code = formatStrainCode(strain);
+            const themes = {
+                'LM': { bg: '#ffffff', border: '#cbd5e1' },
+                'BO': { bg: '#eff6ff', border: '#3b82f6' },
+                'RE': { bg: '#fff5f0', border: '#c2410c' },
+                'GT': { bg: '#fefce8', border: '#ca8a04' },
+                'CH': { bg: '#fdf8f6', border: '#92400e' },
+                'SH': { bg: '#f5f3ff', border: '#6d28d9' },
+                'PO': { bg: '#fdf2f8', border: '#db2777' },
+                'PI': { bg: '#f0fdf4', border: '#15803d' }
+            };
+            return themes[code] || { bg: '#f8fafc', border: '#4c9a2a' };
+        }
         function getStageClockFromNotes(notesStr, stageName) {
             if (!notesStr || !stageName) return null;
             const stageCode = stageName === 'Bulk Substrate' ? 'SUB' : (stageName === 'Fruiting' ? 'FRT' : 'GRN');
@@ -210,6 +224,7 @@
             }
             listEl.innerHTML = unitCards.map(u => {
                 const { batch, unitIndex, totalUnits, unitId, stageDate, days, targetDays } = u;
+                const theme = getStrainCardTheme(batch.strain);
                 const pastTarget = days > targetDays;
                 const badgeClass = pastTarget ? 'badge-yellow' : 'badge-green';
                 const badgeText = pastTarget ? `Past ${targetDays}d` : `Day ${days}/${targetDays}`;
@@ -218,7 +233,7 @@
                     ? `<a href="harvest.html?id=${batch.id}" class="btn" style="padding: 0.25rem 0.55rem; font-size: 0.68rem; background-color: #d97706;">Harvest ➔</a>`
                     : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.68rem;">Edit Batch</a>`;
                 return `
-                    <div class="container-card">
+                    <div class="container-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                             <div>
                                 <strong style="font-size: 0.88rem; color: var(--text-main);">${escapeAttr(unitId)}</strong>

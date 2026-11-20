@@ -961,6 +961,21 @@
             return `${base}-${index}`;
         }
 
+        function getStrainCardTheme(strain) {
+            const code = formatStrainCode(strain);
+            const themes = {
+                'LM': { bg: '#ffffff', border: '#cbd5e1', badgeBg: '#f1f5f9', badgeText: '#334155' },
+                'BO': { bg: '#eff6ff', border: '#3b82f6', badgeBg: '#dbeafe', badgeText: '#1d4ed8' },
+                'RE': { bg: '#fff5f0', border: '#c2410c', badgeBg: '#ffedd5', badgeText: '#9a3412' },
+                'GT': { bg: '#fefce8', border: '#ca8a04', badgeBg: '#fef9c3', badgeText: '#854d0e' },
+                'CH': { bg: '#fdf8f6', border: '#92400e', badgeBg: '#f3e8e2', badgeText: '#78350f' },
+                'SH': { bg: '#f5f3ff', border: '#6d28d9', badgeBg: '#ede9fe', badgeText: '#5b21b6' },
+                'PO': { bg: '#fdf2f8', border: '#db2777', badgeBg: '#fce7f3', badgeText: '#9d174d' },
+                'PI': { bg: '#f0fdf4', border: '#15803d', badgeBg: '#dcfce7', badgeText: '#166534' }
+            };
+            return themes[code] || { bg: '#f8fafc', border: '#4c9a2a', badgeBg: '#e6f4ea', badgeText: '#137333' };
+        }
+
         function jumpToUpcomingBatch(dbId, strain, stage) {
             const cardKey = `${stage}::${strain}`;
             expandedPipelineCards.add(cardKey);
@@ -1258,79 +1273,149 @@
                         ? `<span style="background: #fef3c7; color: #b45309; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700; margin-left: 0.35rem;">⚠️ Shake Due</span>`
                         : '';
 
-                    const expandedHtml = isExpanded ? `
-                        <div class="expanded-batches" onclick="event.stopPropagation()">
-                            ${g.items.map(item => {
-                                const days = Math.max(0, getDaysActive(getEffectiveStageDate(item)));
-                                const stageTargets = { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 10 };
-                                const targetDays = stageTargets[stage] || 14;
-                                const pct = Math.min(100, Math.round((days / targetDays) * 100));
-                                const barColor = days >= targetDays ? '#d97706' : '#4c9a2a';
+                    const theme = getStrainCardTheme(g.strain);
 
-                                const alreadyShaken = stage === 'Grain Spawn' && isBatchShaken(item);
-                                const itemShake = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
-                                    ? `<span style="background: #fef3c7; color: #b45309; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">⚠️ Shake Due</span>`
-                                    : (alreadyShaken
-                                        ? `<span style="background: #e6f4ea; color: #137333; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">Shaken ✓</span>`
-                                        : '');
+                    const renderBatchCardRow = (item) => {
+                        const days = Math.max(0, getDaysActive(getEffectiveStageDate(item)));
+                        const stageTargets = { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 10 };
+                        const targetDays = stageTargets[stage] || 14;
+                        const pct = Math.min(100, Math.round((days / targetDays) * 100));
+                        const barColor = days >= targetDays ? '#d97706' : '#4c9a2a';
 
-                                const shakeBtn = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
-                                    ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
-                                    : '';
+                        const alreadyShaken = stage === 'Grain Spawn' && isBatchShaken(item);
+                        const itemShake = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
+                            ? `<span style="background: #fef3c7; color: #b45309; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">⚠️ Shake Due</span>`
+                            : (alreadyShaken
+                                ? `<span style="background: #e6f4ea; color: #137333; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">Shaken ✓</span>`
+                                : '');
 
-                                const yieldTag = Number(item.harvestWeight || 0) > 0
-                                    ? ` • <strong>${Number(item.harvestWeight).toFixed(1)} lbs</strong>`
-                                    : '';
+                        const shakeBtn = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
+                            ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
+                            : '';
 
-                                const actionBtn = stage === 'Fruiting'
-                                    ? `<a href="harvest.html?id=${item.dbId}" class="btn" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: #d97706;">Harvest ➔</a>`
-                                    : `<button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
+                        const yieldTag = Number(item.harvestWeight || 0) > 0
+                            ? ` • <strong>${Number(item.harvestWeight).toFixed(1)} lbs</strong>`
+                            : '';
 
-                                return `
-                                    <div class="sub-batch-row" style="flex-direction: column; align-items: stretch;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
-                                            <div>
-                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity))} ${itemShake}</div>
-                                                <div style="font-size: 0.68rem; color: var(--text-muted);">${escapeAttr(item.date)} • ${item.quantity} ${escapeAttr(item.container || '')}${yieldTag}</div>
+                        const actionBtn = stage === 'Fruiting'
+                            ? `<a href="harvest.html?id=${item.dbId}" class="btn" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: #d97706;">Harvest ➔</a>`
+                            : `<button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
+
+                        return `
+                            <div class="sub-batch-row" style="flex-direction: column; align-items: stretch; background: rgba(255,255,255,0.85); border: 1px solid rgba(0,0,0,0.06);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity))} ${itemShake}</div>
+                                        <div style="font-size: 0.68rem; color: var(--text-muted);">${escapeAttr(item.date)} • ${item.quantity} ${escapeAttr(item.container || '')}${yieldTag}</div>
+                                    </div>
+                                    <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                                        ${shakeBtn}
+                                        <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Set Days</button>
+                                        <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Edit</a>
+                                        ${actionBtn}
+                                    </div>
+                                </div>
+                                <div class="day-bar-wrap">
+                                    <div class="day-bar-meta">
+                                        <span>Day ${days}</span>
+                                        <span>Target: ${targetDays}d</span>
+                                    </div>
+                                    <div class="day-bar-track">
+                                        <div class="day-bar-fill" style="width: ${pct}%; background-color: ${barColor};"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    };
+
+                    const renderGrainIndividualJars = () => {
+                        const unitCards = [];
+                        g.items.forEach(item => {
+                            const qty = Math.max(1, Number(item.quantity || 1));
+                            const stageDate = getEffectiveStageDate(item);
+                            const days = Math.max(0, getDaysActive(stageDate));
+                            const targetDays = 14;
+                            for (let idx = 1; idx <= qty; idx++) {
+                                unitCards.push({
+                                    item,
+                                    unitIndex: idx,
+                                    totalUnits: qty,
+                                    unitId: formatContainerUnitId(item.batchId, item.strain, item.date, idx),
+                                    stageDate,
+                                    days,
+                                    targetDays
+                                });
+                            }
+                        });
+
+                        return unitCards.map(u => {
+                            const { item, unitIndex, totalUnits, unitId, stageDate, days, targetDays } = u;
+                            const alreadyShaken = isBatchShaken(item);
+                            const itemShake = (days >= 14 && !alreadyShaken)
+                                ? `<span style="background: #fef3c7; color: #b45309; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.6rem; font-weight: 700;">⚠️ Shake</span>`
+                                : (alreadyShaken
+                                    ? `<span style="background: #e6f4ea; color: #137333; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.6rem; font-weight: 700;">Shaken ✓</span>`
+                                    : '');
+
+                            const shakeBtn = (days >= 14 && !alreadyShaken)
+                                ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.2rem 0.42rem; font-size: 0.62rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
+                                : '';
+
+                            const subInfo = item.substrate ? ` • ${escapeAttr(item.substrate)}` : '';
+
+                            return `
+                                <div class="sub-batch-row" style="flex-direction: column; align-items: stretch; background: rgba(255,255,255,0.92); border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
+                                        <div>
+                                            <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">
+                                                ${escapeAttr(unitId)}
+                                                <span style="font-size: 0.66rem; font-weight: 500; color: var(--text-muted);">(${escapeAttr(item.container || 'Jar')} ${unitIndex} of ${totalUnits})</span>
+                                                ${itemShake}
                                             </div>
-                                            <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
-                                                ${shakeBtn}
-                                                <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Set Days</button>
-                                                <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Edit</a>
-                                                ${actionBtn}
-                                            </div>
+                                            <div style="font-size: 0.66rem; color: var(--text-muted);">Date: ${escapeAttr(item.date)} • Stage Start: ${escapeAttr(stageDate)}${subInfo}</div>
                                         </div>
-                                        <div class="day-bar-wrap">
-                                            <div class="day-bar-meta">
-                                                <span>Day ${days}</span>
-                                                <span>Target: ${targetDays}d</span>
-                                            </div>
-                                            <div class="day-bar-track">
-                                                <div class="day-bar-fill" style="width: ${pct}%; background-color: ${barColor};"></div>
-                                            </div>
+                                        <div style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                                            ${shakeBtn}
+                                            <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${item.dbId})" style="padding: 0.2rem 0.42rem; font-size: 0.62rem;">Set Days</button>
+                                            <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.2rem 0.42rem; font-size: 0.62rem;">Edit</a>
+                                            <button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.2rem 0.45rem; font-size: 0.62rem; background-color: var(--accent);">Advance ➔</button>
                                         </div>
                                     </div>
-                                `;
-                            }).join('')}
+                                    ${renderTimeline30Bar(days, targetDays)}
+                                </div>
+                            `;
+                        }).join('');
+                    };
+
+                    const expandedItemsHtml = stage === 'Grain Spawn'
+                        ? renderGrainIndividualJars()
+                        : g.items.map(renderBatchCardRow).join('');
+
+                    const expandedHtml = isExpanded ? `
+                        <div class="expanded-batches" onclick="event.stopPropagation()">
+                            ${expandedItemsHtml}
                             <div style="text-align: right; margin-top: 0.15rem;">
                                 <button type="button" class="filter-log-link" data-strain="${escapeAttr(g.strain)}" style="background: none; border: none; color: var(--primary); font-size: 0.7rem; font-weight: 600; cursor: pointer; text-decoration: underline;">Filter full log ↓</button>
                             </div>
                         </div>
                     ` : '';
 
-
                     // Stage-only summary: container quantities in this stage + number of batches in this stage
                     const batchCount = g.items.length;
                     const batchLabel = `${batchCount} batch${batchCount === 1 ? '' : 'es'}`;
 
                     return `
-                        <div class="batch-card pipeline-strain-card" data-strain="${escapeAttr(g.strain)}" data-stage="${escapeAttr(stage)}">
+                        <div class="batch-card pipeline-strain-card" data-strain="${escapeAttr(g.strain)}" data-stage="${escapeAttr(stage)}" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border}; border-top: 1px solid rgba(0,0,0,0.06); border-right: 1px solid rgba(0,0,0,0.06); border-bottom: 1px solid rgba(0,0,0,0.06);">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.3rem;">
                                 <div>
-                                    <div class="batch-id">${escapeAttr(g.strain)}${shakeAlert}</div>
-                                    <div class="batch-strain" style="margin-top: 0.1rem;">Stage Qty: <strong>${g.totalQty}</strong>${breakdownText} • <strong>${batchLabel}</strong></div>
+                                    <div class="batch-id" style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
+                                        <span>${escapeAttr(g.strain)}</span>
+                                        <span style="background: ${theme.badgeBg}; color: ${theme.badgeText}; padding: 0.08rem 0.38rem; border-radius: 999px; font-size: 0.64rem; font-weight: 700;">${escapeAttr(formatStrainCode(g.strain))}</span>
+                                        ${shakeAlert}
+                                    </div>
+                                    <div class="batch-strain" style="margin-top: 0.15rem;">Stage Qty: <strong>${g.totalQty}</strong>${breakdownText} • <strong>${batchLabel}</strong></div>
                                 </div>
-                                <span style="font-size: 0.72rem; color: var(--accent); font-weight: 700; margin-top: 0.1rem;">${isExpanded ? 'Hide ▲' : 'Details ▼'}</span>
+                                <span style="font-size: 0.72rem; color: ${theme.badgeText}; font-weight: 700; margin-top: 0.1rem;">${isExpanded ? 'Hide ▲' : 'Details ▼'}</span>
                             </div>
                             ${expandedHtml}
                         </div>
