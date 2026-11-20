@@ -714,7 +714,7 @@
             tbody.innerHTML = records.slice(0, 8).map(r => `
                 <tr>
                     <td>${escapeAttr(r.harvest_date)}</td>
-                    <td><strong>${escapeAttr(r.batch_id)}</strong></td>
+                    <td><strong>${escapeAttr(getBaseBatchId(r.batch_id, r.strain, r.harvest_date))}</strong></td>
                     <td>${escapeAttr(r.strain)}</td>
                     <td><span class="badge badge-active">${flushText(r.flush_number)} Flush</span></td>
                     <td><strong>${Number(r.weight_lbs || 0).toFixed(2)} lbs</strong></td>
@@ -902,12 +902,13 @@
             if (!cleaned) return 'BATCH';
             const lower = cleaned.toLowerCase();
             if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
-            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LI';
-            if (lower.includes('reishi')) return 'RE';
-            if (lower.includes('chestnut')) return 'CH';
-            if (lower.includes('shiitake')) return 'SH';
-            if (lower.includes('pink oyster')) return 'PO';
-            if (lower.includes('pearl oyster')) return 'OY';
+            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LM';
+            if (lower.includes('golden teacher') || lower === 'gt') return 'GT';
+            if (lower.includes('reishi') || lower === 're') return 'RE';
+            if (lower.includes('chestnut') || lower === 'ch') return 'CH';
+            if (lower.includes('shiitake') || lower === 'sh') return 'SH';
+            if (lower.includes('pink oyster') || lower === 'po') return 'PO';
+            if (lower.includes('pearl oyster') || lower === 'oy') return 'OY';
 
             const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
             if (words.length >= 2) {
@@ -920,10 +921,7 @@
             if (!dateStr) return '';
             const isoMatch = String(dateStr).match(/(\d{4})-(\d{2})-(\d{2})/);
             if (isoMatch) {
-                const yy = isoMatch[1].slice(2);
-                const mm = isoMatch[2];
-                const dd = isoMatch[3];
-                return `${mm}${dd}${yy}`;
+                return `${isoMatch[2]}${isoMatch[3]}${isoMatch[1].slice(2)}`;
             }
             const slashMatch = String(dateStr).match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
             if (slashMatch) {
@@ -935,18 +933,32 @@
             return '';
         }
 
-        function formatDisplayBatchId(batchId, strain, dateStr) {
+        function getBaseBatchId(batchId, strain, dateStr) {
             const strainCode = formatStrainCode(strain);
             const mmddyy = formatMMDDYY(dateStr);
             if (mmddyy) {
                 return `${strainCode}-${mmddyy}`;
             }
-            const raw = String(batchId || '').trim();
+            const raw = String(batchId || '').trim().replace(/^GF[-_]?/i, '');
             const embeddedDate = raw.match(/(\d{6})/);
             if (embeddedDate) {
                 return `${strainCode}-${embeddedDate[1]}`;
             }
             return raw ? `${strainCode}-${raw}` : strainCode;
+        }
+
+        function formatDisplayBatchId(batchId, strain, dateStr, quantity) {
+            const base = getBaseBatchId(batchId, strain, dateStr);
+            const qty = Math.max(1, Number(quantity || 1));
+            if (qty > 1) {
+                return `${base}-1..${qty}`;
+            }
+            return `${base}-1`;
+        }
+
+        function formatContainerUnitId(batchId, strain, dateStr, index) {
+            const base = getBaseBatchId(batchId, strain, dateStr);
+            return `${base}-${index}`;
         }
 
         function jumpToUpcomingBatch(dbId, strain, stage) {
@@ -1070,7 +1082,7 @@
                         <div style="background: #f9fbf8; border: 1px solid var(--border); border-radius: 6px; padding: 0.42rem 0.5rem;">
                             <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.73rem;">
                                 <a href="#pipeline-${t.item.dbId}" class="upcoming-jump-link" data-dbid="${t.item.dbId}" data-strain="${escapeAttr(t.item.strain)}" data-stage="${escapeAttr(t.item.stage)}" style="color: var(--text-main); text-decoration: none;">
-                                    <strong>${escapeAttr(formatDisplayBatchId(t.item.batchId, t.item.strain, t.item.date))}</strong> • ${escapeAttr(t.item.stage)} (${t.item.quantity} ${escapeAttr(t.item.container || '')})${shakeTag}
+                                    <strong>${escapeAttr(formatDisplayBatchId(t.item.batchId, t.item.strain, t.item.date, t.item.quantity))}</strong> • ${escapeAttr(t.item.stage)} (${t.item.quantity} ${escapeAttr(t.item.container || '')})${shakeTag}
                                 </a>
                                 ${stageActionLink}
                             </div>
@@ -1121,6 +1133,7 @@
                         label: `Moved to Fruiting`,
                         batchId: b.batchId,
                         strain: b.strain,
+                        quantity: b.quantity,
                         meta: `${b.quantity} ${b.container || ''}`.trim()
                     });
                 }
@@ -1130,6 +1143,7 @@
                         label: `Moved to Bulk Substrate`,
                         batchId: b.batchId,
                         strain: b.strain,
+                        quantity: b.quantity,
                         meta: `${b.quantity} ${b.container || ''}`.trim()
                     });
                 }
@@ -1139,6 +1153,7 @@
                         label: `Grain Shaken`,
                         batchId: b.batchId,
                         strain: b.strain,
+                        quantity: b.quantity,
                         meta: `${b.quantity} ${b.container || ''}`.trim()
                     });
                 });
@@ -1149,6 +1164,7 @@
                         label: `Harvested ${Number(b.harvestWeight).toFixed(1)} lbs`,
                         batchId: b.batchId,
                         strain: b.strain,
+                        quantity: b.quantity,
                         meta: b.stage || ''
                     });
                 }
@@ -1158,7 +1174,8 @@
                     label: `Logged batch (${b.stage || 'Grain Spawn'})`,
                     batchId: b.batchId,
                     strain: b.strain,
-                    meta: `${b.quantity} ${b.container || ''}`.trim()
+                    quantity: b.quantity,
+                        meta: `${b.quantity} ${b.container || ''}`.trim()
                 });
             });
 
@@ -1177,7 +1194,7 @@
             listEl.innerHTML = topFive.map(act => `
                 <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.55rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.72rem;">
                     <div style="min-width: 0;">
-                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
+                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date, act.quantity))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
                     </div>
                     <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap;">${escapeAttr(act.date || '')}</span>
                 </div>
@@ -1273,7 +1290,7 @@
                                     <div class="sub-batch-row" style="flex-direction: column; align-items: stretch;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                             <div>
-                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date))} ${itemShake}</div>
+                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity))} ${itemShake}</div>
                                                 <div style="font-size: 0.68rem; color: var(--text-muted);">${escapeAttr(item.date)} • ${item.quantity} ${escapeAttr(item.container || '')}${yieldTag}</div>
                                             </div>
                                             <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
@@ -1388,7 +1405,7 @@
             const batch = batches.find(b => b.dbId === dbId);
             if (!batch) return;
             const currentDays = Math.max(0, getDaysActive(getEffectiveStageDate(batch)));
-            const input = prompt(`Set how many days ${formatDisplayBatchId(batch.batchId, batch.strain, batch.date)} has been in ${batch.stage} (0 = today):`, String(currentDays));
+            const input = prompt(`Set how many days ${formatDisplayBatchId(batch.batchId, batch.strain, batch.date, batch.quantity)} has been in ${batch.stage} (0 = today):`, String(currentDays));
             if (input === null) return;
             const trimmed = input.trim();
             if (trimmed === '' || Number.isNaN(Number(trimmed))) {
@@ -1474,7 +1491,7 @@
             const statusFilter = document.getElementById('filterStatus').value;
 
             const filtered = batches.filter(b => {
-                const displayId = formatDisplayBatchId(b.batchId, b.strain, b.date); const matchSearch = b.batchId.toLowerCase().includes(search) || displayId.toLowerCase().includes(search) || b.strain.toLowerCase().includes(search);
+                const displayId = formatDisplayBatchId(b.batchId, b.strain, b.date, b.quantity); const matchSearch = b.batchId.toLowerCase().includes(search) || displayId.toLowerCase().includes(search) || b.strain.toLowerCase().includes(search);
                 const matchStrain = strainFilter === '' || b.strain === strainFilter;
                 const matchStatus = statusFilter === '' || b.status === statusFilter;
                 return matchSearch && matchStrain && matchStatus;
@@ -1490,7 +1507,7 @@
                 const badgeClass = b.status === 'Active' ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
                 return `
                     <tr>
-                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date))}</strong></td>
+                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date, b.quantity))}</strong></td>
                         <td>${b.date}</td>
                         <td>${b.strain}</td>
                         <td>${b.stage}</td>
@@ -1499,7 +1516,7 @@
                         <td><span class="badge ${badgeClass}">${b.status}</span></td>
                         <td>
                             <a href="new-batch.html?id=${b.dbId}" class="btn btn-outline" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; text-decoration: none;">Edit</a>
-                            <button class="btn btn-outline" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; color: #c5221f; border-color: #c5221f;" onclick="deleteBatch(${b.dbId}, '${b.batchId}')">Del</button>
+                            <button class="btn btn-outline" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; color: #c5221f; border-color: #c5221f;" onclick="deleteBatch(${b.dbId}, '${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date, b.quantity))}')">Del</button>
                         </td>
                     </tr>
                 `;

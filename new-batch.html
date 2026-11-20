@@ -19,141 +19,22 @@
             --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border);
-            padding: 0.85rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        header h1 {
-            font-size: 1.1rem;
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.55rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.35rem;
-        }
-
-        .btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        main {
-            flex: 1;
-            padding: 0.85rem;
-            max-width: 640px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-
-        .form-group {
-            margin-bottom: 0.9rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.78rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 0.35rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.6rem 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            background: #ffffff;
-            color: var(--text-main);
-        }
-
-        .pill-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-        }
-
-        .pill-btn {
-            padding: 0.45rem 0.8rem;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: var(--bg-light);
-            color: var(--text-main);
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .pill-btn.active {
-            background: var(--primary);
-            color: #ffffff;
-            border-color: var(--primary);
-        }
-
-        .preview-banner {
-            background: #e6f4ea;
-            border: 1px solid #b7dfc2;
-            color: #137333;
-            padding: 0.6rem 0.75rem;
-            border-radius: 8px;
-            font-size: 0.82rem;
-            font-weight: 700;
-            margin-bottom: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        header h1 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 0.55rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; }
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-outline { background-color: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        main { flex: 1; padding: 0.85rem; max-width: 640px; width: 100%; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .form-group { margin-bottom: 0.9rem; }
+        .form-group label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem; }
+        .form-control { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; background: #ffffff; color: var(--text-main); }
+        .pill-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .pill-btn { padding: 0.45rem 0.8rem; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-light); color: var(--text-main); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .pill-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+        .preview-banner { background: #e6f4ea; border: 1px solid #b7dfc2; color: #137333; padding: 0.6rem 0.75rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
     </style>
 </head>
 <body>
@@ -165,8 +46,8 @@
     <main>
         <div class="card">
             <div class="preview-banner">
-                <span>Batch ID Preview:</span>
-                <strong id="batchIdPreview">BO-111926</strong>
+                <span>Container IDs:</span>
+                <strong id="batchIdPreview">BO-112026-1</strong>
             </div>
 
             <form id="batchForm">
@@ -175,6 +56,7 @@
                     <div class="pill-group" id="strainPills">
                         <button type="button" class="pill-btn active" data-strain="Blue Oyster">Blue Oyster</button>
                         <button type="button" class="pill-btn" data-strain="Lion's Mane">Lion's Mane</button>
+                        <button type="button" class="pill-btn" data-strain="Golden Teacher">Golden Teacher</button>
                         <button type="button" class="pill-btn" data-strain="Reishi">Reishi</button>
                         <button type="button" class="pill-btn" data-strain="Chestnut">Chestnut</button>
                         <button type="button" class="pill-btn" data-strain="Shiitake">Shiitake</button>
@@ -249,7 +131,8 @@
         function formatStrainCode(strain) {
             const lower = String(strain || '').trim().toLowerCase();
             if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
-            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li') return 'LI';
+            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LM';
+            if (lower.includes('golden teacher') || lower === 'gt') return 'GT';
             if (lower.includes('reishi') || lower === 're') return 'RE';
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
@@ -265,16 +148,23 @@
             return `${m[2]}${m[3]}${m[1].slice(2)}`;
         }
 
-        function buildBatchId(strain, dateStr) {
+        function buildBaseId(strain, dateStr) {
             const code = formatStrainCode(strain);
             const stamp = formatMMDDYY(dateStr);
             return stamp ? `${code}-${stamp}` : code;
         }
 
+        function buildDisplayRangeId(strain, dateStr, qty) {
+            const base = buildBaseId(strain, dateStr);
+            const n = Math.max(1, Number(qty || 1));
+            return n > 1 ? `${base}-1..${n}` : `${base}-1`;
+        }
+
         function updatePreview() {
             const strain = document.getElementById('strainInput').value;
             const dateVal = document.getElementById('dateInput').value;
-            document.getElementById('batchIdPreview').innerText = buildBatchId(strain, dateVal);
+            const qty = document.getElementById('quantityInput').value;
+            document.getElementById('batchIdPreview').innerText = buildDisplayRangeId(strain, dateVal, qty);
         }
 
         function setSelectedStrain(strain) {
@@ -295,6 +185,7 @@
             });
 
             document.getElementById('dateInput').addEventListener('change', updatePreview);
+            document.getElementById('quantityInput').addEventListener('input', updatePreview);
 
             if (editId) {
                 document.getElementById('pageTitle').innerText = 'Edit Batch';
@@ -319,12 +210,13 @@
             e.preventDefault();
             const strain = document.getElementById('strainInput').value;
             const dateVal = document.getElementById('dateInput').value;
+            const qty = Math.max(1, Number(document.getElementById('quantityInput').value || 1));
             const payload = {
-                batch_id: buildBatchId(strain, dateVal),
+                batch_id: buildDisplayRangeId(strain, dateVal, qty),
                 strain,
                 date: dateVal,
                 stage: document.getElementById('stageInput').value,
-                quantity: Number(document.getElementById('quantityInput').value || 1),
+                quantity: qty,
                 container: document.getElementById('containerInput').value,
                 substrate: document.getElementById('substrateInput').value.trim(),
                 status: document.getElementById('statusInput').value,

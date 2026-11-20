@@ -19,89 +19,15 @@
             --radius: 12px;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border);
-            padding: 0.85rem 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        header h1 {
-            font-size: 1.1rem;
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .btn {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.45rem 0.8rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.78rem;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        main {
-            flex: 1;
-            padding: 0.85rem;
-            max-width: 780px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 0.95rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-        }
-
-        .activity-item {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.55rem 0.7rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.78rem;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        header h1 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 0.45rem 0.8rem; border-radius: 8px; font-weight: 600; font-size: 0.78rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .btn-outline { background-color: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        main { flex: 1; padding: 0.85rem; max-width: 780px; width: 100%; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 0.95rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .activity-item { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.7rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
     </style>
 </head>
 <body>
@@ -138,7 +64,8 @@
             if (!cleaned) return 'BATCH';
             const lower = cleaned.toLowerCase();
             if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
-            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li') return 'LI';
+            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LM';
+            if (lower.includes('golden teacher') || lower === 'gt') return 'GT';
             if (lower.includes('reishi')) return 'RE';
             if (lower.includes('chestnut')) return 'CH';
             if (lower.includes('shiitake')) return 'SH';
@@ -154,10 +81,13 @@
             return '';
         }
 
-        function formatDisplayBatchId(batchId, strain, dateStr) {
+        function formatDisplayBatchId(batchId, strain, dateStr, qty) {
             const code = formatStrainCode(strain);
             const stamp = formatMMDDYY(dateStr);
-            return stamp ? `${code}-${stamp}` : (batchId || code);
+            const raw = String(batchId || '').trim().replace(/^GF[-_]?/i, '');
+            const base = stamp ? `${code}-${stamp}` : (raw ? `${code}-${raw}` : code);
+            const n = Math.max(1, Number(qty || 1));
+            return n > 1 ? `${base}-1..${n}` : `${base}-1`;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -176,18 +106,18 @@
                     const shakeMatches = [...notesStr.matchAll(/\[Shaken (\d{4}-\d{2}-\d{2})\]/g)];
 
                     if (frtMatch) {
-                        activities.push({ date: frtMatch[1], label: 'Moved to Fruiting', batchId: b.batch_id, strain: b.strain });
+                        activities.push({ date: frtMatch[1], label: 'Moved to Fruiting', batchId: b.batch_id, strain: b.strain, quantity: b.quantity });
                     }
                     if (subMatch) {
-                        activities.push({ date: subMatch[1], label: 'Moved to Bulk Substrate', batchId: b.batch_id, strain: b.strain });
+                        activities.push({ date: subMatch[1], label: 'Moved to Bulk Substrate', batchId: b.batch_id, strain: b.strain, quantity: b.quantity });
                     }
                     shakeMatches.forEach(m => {
-                        activities.push({ date: m[1], label: 'Grain Shaken', batchId: b.batch_id, strain: b.strain });
+                        activities.push({ date: m[1], label: 'Grain Shaken', batchId: b.batch_id, strain: b.strain, quantity: b.quantity });
                     });
                     if (Number(b.harvest_weight || 0) > 0) {
-                        activities.push({ date: b.date, label: `Harvested ${Number(b.harvest_weight).toFixed(1)} lbs`, batchId: b.batch_id, strain: b.strain });
+                        activities.push({ date: b.date, label: `Harvested ${Number(b.harvest_weight).toFixed(1)} lbs`, batchId: b.batch_id, strain: b.strain, quantity: b.quantity });
                     }
-                    activities.push({ date: b.date, label: `Logged batch (${b.stage || 'Grain Spawn'})`, batchId: b.batch_id, strain: b.strain });
+                    activities.push({ date: b.date, label: `Logged batch (${b.stage || 'Grain Spawn'})`, batchId: b.batch_id, strain: b.strain, quantity: b.quantity });
                 });
 
                 activities.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
@@ -201,7 +131,7 @@
                 listEl.innerHTML = activities.map(act => `
                     <div class="activity-item">
                         <div>
-                            <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
+                            <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date, act.quantity))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
                         </div>
                         <span style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;">${escapeAttr(act.date || '')}</span>
                     </div>

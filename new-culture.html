@@ -3,187 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Garnish Farms - Add Culture</title>
+    <title>New Liquid Culture - Garnish Farms</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2d5a27;
             --primary-hover: #1e3d1a;
-            --accent: #d97706;
+            --accent: #4c9a2a;
             --bg-light: #f4f7f2;
             --card-bg: #ffffff;
             --text-main: #1f2937;
             --text-muted: #6b7280;
             --border: #e5e7eb;
             --radius: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-light);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        header h1 {
-            font-size: 1.15rem;
-            color: var(--primary);
-            font-weight: 700;
-        }
-
-        .btn {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 0.6rem 1rem;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3rem;
-            text-decoration: none;
-        }
-
-        .btn:hover {
-            background-color: #b45309;
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 1.25rem;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-        }
-
-        .form-group label {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .form-group input, .form-group select {
-            padding: 0.75rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            width: 100%;
-            background: white;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1rem;
-        }
-
-        .form-actions button, .form-actions a {
-            flex: 1;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        header h1 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 0.55rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-outline { background-color: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        main { flex: 1; padding: 0.85rem; max-width: 640px; width: 100%; margin: 0 auto; }
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
+        .form-group { margin-bottom: 0.9rem; }
+        .form-group label { display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.35rem; }
+        .form-control { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; background: #ffffff; }
+        .pill-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+        .pill-btn { padding: 0.45rem 0.8rem; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-light); color: var(--text-main); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .pill-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
+        .preview-banner { background: #e6f4ea; border: 1px solid #b7dfc2; color: #137333; padding: 0.6rem 0.75rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
-
     <header>
-        <h1>Add Liquid Culture</h1>
-        <a href="index.html" class="btn btn-outline">Cancel</a>
+        <h1>+ Liquid Culture</h1>
+        <a href="index.html" class="btn btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;">← Dashboard</a>
     </header>
 
-    <div class="card">
-        <form id="cultureForm" onsubmit="handleCultureSubmit(event)">
-            <div class="form-row">
+    <main>
+        <div class="card">
+            <div class="preview-banner">
+                <span>Culture ID:</span>
+                <strong id="cultureIdPreview">LC-BO-112026</strong>
+            </div>
+
+            <form id="cultureForm">
                 <div class="form-group">
-                    <label>Culture ID / Syringe Name</label>
-                    <input type="text" id="cultureId" required placeholder="e.g. LC-LM-161126">
+                    <label>Strain</label>
+                    <div class="pill-group" id="strainPills">
+                        <button type="button" class="pill-btn active" data-strain="Blue Oyster">Blue Oyster</button>
+                        <button type="button" class="pill-btn" data-strain="Lion's Mane">Lion's Mane</button>
+                        <button type="button" class="pill-btn" data-strain="Golden Teacher">Golden Teacher</button>
+                        <button type="button" class="pill-btn" data-strain="Reishi">Reishi</button>
+                        <button type="button" class="pill-btn" data-strain="Chestnut">Chestnut</button>
+                        <button type="button" class="pill-btn" data-strain="Shiitake">Shiitake</button>
+                        <button type="button" class="pill-btn" data-strain="Pink Oyster">Pink Oyster</button>
+                    </div>
+                    <input type="hidden" id="strainInput" value="Blue Oyster">
                 </div>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <label>Date Inoculated</label>
-                    <input type="date" id="cultureDate" required>
+
+                <div class="form-group">
+                    <label for="dateInput">Date</label>
+                    <input type="date" id="dateInput" class="form-control" required>
                 </div>
-            </div>
 
-            <div class="form-group" style="margin-top: 1rem;">
-                <label>Strain</label>
-                <select id="cultureStrain" required>
-                    <option value="Lion's Mane">Lion's Mane</option>
-                    <option value="Blue Oyster">Blue Oyster</option>
-                    <option value="Pioppino">Pioppino</option>
-                    <option value="Golden Oyster">Golden Oyster</option>
-                    <option value="Pink Oyster">Pink Oyster</option>
-                    <option value="King Trumpet">King Trumpet</option>
-                    <option value="Shiitake">Shiitake</option>
-                    <option value="Chestnut">Chestnut</option>
-                    <option value="Reishi">Reishi</option>
-                </select>
-            </div>
+                <div class="form-group">
+                    <label for="statusInput">Status</label>
+                    <select id="statusInput" class="form-control">
+                        <option value="Active" selected>Active</option>
+                        <option value="Depleted">Depleted</option>
+                        <option value="Contaminated">Contaminated</option>
+                    </select>
+                </div>
 
-            <div class="form-group" style="margin-top: 1rem;">
-                <label>Status</label>
-                <select id="cultureStatus" required>
-                    <option value="Active">Active</option>
-                    <option value="Depleted">Depleted</option>
-                    <option value="Contaminated">Contaminated</option>
-                </select>
-            </div>
+                <div class="form-group">
+                    <label for="notesInput">Notes</label>
+                    <textarea id="notesInput" class="form-control" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
 
-            <div class="form-group" style="margin-top: 1rem;">
-                <label>Notes</label>
-                <input type="text" id="cultureNotes" placeholder="Source, generation...">
-            </div>
-
-            <div class="form-actions">
-                <a href="index.html" class="btn btn-outline" style="color: var(--primary); text-align: center; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">Cancel</a>
-                <button type="submit" class="btn">Save Culture</button>
-            </div>
-        </form>
-    </div>
+                <button type="submit" class="btn" id="saveBtn" style="width: 100%; padding: 0.7rem;">Save Culture</button>
+            </form>
+        </div>
+    </main>
 
     <script>
         const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
@@ -191,22 +94,79 @@
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        function formatStrainCode(strain) {
+            const lower = String(strain || '').trim().toLowerCase();
+            if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
+            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LM';
+            if (lower.includes('golden teacher') || lower === 'gt') return 'GT';
+            if (lower.includes('reishi') || lower === 're') return 'RE';
+            if (lower.includes('chestnut') || lower === 'ch') return 'CH';
+            if (lower.includes('shiitake') || lower === 'sh') return 'SH';
+            if (lower.includes('pink oyster') || lower === 'po') return 'PO';
+            const words = lower.replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+            if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+            return (words[0] || 'LC').slice(0, 2).toUpperCase();
+        }
+
+        function formatMMDDYY(dateStr) {
+            const m = String(dateStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+            return m ? `${m[2]}${m[3]}${m[1].slice(2)}` : '';
+        }
+
+        function buildCultureId(strain, dateStr) {
+            const code = formatStrainCode(strain);
+            const stamp = formatMMDDYY(dateStr);
+            return stamp ? `LC-${code}-${stamp}` : `LC-${code}`;
+        }
+
+        function updatePreview() {
+            const strain = document.getElementById('strainInput').value;
+            const dateVal = document.getElementById('dateInput').value;
+            document.getElementById('cultureIdPreview').innerText = buildCultureId(strain, dateVal);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('cultureDate').valueAsDate = new Date();
+            const now = new Date();
+            document.getElementById('dateInput').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+            document.querySelectorAll('#strainPills .pill-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const strain = btn.getAttribute('data-strain');
+                    document.getElementById('strainInput').value = strain;
+                    document.querySelectorAll('#strainPills .pill-btn').forEach(b => b.classList.toggle('active', b === btn));
+                    updatePreview();
+                });
+            });
+
+            document.getElementById('dateInput').addEventListener('change', updatePreview);
+            updatePreview();
         });
 
-        async function handleCultureSubmit(event) {
-            event.preventDefault();
+        document.getElementById('cultureForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const strain = document.getElementById('strainInput').value;
+            const dateVal = document.getElementById('dateInput').value;
             const payload = {
-                culture_id: document.getElementById('cultureId').value,
-                date: document.getElementById('cultureDate').value,
-                strain: document.getElementById('cultureStrain').value,
-                status: document.getElementById('cultureStatus').value,
-                notes: document.getElementById('cultureNotes').value
+                culture_id: buildCultureId(strain, dateVal),
+                strain,
+                date: dateVal,
+                status: document.getElementById('statusInput').value,
+                notes: document.getElementById('notesInput').value.trim()
             };
-            await _supabase.from('cultures').insert([payload]);
+
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.innerText = 'Saving...';
+
+            const { error } = await _supabase.from('cultures').insert([payload]);
+            if (error) {
+                alert('Error saving culture: ' + error.message);
+                btn.disabled = false;
+                btn.innerText = 'Save Culture';
+                return;
+            }
             window.location.href = 'index.html';
-        }
+        });
     </script>
 </body>
 </html>
