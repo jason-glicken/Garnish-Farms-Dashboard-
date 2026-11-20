@@ -75,6 +75,22 @@
             return words[0].slice(0, 2).toUpperCase();
         }
 
+
+        function getStrainCardTheme(strain) {
+            const code = formatStrainCode(strain);
+            const themes = {
+                'LM': { bg: '#f8fafc', border: '#64748b' },
+                'BO': { bg: '#eff6ff', border: '#3b82f6' },
+                'RE': { bg: '#fff5f0', border: '#c2410c' },
+                'GT': { bg: '#fefce8', border: '#ca8a04' },
+                'CH': { bg: '#fdf8f6', border: '#92400e' },
+                'SH': { bg: '#f5f3ff', border: '#6d28d9' },
+                'PO': { bg: '#fdf2f8', border: '#db2777' },
+                'PI': { bg: '#f0fdf4', border: '#15803d' }
+            };
+            return themes[code] || { bg: '#f8fafc', border: '#4c9a2a' };
+        }
+
         function formatMMDDYY(dateStr) {
             const iso = String(dateStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
             if (iso) return `${iso[2]}${iso[3]}${iso[1].slice(2)}`;
@@ -129,7 +145,7 @@
                 }
 
                 listEl.innerHTML = activities.map(act => `
-                    <div class="activity-item">
+                    <div class="activity-item" style="background-color: ${getStrainCardTheme(act.strain).bg}; border-left: 4px solid ${getStrainCardTheme(act.strain).border};">
                         <div>
                             <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date, act.quantity))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
                         </div>
