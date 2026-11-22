@@ -1376,7 +1376,7 @@
                             : '';
 
                         const actionBtn = stage === 'Fruiting'
-                            ? `<a href="harvest.html?id=${item.dbId}" class="btn" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: #d97706;">Harvest ➔</a>`
+                            ? `<button type="button" class="btn btn-outline" onclick="revertToBulkSubstrate(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">↩ Bulk</button><a href="harvest.html?id=${item.dbId}" class="btn" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: #d97706;">Harvest ➔</a>`
                             : `<button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
 
                         return `
@@ -1570,6 +1570,25 @@
                 return;
             }
             setStageDays(dbId, Number(trimmed));
+        }
+
+
+        async function revertToBulkSubstrate(dbId) {
+            const batch = batches.find(b => b.dbId === dbId);
+            if (!batch) return;
+            const cleanedNotes = String(batch.notes || '').replace(/\s*\[Stage:FRT:\d{4}-\d{2}-\d{2}\]/g, '').trim();
+            const { error } = await _supabase
+                .from('batches')
+                .update({ stage: 'Bulk Substrate', notes: cleanedNotes })
+                .eq('id', dbId);
+            if (error) {
+                alert('Error reverting batch: ' + error.message);
+                return;
+            }
+            const map = getStageClockMap();
+            delete map[`${dbId}::Fruiting`];
+            localStorage.setItem(STAGE_CLOCK_KEY, JSON.stringify(map));
+            await loadBatches();
         }
 
         async function advanceStage(dbId) {

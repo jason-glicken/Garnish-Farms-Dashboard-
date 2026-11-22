@@ -230,7 +230,11 @@
                 const badgeText = pastTarget ? `Past ${targetDays}d` : `Day ${days}/${targetDays}`;
                 const subInfo = batch.substrate ? ` • ${escapeAttr(batch.substrate)}` : '';
                 const actionLink = batch.stage === 'Fruiting'
-                    ? `<a href="harvest.html?id=${batch.id}" class="btn" style="padding: 0.25rem 0.55rem; font-size: 0.68rem; background-color: #d97706;">Harvest ➔</a>`
+                    ? `<div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-outline revert-fruiting-btn" data-id="${batch.id}" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">↩ Bulk Sub</button>
+                        <a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">Edit</a>
+                        <a href="harvest.html?id=${batch.id}" class="btn" style="padding: 0.25rem 0.55rem; font-size: 0.68rem; background-color: #d97706;">Harvest ➔</a>
+                       </div>`
                     : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.68rem;">Edit Batch</a>`;
                 return `
                     <div class="container-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
@@ -251,6 +255,36 @@
                 `;
             }).join('');
         }
+
+        async function revertFruitingToBulk(dbId) {
+            const batch = allBatches.find(b => Number(b.id) === Number(dbId));
+            if (!batch) return;
+            const cleanedNotes = String(batch.notes || '').replace(/\s*\[Stage:FRT:\d{4}-\d{2}-\d{2}\]/g, '').trim();
+            const { error } = await _supabase
+                .from('batches')
+                .update({ stage: 'Bulk Substrate', notes: cleanedNotes })
+                .eq('id', dbId);
+            if (error) {
+                alert('Could not revert batch: ' + error.message);
+                return;
+            }
+            try {
+                const map = JSON.parse(localStorage.getItem(STAGE_CLOCK_KEY) || '{}');
+                delete map[`${dbId}::Fruiting`];
+                localStorage.setItem(STAGE_CLOCK_KEY, JSON.stringify(map));
+            } catch (e) {}
+            const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
+            allBatches = data || [];
+            renderContainerCards();
+        }
+
+        document.addEventListener('click', (e) => {
+            const revBtn = e.target.closest('.revert-fruiting-btn');
+            if (revBtn) {
+                revertFruitingToBulk(revBtn.getAttribute('data-id'));
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', async () => {
             setupHeader();
             const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
