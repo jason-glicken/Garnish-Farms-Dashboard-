@@ -434,6 +434,7 @@
             <div class="header-actions" style="width: auto; justify-content: flex-end;">
                 <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadBatches()">Sync</button>
                 <a href="harvest.html" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; text-decoration: none;">Harvest</a>
+                <a href="settings.html" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; text-decoration: none;">Settings</a>
                 <a href="new-batch.html" class="btn" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; text-decoration: none;">+ Batch</a>
             </div>
         </div>
@@ -921,6 +922,44 @@
 
         const STAGE_CLOCK_KEY = 'garnish_farms_stage_clock_v1';
 
+        const SETTINGS_KEY = 'garnish_farms_settings_v1';
+        const DEFAULT_SETTINGS = {
+            stageTargets: { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 14 },
+            timelineHorizon: 42,
+            dueSoonDays: 4,
+            shakeDay: 14,
+            defaultStrain: 'Blue Oyster',
+            defaultContainer: 'Jar',
+            defaultQuantity: 1,
+            defaultSubstrate: ''
+        };
+        function getAppSettings() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                return {
+                    ...DEFAULT_SETTINGS,
+                    ...raw,
+                    stageTargets: { ...DEFAULT_SETTINGS.stageTargets, ...(raw.stageTargets || {}) }
+                };
+            } catch (e) {
+                return { ...DEFAULT_SETTINGS, stageTargets: { ...DEFAULT_SETTINGS.stageTargets } };
+            }
+        }
+        function getBatchStartDate(item) {
+            const notesStr = String(item.notes || '');
+            const grnMatch = notesStr.match(/\[Stage:GRN:(\d{4}-\d{2}-\d{2})\]/);
+            return (grnMatch && grnMatch[1]) || item.date;
+        }
+        function getStageTargetOffsetDays(stageName, targetsMap) {
+            const t1 = Number(targetsMap['Grain Spawn'] || 14);
+            const t2 = Number(targetsMap['Bulk Substrate'] || 14);
+            const t3 = Number(targetsMap['Fruiting'] || 14);
+            if (stageName === 'Bulk Substrate') return t1 + t2;
+            if (stageName === 'Fruiting') return t1 + t2 + t3;
+            return t1;
+        }
+
+
         function getStageClockMap() {
             try {
                 return JSON.parse(localStorage.getItem(STAGE_CLOCK_KEY) || '{}');
@@ -1127,30 +1166,33 @@
             }, 80);
         }
 
-        function renderTimeline30Bar(days, targetDays) {
+        function renderContinuousStageBar(days, targetOffsetDays, stageTargetDays, stageName) {
+            const cfg = getAppSettings();
             const safeDays = Math.max(0, Number(days || 0));
-            const safeTarget = Math.max(1, Number(targetDays || 14));
-            const horizon = 30;
-            const targetPct = Math.min(100, Math.round((safeTarget / horizon) * 100));
+            const cumulativeTarget = Math.max(1, Number(targetOffsetDays || 14));
+            const stageTarget = Math.max(1, Number(stageTargetDays || 14));
+            const horizon = Math.max(cumulativeTarget + 4, Number(cfg.timelineHorizon || 42));
+            const targetPct = Math.min(100, Math.round((cumulativeTarget / horizon) * 100));
             const currentPct = Math.min(100, Math.round((safeDays / horizon) * 100));
-            const pastTarget = safeDays > safeTarget;
+            const pastTarget = safeDays > cumulativeTarget;
 
             const greenWidth = pastTarget ? targetPct : currentPct;
             const yellowWidth = pastTarget ? Math.max(0, currentPct - targetPct) : 0;
+            const stageLabel = stageName ? `${escapeAttr(stageName)} ` : '';
             const statusText = pastTarget
-                ? `Day ${safeDays} / ${safeTarget}d target (+${safeDays - safeTarget}d past)`
-                : `Day ${safeDays} / ${safeTarget}d target (${safeTarget - safeDays}d left)`;
+                ? `Day ${safeDays} total (+${safeDays - cumulativeTarget}d past ${stageLabel}target ${stageTarget}d)`
+                : `Day ${safeDays} total (${cumulativeTarget - safeDays}d left to ${stageLabel}target • ${stageTarget}d/stage)`;
 
             return `
                 <div class="day-bar-wrap" style="margin-top: 0.28rem;">
                     <div class="day-bar-meta" style="font-size: 0.6rem; margin-bottom: 0.14rem;">
-                        <span>${escapeAttr(statusText)}</span>
-                        <span>30d timeline</span>
+                        <span>${statusText}</span>
+                        <span>${horizon}d jar→harvest</span>
                     </div>
                     <div style="position: relative; width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; display: flex;">
                         <div style="width: ${greenWidth}%; height: 100%; background-color: #16a34a; transition: width 0.25s ease;"></div>
                         <div style="width: ${yellowWidth}%; height: 100%; background-color: #eab308; transition: width 0.25s ease;"></div>
-                        <div title="Target Day ${safeTarget}" style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.65;"></div>
+                        <div title="Stage Target Day ${cumulativeTarget}" style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.65;"></div>
                     </div>
                 </div>
             `;
@@ -1161,7 +1203,10 @@
             const countEl = document.getElementById('upcomingTasksCount');
             if (!listEl) return;
 
-            const stageTargets = { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 10 };
+            const cfg = getAppSettings();
+            const stageTargets = cfg.stageTargets;
+            const dueSoonDays = Number(cfg.dueSoonDays || 4);
+            const shakeThreshold = Number(cfg.shakeDay || 14);
             const nextStageMap = {
                 'Grain Spawn': 'Bulk Substrate',
                 'Bulk Substrate': 'Fruiting',
@@ -1170,14 +1215,15 @@
 
             const tasks = [];
             filteredActive.forEach(item => {
-                const targetDays = stageTargets[item.stage] || 14;
-                const stageDate = getEffectiveStageDate(item);
-                const days = Math.max(0, getDaysActive(stageDate));
+                const stageTargetDays = Number(stageTargets[item.stage] || 14);
+                const targetDays = getStageTargetOffsetDays(item.stage, stageTargets);
+                const startDate = getBatchStartDate(item);
+                const days = Math.max(0, getDaysActive(startDate));
                 const remaining = targetDays - days;
                 const alreadyShaken = item.stage === 'Grain Spawn' && isBatchShaken(item);
-                const shakeDue = item.stage === 'Grain Spawn' && days >= 14 && !alreadyShaken;
+                const shakeDue = item.stage === 'Grain Spawn' && days >= shakeThreshold && !alreadyShaken;
 
-                if (remaining <= 4 || shakeDue) {
+                if (remaining <= dueSoonDays || shakeDue) {
                     const nextLabel = nextStageMap[item.stage] || 'Next Stage';
                     const statusLabel = remaining <= 0
                         ? `Ready ➔ ${nextLabel}`
@@ -1185,6 +1231,7 @@
                     tasks.push({
                         item,
                         days,
+                        stageTargetDays,
                         targetDays,
                         remaining,
                         statusLabel,
@@ -1232,7 +1279,7 @@
                                 </a>
                                 ${stageActionLink}
                             </div>
-                            ${renderTimeline30Bar(t.days, t.targetDays)}
+                            ${renderContinuousStageBar(t.days, t.targetDays, t.stageTargetDays, t.item.stage)}
                         </div>
                     `;
                 }).join('');
@@ -1396,7 +1443,9 @@
                 container.innerHTML = groups.map(g => {
                     const cardKey = `${stage}::${g.strain}`;
                     const isExpanded = expandedPipelineCards.has(cardKey);
-                    const hasShakeDue = stage === 'Grain Spawn' && g.items.some(item => getDaysActive(getEffectiveStageDate(item)) >= 14 && !isBatchShaken(item));
+                    const cfg = getAppSettings();
+                    const shakeThreshold = Number(cfg.shakeDay || 14);
+                    const hasShakeDue = stage === 'Grain Spawn' && g.items.some(item => getDaysActive(getBatchStartDate(item)) >= shakeThreshold && !isBatchShaken(item));
 
                     let containerParts = [];
                     if (g.jars > 0) containerParts.push(`<span style="display:inline-flex;align-items:center;gap:0.2rem;"><svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg> <strong>${g.jars}</strong></span>`);
@@ -1410,20 +1459,21 @@
                     const theme = getStrainCardTheme(g.strain);
 
                     const renderBatchCardRow = (item) => {
-                        const days = Math.max(0, getDaysActive(getEffectiveStageDate(item)));
-                        const stageTargets = { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 10 };
-                        const targetDays = stageTargets[stage] || 14;
+                        const days = Math.max(0, getDaysActive(getBatchStartDate(item)));
+                        const stageTargets = cfg.stageTargets;
+                        const stageTargetDays = Number(stageTargets[stage] || 14);
+                        const targetDays = getStageTargetOffsetDays(stage, stageTargets);
                         const pct = Math.min(100, Math.round((days / targetDays) * 100));
                         const barColor = days >= targetDays ? '#d97706' : '#4c9a2a';
 
                         const alreadyShaken = stage === 'Grain Spawn' && isBatchShaken(item);
-                        const itemShake = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
+                        const itemShake = (stage === 'Grain Spawn' && days >= shakeThreshold && !alreadyShaken)
                             ? `<span style="background: #fef3c7; color: #b45309; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">⚠️ Shake Due</span>`
                             : (alreadyShaken
                                 ? `<span style="background: #e6f4ea; color: #137333; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">Shaken ✓</span>`
                                 : '');
 
-                        const shakeBtn = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
+                        const shakeBtn = (stage === 'Grain Spawn' && days >= shakeThreshold && !alreadyShaken)
                             ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
                             : '';
 
@@ -1467,8 +1517,10 @@
                         g.items.forEach(item => {
                             const qty = Math.max(1, Number(item.quantity || 1));
                             const stageDate = getEffectiveStageDate(item);
-                            const days = Math.max(0, getDaysActive(stageDate));
-                            const targetDays = 14;
+                            const startDate = getBatchStartDate(item);
+                            const days = Math.max(0, getDaysActive(startDate));
+                            const stageTargetDays = Number(cfg.stageTargets['Grain Spawn'] || 14);
+                            const targetDays = getStageTargetOffsetDays('Grain Spawn', cfg.stageTargets);
                             for (let idx = 1; idx <= qty; idx++) {
                                 unitCards.push({
                                     item,
@@ -1485,13 +1537,13 @@
                         return unitCards.map(u => {
                             const { item, unitIndex, totalUnits, unitId, stageDate, days, targetDays } = u;
                             const alreadyShaken = isBatchShaken(item);
-                            const itemShake = (days >= 14 && !alreadyShaken)
+                            const itemShake = (days >= shakeThreshold && !alreadyShaken)
                                 ? `<span style="background: #fef3c7; color: #b45309; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.6rem; font-weight: 700;">⚠️ Shake</span>`
                                 : (alreadyShaken
                                     ? `<span style="background: #e6f4ea; color: #137333; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.6rem; font-weight: 700;">Shaken ✓</span>`
                                     : '');
 
-                            const shakeBtn = (days >= 14 && !alreadyShaken)
+                            const shakeBtn = (days >= shakeThreshold && !alreadyShaken)
                                 ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.2rem 0.42rem; font-size: 0.62rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
                                 : '';
 
@@ -1515,7 +1567,7 @@
                                             <button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.2rem 0.45rem; font-size: 0.62rem; background-color: var(--accent);">Advance ➔</button>
                                         </div>
                                     </div>
-                                    ${renderTimeline30Bar(days, targetDays)}
+                                    ${renderContinuousStageBar(days, targetDays, stageTargetDays, 'Grain Spawn')}
                                 </div>
                             `;
                         }).join('');

@@ -126,6 +126,7 @@
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const urlParams = new URLSearchParams(window.location.search);
+        const SETTINGS_KEY = 'garnish_farms_settings_v1';
         const editId = urlParams.get('id');
 
         function formatStrainCode(strain) {
@@ -179,6 +180,15 @@
             const now = new Date();
             const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             document.getElementById('dateInput').value = todayIso;
+            if (!editId) {
+                try {
+                    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                    if (s.defaultStrain) setSelectedStrain(s.defaultStrain);
+                    if (s.defaultContainer) document.getElementById('containerInput').value = s.defaultContainer;
+                    if (s.defaultQuantity) document.getElementById('quantityInput').value = s.defaultQuantity;
+                    if (s.defaultSubstrate) document.getElementById('substrateInput').value = s.defaultSubstrate;
+                } catch (e) {}
+            }
 
             document.querySelectorAll('#strainPills .pill-btn').forEach(btn => {
                 btn.addEventListener('click', () => setSelectedStrain(btn.getAttribute('data-strain')));

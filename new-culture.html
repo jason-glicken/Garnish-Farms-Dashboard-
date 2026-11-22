@@ -128,6 +128,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             const now = new Date();
             document.getElementById('dateInput').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            try {
+                const s = JSON.parse(localStorage.getItem('garnish_farms_settings_v1') || '{}');
+                if (s.defaultStrain) {
+                    document.getElementById('strainInput').value = s.defaultStrain;
+                    document.querySelectorAll('#strainPills .pill-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-strain') === s.defaultStrain));
+                }
+            } catch (e) {}
 
             document.querySelectorAll('#strainPills .pill-btn').forEach(btn => {
                 btn.addEventListener('click', () => {

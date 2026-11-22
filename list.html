@@ -47,7 +47,7 @@
                 <svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>
             </span>
         </div>
-        <a href="index.html" class="btn btn-outline">← Dashboard</a>
+        <div style="display:flex;gap:0.35rem;"><a href="settings.html" class="btn btn-outline">Settings</a><a href="index.html" class="btn btn-outline">← Dashboard</a></div>
     </header>
     <main>
         <div class="card">
@@ -72,6 +72,44 @@
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const STAGE_CLOCK_KEY = 'garnish_farms_stage_clock_v1';
+
+        const SETTINGS_KEY = 'garnish_farms_settings_v1';
+        const DEFAULT_SETTINGS = {
+            stageTargets: { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 14 },
+            timelineHorizon: 42,
+            dueSoonDays: 4,
+            shakeDay: 14,
+            defaultStrain: 'Blue Oyster',
+            defaultContainer: 'Jar',
+            defaultQuantity: 1,
+            defaultSubstrate: ''
+        };
+        function getAppSettings() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+                return {
+                    ...DEFAULT_SETTINGS,
+                    ...raw,
+                    stageTargets: { ...DEFAULT_SETTINGS.stageTargets, ...(raw.stageTargets || {}) }
+                };
+            } catch (e) {
+                return { ...DEFAULT_SETTINGS, stageTargets: { ...DEFAULT_SETTINGS.stageTargets } };
+            }
+        }
+        function getBatchStartDate(item) {
+            const notesStr = String(item.notes || '');
+            const grnMatch = notesStr.match(/\[Stage:GRN:(\d{4}-\d{2}-\d{2})\]/);
+            return (grnMatch && grnMatch[1]) || item.date;
+        }
+        function getStageTargetOffsetDays(stageName, targetsMap) {
+            const t1 = Number(targetsMap['Grain Spawn'] || 14);
+            const t2 = Number(targetsMap['Bulk Substrate'] || 14);
+            const t3 = Number(targetsMap['Fruiting'] || 14);
+            if (stageName === 'Bulk Substrate') return t1 + t2;
+            if (stageName === 'Fruiting') return t1 + t2 + t3;
+            return t1;
+        }
+
         const params = new URLSearchParams(window.location.search);
         const listType = (params.get('type') || 'jars').toLowerCase();
         let allBatches = [];
@@ -150,26 +188,31 @@
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             return Math.floor((today - initiated) / (1000 * 60 * 60 * 24));
         }
-        function renderTimeline30Bar(days, targetDays) {
+        function renderContinuousStageBar(days, targetOffsetDays, stageTargetDays, stageName) {
+            const cfg = getAppSettings();
             const safeDays = Math.max(0, Number(days || 0));
-            const safeTarget = Math.max(1, Number(targetDays || 14));
-            const horizon = 30;
-            const targetPct = Math.min(100, Math.round((safeTarget / horizon) * 100));
+            const stageTarget = Math.max(1, Number(stageTargetDays || 14));
+            const cumulativeTarget = Math.max(1, Number(targetOffsetDays || stageTarget));
+            const horizon = Math.max(cumulativeTarget + 4, Number(cfg.timelineHorizon || 42));
+            const targetPct = Math.min(100, Math.round((cumulativeTarget / horizon) * 100));
             const currentPct = Math.min(100, Math.round((safeDays / horizon) * 100));
-            const pastTarget = safeDays > safeTarget;
+            const pastTarget = safeDays > cumulativeTarget;
             const greenWidth = pastTarget ? targetPct : currentPct;
             const yellowWidth = pastTarget ? Math.max(0, currentPct - targetPct) : 0;
-            const statusText = pastTarget ? `Day ${safeDays} / ${safeTarget}d target (+${safeDays - safeTarget}d past)` : `Day ${safeDays} / ${safeTarget}d target (${safeTarget - safeDays}d left)`;
+            const remaining = cumulativeTarget - safeDays;
+            const statusText = pastTarget
+                ? `Day ${safeDays} total • +${safeDays - cumulativeTarget}d past ${escapeAttr(stageName)} (${stageTarget}d stage target)`
+                : `Day ${safeDays} total • ${remaining}d left to ${escapeAttr(stageName)} target (${stageTarget}d/stage)`;
             return `
                 <div style="margin-top: 0.25rem;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.14rem;">
-                        <span>${escapeAttr(statusText)}</span>
-                        <span>30d timeline</span>
+                        <span>${statusText}</span>
+                        <span>${horizon}d jar→harvest</span>
                     </div>
                     <div style="position: relative; width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; display: flex;">
                         <div style="width: ${greenWidth}%; height: 100%; background-color: #16a34a;"></div>
                         <div style="width: ${yellowWidth}%; height: 100%; background-color: #eab308;"></div>
-                        <div style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.65;"></div>
+                        <div title="Stage Target Day ${cumulativeTarget}" style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.75;"></div>
                     </div>
                 </div>
             `;
@@ -245,7 +288,8 @@
         function renderContainerCards() {
             const listEl = document.getElementById('containerCardsList');
             const countEl = document.getElementById('containerCount');
-            const stageTargets = { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 10 };
+            const cfg = getAppSettings();
+            const stageTargets = cfg.stageTargets;
             let matchingBatches = allBatches.filter(b => b.status === 'Active');
             if (listType === 'bags') {
                 matchingBatches = matchingBatches.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
@@ -260,8 +304,10 @@
             matchingBatches.forEach(b => {
                 const qty = Math.max(1, Number(b.quantity || 1));
                 const stageDate = getEffectiveStageDate(b);
-                const days = Math.max(0, getDaysActive(stageDate));
-                const targetDays = stageTargets[b.stage] || 14;
+                const startDate = getBatchStartDate(b);
+                const days = Math.max(0, getDaysActive(startDate));
+                const stageTargetDays = Number(stageTargets[b.stage] || 14);
+                const targetDays = getStageTargetOffsetDays(b.stage, stageTargets);
                 for (let idx = 1; idx <= qty; idx++) {
                     unitCards.push({
                         batch: b,
@@ -270,6 +316,7 @@
                         unitId: formatContainerUnitId(b.batch_id, b.strain, b.date, idx),
                         stageDate,
                         days,
+                        stageTargetDays,
                         targetDays
                     });
                 }
@@ -284,11 +331,11 @@
                 return;
             }
             listEl.innerHTML = unitCards.map(u => {
-                const { batch, unitIndex, totalUnits, unitId, stageDate, days, targetDays } = u;
+                const { batch, unitIndex, totalUnits, unitId, stageDate, days, stageTargetDays, targetDays } = u;
                 const theme = getStrainCardTheme(batch.strain);
                 const pastTarget = days > targetDays;
                 const badgeClass = pastTarget ? 'badge-yellow' : 'badge-green';
-                const badgeText = pastTarget ? `Past ${targetDays}d` : `Day ${days}/${targetDays}`;
+                const badgeText = pastTarget ? `Past Day ${targetDays}` : `Day ${days} / ${targetDays}d`;
                 const subInfo = batch.substrate ? ` • ${escapeAttr(batch.substrate)}` : '';
                 const actionLink = batch.stage === 'Fruiting'
                     ? `<div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap;">
@@ -311,7 +358,7 @@
                             ${actionLink}
                         </div>
                         <div style="font-size: 0.68rem; color: var(--text-muted);">Batch Date: ${escapeAttr(batch.date)} • Stage Start: ${escapeAttr(stageDate)}</div>
-                        ${renderTimeline30Bar(days, targetDays)}
+                        ${renderContinuousStageBar(days, targetDays, stageTargetDays, batch.stage)}
                     </div>
                 `;
             }).join('');
