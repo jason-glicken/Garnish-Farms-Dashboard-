@@ -971,8 +971,8 @@
         }
         function getBatchStartDate(item) {
             const notesStr = String(item.notes || '');
-            const grnMatch = notesStr.match(/\[Stage:GRN:(\d{4}-\d{2}-\d{2})\]/);
-            return (grnMatch && grnMatch[1]) || item.date;
+            const originMatch = notesStr.match(/\[Origin:(\d{4}-\d{2}-\d{2})\]/);
+            return (originMatch && originMatch[1]) || item.date;
         }
         function getStageTargetOffsetDays(stageName, targetsMap) {
             const t1 = Number(targetsMap['Grain Spawn'] || 14);
@@ -1583,7 +1583,7 @@
                                                 <span style="font-size: 0.66rem; font-weight: 500; color: var(--text-muted);">(${formatUnitIconPatternHtml(item.container, unitIndex, totalUnits)})</span>
                                                 ${itemShake}
                                             </div>
-                                            <div style="font-size: 0.66rem; color: var(--text-muted);">Date: ${escapeAttr(item.date)} • Stage Start: ${escapeAttr(stageDate)}${subInfo}</div>
+                                            <div style="font-size: 0.66rem; color: var(--text-muted);">Origin Start: ${escapeAttr(getBatchStartDate(item))} • Stage Start: ${escapeAttr(stageDate)} (Stage Day ${Math.max(0, getDaysActive(stageDate))})${subInfo}</div>
                                         </div>
                                         <div style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                                             ${shakeBtn}
@@ -1749,9 +1749,13 @@
                     updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
                 }
 
+                const originDate = getBatchStartDate(batch) || batch.date;
+                if (originDate && !updatedNotes.includes('[Origin:')) {
+                    updatedNotes = updatedNotes ? `${updatedNotes} [Origin:${originDate}]` : `[Origin:${originDate}]`;
+                }
                 const updatePayload = {
                     stage: nextStage,
-                    date: todayLocal,
+                    date: originDate || batch.date,
                     notes: updatedNotes
                 };
                 if (nextStage === 'Bulk Substrate' && batch.container === 'Jar') {

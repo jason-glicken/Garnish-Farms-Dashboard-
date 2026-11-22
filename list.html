@@ -98,8 +98,8 @@
         }
         function getBatchStartDate(item) {
             const notesStr = String(item.notes || '');
-            const grnMatch = notesStr.match(/\[Stage:GRN:(\d{4}-\d{2}-\d{2})\]/);
-            return (grnMatch && grnMatch[1]) || item.date;
+            const originMatch = notesStr.match(/\[Origin:(\d{4}-\d{2}-\d{2})\]/);
+            return (originMatch && originMatch[1]) || item.date;
         }
         function getStageTargetOffsetDays(stageName, targetsMap) {
             const t1 = Number(targetsMap['Grain Spawn'] || 14);
