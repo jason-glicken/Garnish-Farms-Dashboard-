@@ -41,7 +41,12 @@
 </head>
 <body>
     <header>
-        <h1 id="pageHeading">Active Jars</h1>
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <h1 id="pageHeading">Active Jars</h1>
+            <span id="topVesselQtyBadge" style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 999px; padding: 0.22rem 0.55rem; font-size: 0.78rem; font-weight: 700; color: var(--primary);">
+                <svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>
+            </span>
+        </div>
         <a href="index.html" class="btn btn-outline">← Dashboard</a>
     </header>
     <main>
@@ -169,18 +174,28 @@
                 </div>
             `;
         }
+        function getVesselSvgForType(containerName) {
+            const c = String(containerName || '').toLowerCase();
+            if (c.includes('bag')) return '<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#f1f5f9" stroke="#475569" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#64748b" stroke-width="1.1"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#e2e8f0" stroke="#475569" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#c2a378"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#ffffff" opacity="0.72"/></svg>';
+            return '<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg>';
+        }
+
         function setupHeader() {
             const heading = document.getElementById('pageHeading');
+            const badge = document.getElementById('topVesselQtyBadge');
             document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
             if (listType === 'bags') {
                 heading.innerText = 'Active Bags';
                 document.getElementById('tab-bags').classList.add('active');
+                if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#f1f5f9" stroke="#475569" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#64748b" stroke-width="1.1"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#e2e8f0" stroke="#475569" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#c2a378"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#ffffff" opacity="0.72"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
             } else if (listType === 'fruiting') {
                 heading.innerText = 'Fruiting Blocks';
                 document.getElementById('tab-fruiting').classList.add('active');
+                if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#f1f5f9" stroke="#475569" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#64748b" stroke-width="1.1"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#e2e8f0" stroke="#475569" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#c2a378"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#ffffff" opacity="0.72"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
             } else {
                 heading.innerText = 'Active Jars';
                 document.getElementById('tab-jars').classList.add('active');
+                if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
             }
         }
         function renderContainerCards() {
@@ -218,6 +233,8 @@
 
             const unitNoun = listType === 'bags' ? 'bag' : (listType === 'fruiting' ? 'block' : 'jar');
             countEl.innerText = `${unitCards.length} ${unitNoun}${unitCards.length === 1 ? '' : 's'}`;
+            const topQtyEl = document.getElementById('topVesselQtyVal');
+            if (topQtyEl) topQtyEl.innerText = String(unitCards.length);
             if (unitCards.length === 0) {
                 listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1.2rem;">No active ${unitNoun}s found.</div>`;
                 return;
@@ -241,7 +258,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                             <div>
                                 <strong style="font-size: 0.88rem; color: var(--text-main);">${escapeAttr(unitId)}</strong>
-                                <span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.35rem;">(${escapeAttr(batch.container || 'Unit')} ${unitIndex} of ${totalUnits})</span>
+                                <span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.35rem;">(${getVesselSvgForType(batch.container)} ${escapeAttr(batch.container || 'Unit')} ${unitIndex} of ${totalUnits})</span>
                             </div>
                             <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
                         </div>
