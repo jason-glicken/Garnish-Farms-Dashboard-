@@ -456,6 +456,15 @@
                 <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-fruiting">0</div>
             </a>
         </div>
+
+        <!-- Header Copy of Total Farm Yield Card -->
+        <a href="#totalFarmYieldCard" id="headerTotalFarmYieldCard" style="width: 100%; margin-top: 0.35rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; text-decoration: none; color: inherit; text-align: left;">
+            <div>
+                <div style="font-size: 0.64rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Total Farm Yield</div>
+                <div style="font-size: 0.64rem; color: var(--text-muted);" id="header-total-farm-yield-meta">All Harvested Flushes & Batches</div>
+            </div>
+            <div style="font-size: 1rem; font-weight: 700; color: var(--primary); white-space: nowrap;" id="header-total-farm-yield-val">0.0 lbs</div>
+        </a>
     </header>
 
     <main>
@@ -828,6 +837,8 @@
 
             const totalFarmEl = document.getElementById('total-farm-yield-val');
             if (totalFarmEl) totalFarmEl.innerText = `${totalYield.toFixed(1)} lbs`;
+            const headerFarmEl = document.getElementById('header-total-farm-yield-val');
+            if (headerFarmEl) headerFarmEl.innerText = `${totalYield.toFixed(1)} lbs`;
 
             const yieldByStrain = {};
             batches.forEach(b => {
@@ -837,10 +848,11 @@
             });
 
             const metaEl = document.getElementById('totalFarmYieldMeta');
-            if (metaEl) {
-                const strainCount = Object.keys(yieldByStrain).length;
-                metaEl.innerText = `${totalYield.toFixed(1)} lbs logged across ${strainCount} strain${strainCount === 1 ? '' : 's'}`;
-            }
+            const headerMetaEl = document.getElementById('header-total-farm-yield-meta');
+            const strainCount = Object.keys(yieldByStrain).length;
+            const metaSummary = `${totalYield.toFixed(1)} lbs logged across ${strainCount} strain${strainCount === 1 ? '' : 's'}`;
+            if (metaEl) metaEl.innerText = metaSummary;
+            if (headerMetaEl) headerMetaEl.innerText = metaSummary;
 
             const perStrainEl = document.getElementById('yieldPerStrainList');
             if (perStrainEl) {
@@ -1585,7 +1597,11 @@
                     updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
                 }
 
-                const updatePayload = { stage: nextStage, notes: updatedNotes };
+                const updatePayload = {
+                    stage: nextStage,
+                    date: todayLocal,
+                    notes: updatedNotes
+                };
                 if (nextStage === 'Bulk Substrate' && batch.container === 'Jar') {
                     updatePayload.container = 'Bag';
                 }

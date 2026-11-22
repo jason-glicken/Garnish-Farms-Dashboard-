@@ -124,7 +124,7 @@
         function getStageClockFromNotes(notesStr, stageName) {
             if (!notesStr || !stageName) return null;
             const stageCode = stageName === 'Bulk Substrate' ? 'SUB' : (stageName === 'Fruiting' ? 'FRT' : 'GRN');
-            const match = String(notesStr).match(new RegExp(`\[Stage:${stageCode}:(\d{4}-\d{2}-\d{2})\]`));
+            const match = String(notesStr).match(new RegExp(`\\[Stage:${stageCode}:(\\d{4}-\\d{2}-\\d{2})\\]`));
             return match ? match[1] : null;
         }
         function getEffectiveStageDate(item) {
