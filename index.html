@@ -757,9 +757,30 @@
             `}).join('');
         }
 
+        const CACHE_BATCHES_KEY = 'garnish_farms_batches_cache_v1';
+
+        function mapBatchRows(rows) {
+            return (rows || []).map(b => ({
+                dbId: b.id,
+                batchId: b.batch_id,
+                date: b.date,
+                strain: b.strain,
+                stage: b.stage,
+                quantity: b.quantity,
+                container: b.container,
+                substrate: b.substrate,
+                harvestWeight: b.harvest_weight,
+                status: b.status,
+                notes: b.notes
+            }));
+        }
+
         async function loadBatches() {
             setSyncState('', 'Syncing...');
             try {
+                if (!window.supabase || !_supabase) {
+                    throw new Error('Supabase client unavailable');
+                }
                 const { data, error } = await _supabase
                     .from('batches')
                     .select('*')
@@ -767,25 +788,28 @@
 
                 if (error) throw error;
 
-                batches = (data || []).map(b => ({
-                    dbId: b.id,
-                    batchId: b.batch_id,
-                    date: b.date,
-                    strain: b.strain,
-                    stage: b.stage,
-                    quantity: b.quantity,
-                    container: b.container,
-                    substrate: b.substrate,
-                    harvestWeight: b.harvest_weight,
-                    status: b.status,
-                    notes: b.notes
-                }));
+                batches = mapBatchRows(data);
+                try {
+                    localStorage.setItem(CACHE_BATCHES_KEY, JSON.stringify(batches));
+                } catch (e) {}
 
                 setSyncState('connected', 'Cloud Synced');
                 populateStrainFilter();
                 renderAll();
             } catch (err) {
-                setSyncState('error', 'Sync Error');
+                let usedCache = false;
+                try {
+                    const cached = JSON.parse(localStorage.getItem(CACHE_BATCHES_KEY) || 'null');
+                    if (Array.isArray(cached) && cached.length > 0) {
+                        batches = cached;
+                        usedCache = true;
+                    }
+                } catch (e) {}
+
+                const msg = (err && err.message) ? err.message : 'Sync Error';
+                setSyncState('error', usedCache ? `Cached (${msg})` : `Sync Error: ${msg}`);
+                populateStrainFilter();
+                renderAll();
             }
         }
 
@@ -796,8 +820,8 @@
                     .select('*')
                     .order('created_at', { ascending: false });
 
-                if (!error) {
-                    cultures = (data || []).map(c => ({
+                if (!error && data) {
+                    cultures = data.map(c => ({
                         dbId: c.id,
                         cultureId: c.culture_id,
                         date: c.date,
@@ -806,10 +830,10 @@
                         notes: c.notes
                     }));
                 }
-                renderCulturesTable();
             } catch (err) {
                 cultures = [];
             }
+            renderCulturesTable();
         }
 
         function renderAll() {
