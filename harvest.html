@@ -29,7 +29,15 @@
         .card { background: var(--card-bg); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
         .form-group { margin-bottom: 0.8rem; }
         .form-group label { display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.3rem; }
-        .form-control { width: 100%; padding: 0.58rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.88rem; background: #ffffff; }
+        .form-control { width: 100%; min-width: 0; max-width: 100%; padding: 0.55rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.84rem; background: #ffffff; color: var(--text-main); }
+        input[type="date"].form-control { -webkit-appearance: none; appearance: none; min-height: 2.35rem; }
+        .row-3 { display: grid; grid-template-columns: 1.25fr 0.95fr 0.8fr; gap: 0.45rem; }
+        .row-2-outcome { display: grid; grid-template-columns: 1fr auto; gap: 0.45rem; align-items: end; margin-bottom: 0.8rem; }
+        @media (max-width: 430px) {
+            .row-3 { grid-template-columns: 1fr 1fr; }
+            .row-3 .date-col { grid-column: 1 / -1; }
+            .row-2-outcome { grid-template-columns: 1fr; }
+        }
         table { width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: left; }
         th, td { padding: 0.55rem 0.45rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
         th { background: var(--bg-light); color: var(--text-muted); font-weight: 600; }
@@ -48,8 +56,8 @@
                     <label for="batchSelect">Batch</label>
                     <select id="batchSelect" class="form-control" required></select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.55rem;">
-                    <div class="form-group">
+                <div class="row-3">
+                    <div class="form-group date-col">
                         <label for="harvestDate">Date</label>
                         <input type="date" id="harvestDate" class="form-control" required>
                     </div>
@@ -64,12 +72,23 @@
                     </div>
                     <div class="form-group">
                         <label for="weightInput">Weight (lbs)</label>
-                        <input type="number" id="weightInput" class="form-control" step="0.01" min="0.01" placeholder="0.00" required>
+                        <input type="number" id="weightInput" class="form-control" step="0.01" min="0" placeholder="0.00" required>
                     </div>
+                </div>
+                <div class="row-2-outcome">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="closeStatusInput">Batch Outcome</label>
+                        <select id="closeStatusInput" class="form-control">
+                            <option value="Keep Active" selected>Keep Active (More Flushes)</option>
+                            <option value="Harvested">Close Batch — Harvested</option>
+                            <option value="Contaminated">Close Batch — Failed / Contam</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-outline" id="zeroYieldBtn" style="width: 100%; padding: 0.55rem 0.75rem; border-color: #dc2626; color: #dc2626; white-space: nowrap;">Zero Yield (0.00 lbs)</button>
                 </div>
                 <div class="form-group">
                     <label for="notesInput">Notes</label>
-                    <input type="text" id="notesInput" class="form-control" placeholder="Optional flush notes...">
+                    <input type="text" id="notesInput" class="form-control" placeholder="Optional flush or failure notes...">
                 </div>
                 <button type="submit" class="btn" id="saveHarvestBtn" style="width: 100%; padding: 0.68rem;">Save Harvest</button>
             </form>
@@ -166,9 +185,21 @@
             `).join('');
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        function applyTodayDefaultDate() {
+            const dateEl = document.getElementById('harvestDate');
+            if (!dateEl) return;
             const now = new Date();
-            document.getElementById('harvestDate').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            if (!dateEl.value) {
+                dateEl.value = iso;
+                dateEl.defaultValue = iso;
+            }
+        }
+        applyTodayDefaultDate();
+        window.addEventListener('pageshow', applyTodayDefaultDate);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            applyTodayDefaultDate();
 
             const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
             batches = data || [];
@@ -181,16 +212,30 @@
             loadHistory();
         });
 
+        document.getElementById('zeroYieldBtn').addEventListener('click', () => {
+            document.getElementById('weightInput').value = '0.00';
+            const closeSel = document.getElementById('closeStatusInput');
+            if (closeSel && closeSel.value === 'Keep Active') {
+                closeSel.value = 'Harvested';
+            }
+            const notesEl = document.getElementById('notesInput');
+            if (notesEl && !notesEl.value.trim()) {
+                notesEl.value = 'Zero yield — closed out';
+            }
+        });
+
         document.getElementById('harvestForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const dbId = Number(document.getElementById('batchSelect').value);
             const batch = batches.find(b => b.id === dbId);
             if (!batch) return;
 
-            const weight = Number(document.getElementById('weightInput').value || 0);
+            const weight = Math.max(0, Number(document.getElementById('weightInput').value || 0));
             const harvestDate = document.getElementById('harvestDate').value;
             const flushNum = Number(document.getElementById('flushNumber').value || 1);
-            const notes = document.getElementById('notesInput').value.trim();
+            const closeOutcome = document.getElementById('closeStatusInput').value;
+            const rawNotes = document.getElementById('notesInput').value.trim();
+            const notes = rawNotes || (weight === 0 ? 'Zero yield' : '');
             const cleanId = formatDisplayBatchId(batch.batch_id, batch.strain, batch.date, batch.quantity);
 
             const entry = {
@@ -213,7 +258,18 @@
             } catch (err) {}
 
             const newTotalYield = Number(batch.harvest_weight || 0) + weight;
-            await _supabase.from('batches').update({ harvest_weight: newTotalYield }).eq('id', dbId);
+            const batchUpdate = { harvest_weight: newTotalYield };
+            if (closeOutcome === 'Harvested') {
+                batchUpdate.status = 'Harvested';
+                batchUpdate.stage = 'Harvested';
+            } else if (closeOutcome === 'Contaminated') {
+                batchUpdate.status = 'Contaminated';
+            }
+            if (notes) {
+                batchUpdate.notes = batch.notes ? `${batch.notes} [${harvestDate}: ${notes}]` : `[${harvestDate}: ${notes}]`;
+            }
+
+            await _supabase.from('batches').update(batchUpdate).eq('id', dbId);
             window.location.href = 'index.html';
         });
     </script>
