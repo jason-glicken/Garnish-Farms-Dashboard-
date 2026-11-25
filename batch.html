@@ -35,6 +35,28 @@ header.gf-site-header>.gf-brand-row .gf-header-actions{display:flex;align-items:
 .gf-site-header .header-production-actions a.gf-active{filter:brightness(.97)}
 .gf-home:focus,.gf-home:hover{background:#244a20!important}
 
+
+/* V39: keep the four KPI header cards in a full-width four-column grid.
+   This must override legacy page rules that style header div:nth-child(2) as flex. */
+header.gf-site-header > div:nth-child(2):not(.header-production-actions){
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  justify-content:stretch!important;
+  align-items:stretch!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  gap:.35rem!important;
+  margin-top:.05rem!important;
+}
+header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat-link-card{
+  display:flex!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  justify-content:center!important;
+  align-items:center!important;
+}
+
 </style></head><body><header class="gf-site-header">
  <div class="gf-brand-row"><a href="index.html" class="gf-brand"><h1>Garnish Farms - Mushrooms</h1><p><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Cloud Sync</span></p></a><div class="gf-header-actions"><a href="settings.html" class="btn btn-outline gf-settings">Settings</a><a href="index.html" class="btn gf-home">Home</a></div></div>
         <!-- Compact KPI Counters in Header -->
