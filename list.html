@@ -252,32 +252,19 @@
             return actual;
         }
         function renderContinuousStageBar(item) {
-            const cfg = getAppSettings();
-            const targets = cfg.stageTargets || {};
-            const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
-            const colors = { 'Grain Spawn': '#16a34a', 'Bulk Substrate': '#d97706', 'Fruiting': '#3b82f6' };
-            const targetSegments = order.map(stage => ({ stage, days: Math.max(1, Number(targets[stage] || 14)) }));
-            const actualSegments = getBatchStageTimeline(item);
-            const targetTotal = targetSegments.reduce((sum, x) => sum + x.days, 0);
-            const actualTotal = actualSegments.reduce((sum, x) => sum + x.days, 0);
-            const horizon = Math.max(targetTotal, Number(cfg.timelineHorizon || 42), actualTotal + 2, 1);
-            const segmentHtml = segments => segments.map(seg => {
-                const width = Math.max(0, Math.min(100, (seg.days / horizon) * 100));
-                return `<div title="${escapeAttr(seg.stage)}: ${seg.days} days" style="width:${width}%;height:100%;background:${colors[seg.stage]};flex:0 0 auto;"></div>`;
-            }).join('');
-            const markerPct = Math.max(0, Math.min(100, (actualTotal / horizon) * 100));
-            const track = (segments, height, marker=false) => `<div style="position:relative;height:${height}px;background:#e8ebee;border-radius:999px;overflow:hidden;display:flex;">${segmentHtml(segments)}${marker ? `<div title="Current lifecycle position: day ${actualTotal}" style="position:absolute;left:${markerPct}%;top:-2px;bottom:-2px;width:3px;background:#172b1c;border:1px solid #fff;z-index:2;transform:translateX(-50%);"></div>` : ''}</div>`;
-            const names = { 'Grain Spawn':'Spawn', 'Bulk Substrate':'Substrate', 'Fruiting':'Fruiting' };
-            const detail = actualSegments.length ? actualSegments.map(x => `${names[x.stage]} ${x.days}d`).join(' · ') : 'Actual stage dates will appear as stages are recorded';
-            return `
-                <div class="batch-lifecycle-timeline" style="margin-top:.42rem;display:grid;gap:.28rem;">
-                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">TARGET · FULL LIFECYCLE</strong><span>${targetTotal}d planned</span></div>
-                    ${track(targetSegments,7)}
-                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">ACTUAL · RUNNING LIFECYCLE</strong><span>${actualTotal}d elapsed</span></div>
-                    ${track(actualSegments,10,true)}
-                    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;font-size:.54rem;font-weight:700;color:var(--text-muted);text-align:center;"><span style="text-align:left;">SPAWN</span><span>SUBSTRATE</span><span>FRUITING</span><span style="text-align:right;">HARVEST</span></div>
-                    <div style="font-size:.57rem;color:var(--text-muted);line-height:1.35;">${escapeAttr(detail)} · Marker shows current lifecycle position</div>
-                </div>`;
+            const cfg = getAppSettings(), targets = cfg.stageTargets || {};
+            const stage = ['Grain Spawn','Bulk Substrate','Fruiting'].includes(item.stage) ? item.stage : 'Grain Spawn';
+            const colors = {'Grain Spawn':'#16a34a','Bulk Substrate':'#d97706','Fruiting':'#3b82f6'};
+            const names = {'Grain Spawn':'Spawn','Bulk Substrate':'Substrate','Fruiting':'Fruiting'};
+            const targetDays = Math.max(1, Number(targets[stage] || 14));
+            const today = localIsoDate(new Date());
+            let stageStart = stage === 'Grain Spawn' ? getBatchStartDate(item) : getStageClockFromNotes(item.notes, stage);
+            if (!stageStart && item.stage === stage) stageStart = getEffectiveStageDate(item);
+            const elapsed = stageStart ? dateDiffDays(stageStart, today) : 0;
+            const horizon = Math.max(targetDays, Number(cfg.timelineHorizon || 42), elapsed + 1, 1);
+            const targetWidth = Math.min(100, targetDays / horizon * 100), actualWidth = Math.min(100, elapsed / horizon * 100), color = colors[stage];
+            const track = (width,height,outline=false,marker=false) => `<div style="position:relative;height:${height}px;background:#e8ebee;border-radius:999px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:${width}%;background:${outline?'transparent':color};${outline?`border:1.5px dashed ${color};`:''}border-radius:999px;"></div>${marker?`<div title="Today · day ${elapsed} of ${targetDays}" style="position:absolute;left:${actualWidth}%;top:-2px;bottom:-2px;width:3px;background:#172b1c;border:1px solid #fff;z-index:2;transform:translateX(-50%);"></div>`:''}</div>`;
+            return `<div class="batch-lifecycle-timeline" style="margin-top:.42rem;display:grid;gap:.28rem;"><div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">${names[stage]} · TARGET</strong><span>${targetDays}d</span></div>${track(targetWidth,7,true)}<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">${names[stage]} · ACTUAL</strong><span>${elapsed}d elapsed</span></div>${track(actualWidth,10,false,true)}<div style="font-size:.57rem;color:var(--text-muted);line-height:1.35;">Only ${names[stage]} is shown · ${elapsed>targetDays?`${elapsed-targetDays}d past target`:`${Math.max(0,targetDays-elapsed)}d to target`}</div></div>`;
         }
 
         function getVesselMiniIconHtml(containerName) {

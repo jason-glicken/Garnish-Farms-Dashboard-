@@ -1281,39 +1281,23 @@
         }
 
         function renderContinuousStageBar(days, targetOffsetDays, stageTargetDays, stageName, item) {
-            const cfg = getAppSettings();
-            const targets = cfg.stageTargets || {};
-            const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
-            const colors = { 'Grain Spawn': '#16a34a', 'Bulk Substrate': '#d97706', 'Fruiting': '#3b82f6' };
-            const shortNames = { 'Grain Spawn': 'Spawn', 'Bulk Substrate': 'Substrate', 'Fruiting': 'Fruiting' };
-            const targetSegments = order.map(stage => ({ stage, days: Math.max(1, Number(targets[stage] || 14)) }));
-            const actualSegments = item ? getBatchStageTimeline(item) : [];
-            const targetTotal = targetSegments.reduce((sum, x) => sum + x.days, 0);
-            const actualTotal = actualSegments.reduce((sum, x) => sum + x.days, 0);
-            const horizon = Math.max(targetTotal, Number(cfg.timelineHorizon || 42), actualTotal + 2, 1);
-            const segmentHtml = (segments) => segments.map(seg => {
-                const width = Math.max(0, Math.min(100, (seg.days / horizon) * 100));
-                return `<div title="${escapeAttr(seg.stage)}: ${seg.days} days" style="width:${width}%;height:100%;background:${colors[seg.stage]};flex:0 0 auto;"></div>`;
-            }).join('');
-            const markerPct = Math.max(0, Math.min(100, (actualTotal / horizon) * 100));
+            const cfg = getAppSettings(), targets = cfg.stageTargets || {};
+            const stage = item && ['Grain Spawn','Bulk Substrate','Fruiting'].includes(item.stage) ? item.stage : (stageName || 'Grain Spawn');
+            const colors = {'Grain Spawn':'#16a34a','Bulk Substrate':'#d97706','Fruiting':'#3b82f6'};
+            const shortNames = {'Grain Spawn':'Spawn','Bulk Substrate':'Substrate','Fruiting':'Fruiting'};
+            const targetDays = Math.max(1, Number(targets[stage] || stageTargetDays || 14));
+            const today = localIsoDate(new Date());
+            let stageStart = stage === 'Grain Spawn' ? getBatchStartDate(item) : getStageClockFromNotes(item && item.notes, stage);
+            if (!stageStart && item && item.stage === stage) stageStart = getEffectiveStageDate(item);
+            const elapsed = stageStart ? dateDiffDays(stageStart, today) : Math.max(0, Number(days || 0));
+            const horizon = Math.max(targetDays, Number(cfg.timelineHorizon || 42), elapsed + 1, 1);
+            const targetWidth = Math.min(100, targetDays / horizon * 100);
+            const actualWidth = Math.min(100, elapsed / horizon * 100);
+            const markerPct = actualWidth;
+            const color = colors[stage] || '#64748b';
             const harvested = item && (item.status === 'Harvested' || item.stage === 'Harvested');
-            const actualText = actualSegments.length
-                ? actualSegments.map(x => `${shortNames[x.stage]} ${x.days}d`).join(' · ')
-                : 'Actual stage dates will appear as stages are recorded';
-            const markerLabel = harvested ? 'HARVESTED' : `DAY ${actualTotal} · NOW`;
-            const track = (segments, height, marker=false) => `<div style="position:relative;height:${height}px;background:#e8ebee;border-radius:999px;overflow:hidden;display:flex;">${segmentHtml(segments)}${marker ? `<div title="${markerLabel}" style="position:absolute;left:${markerPct}%;top:-2px;bottom:-2px;width:3px;background:#172b1c;border:1px solid #fff;z-index:2;transform:translateX(-50%);"></div>` : ''}</div>`;
-            return `
-                <div class="batch-lifecycle-timeline" style="margin-top:.42rem;display:grid;gap:.28rem;">
-                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">TARGET · FULL LIFECYCLE</strong><span>${targetTotal}d planned</span></div>
-                    ${track(targetSegments,7)}
-                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">ACTUAL · RUNNING LIFECYCLE</strong><span>${actualTotal}d ${harvested ? 'to harvest' : 'elapsed'}</span></div>
-                    ${track(actualSegments,10,true)}
-                    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;font-size:.54rem;font-weight:700;color:var(--text-muted);text-align:center;">
-                        <span style="text-align:left;">SPAWN</span><span>SUBSTRATE</span><span>FRUITING</span><span style="text-align:right;">HARVEST</span>
-                    </div>
-                    <div style="font-size:.57rem;color:var(--text-muted);line-height:1.35;">${escapeAttr(actualText)}${harvested ? ' · Harvest milestone reached' : ' · Marker shows current lifecycle position'}</div>
-                </div>
-            `;
+            const track = (width, height, outlined=false, marker=false) => `<div style="position:relative;height:${height}px;background:#e8ebee;border-radius:999px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:${width}%;background:${outlined?'transparent':color};${outlined?`border:1.5px dashed ${color};`:''}border-radius:999px;"></div>${marker ? `<div title="Today · day ${elapsed} of ${targetDays}" style="position:absolute;left:${markerPct}%;top:-2px;bottom:-2px;width:3px;background:#172b1c;border:1px solid #fff;z-index:2;transform:translateX(-50%);"></div>` : ''}</div>`;
+            return `<div class="batch-lifecycle-timeline" style="margin-top:.42rem;display:grid;gap:.28rem;"><div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">${shortNames[stage]} · TARGET</strong><span>${targetDays}d</span></div>${track(targetWidth,7,true)}<div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">${shortNames[stage]} · ACTUAL</strong><span>${elapsed}d ${harvested?'total':'elapsed'}</span></div>${track(actualWidth,10,false,true)}<div style="font-size:.57rem;color:var(--text-muted);line-height:1.35;">Only ${shortNames[stage]} is shown · ${harvested?'Harvested':elapsed>targetDays?`${elapsed-targetDays}d past target`:`${Math.max(0,targetDays-elapsed)}d to target`}</div></div>`;
         }
 
         let taskCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -2257,37 +2241,56 @@
 
 
         function renderFarmForecastTimeline() {
-            const host=document.getElementById('farmForecastTimeline'); if(!host)return;
-            const active=batches.filter(b=>b.status==='Active');
-            if(!active.length){host.innerHTML='<div style="font-size:.75rem;color:var(--text-muted);">No active batches to forecast yet.</div>';return;}
-            const cfg=getAppSettings(),t=cfg.stageTargets||{};
-            const now=new Date(); now.setHours(0,0,0,0);
-            const start=new Date(now);start.setDate(start.getDate()-30);
-            const horizon=90, colors={'Grain Spawn':'#16a34a','Bulk Substrate':'#d97706','Fruiting':'#3b82f6'};
-            const stages=['Grain Spawn','Bulk Substrate','Fruiting'];
-            const groups={}; active.forEach(b=>(groups[b.strain] ||= []).push(b));
-            const isoToDate=v=>{const p=String(v||'').split('-').map(Number);return p.length===3&&p[0]?new Date(p[0],p[1]-1,p[2]):null;};
-            const dateToPct=d=>Math.max(0,Math.min(100,((d-start)/86400000)/horizon*100));
-            host.innerHTML=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([strain,items])=>{
-              const theme=getStrainCardTheme(strain);
-              const rows=items.map(b=>{
-                const origin=isoToDate(getBatchStartDate(b));if(!origin)return '';
-                const clockMap=getStageClockMap();
-                const subNote=(String(b.notes||'').match(/\[Stage:SUB:(\d{4}-\d{2}-\d{2})\]/)||[])[1] || clockMap[`${b.dbId}::Bulk Substrate`];
-                const frtNote=(String(b.notes||'').match(/\[Stage:FRT:(\d{4}-\d{2}-\d{2})\]/)||[])[1] || clockMap[`${b.dbId}::Fruiting`];
-                const sub=subNote?isoToDate(subNote):new Date(origin.getTime()+Number(t['Grain Spawn']||14)*86400000);
-                const frt=frtNote?isoToDate(frtNote):new Date(sub.getTime()+Number(t['Bulk Substrate']||14)*86400000);
-                const end=new Date(frt.getTime()+Number(t['Fruiting']||14)*86400000);
-                const batchLabel=escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity));
-                const segments=[{name:'Spawn',a:origin,z:sub,c:colors['Grain Spawn']},{name:'Substrate',a:sub,z:frt,c:colors['Bulk Substrate']},{name:'Fruiting',a:frt,z:end,c:colors['Fruiting']}];
-                const bars=segments.map(seg=>{
-                  const left=dateToPct(seg.a),right=dateToPct(seg.z); if(right<=0||left>=100||right<=left)return '';
-                  return `<span title="${seg.name} · target ${localIsoDate(seg.a)}–${localIsoDate(seg.z)}" style="position:absolute;left:${left}%;width:${Math.max(.8,right-left)}%;top:0;height:7px;background:${seg.c};border-radius:5px;"></span>`;
+            const host = document.getElementById('farmForecastTimeline');
+            if (!host) return;
+            const active = batches.filter(b => b.status === 'Active');
+            if (!active.length) {
+                host.innerHTML = '<div style="font-size:.75rem;color:var(--text-muted);">No active batches to forecast yet.</div>';
+                return;
+            }
+            const cfg = getAppSettings(), targets = cfg.stageTargets || {};
+            const today = new Date(); today.setHours(0,0,0,0);
+            // Shared 90-day window: 30 days of history and 60 days of forward visibility.
+            const windowStart = new Date(today); windowStart.setDate(windowStart.getDate() - 30);
+            const windowDays = 90, todayPct = 30 / 90 * 100;
+            const colors = {'Grain Spawn':'#16a34a','Bulk Substrate':'#d97706','Fruiting':'#3b82f6'};
+            const stageNames = {'Grain Spawn':'Spawn','Bulk Substrate':'Substrate','Fruiting':'Fruiting'};
+            const stages = ['Grain Spawn','Bulk Substrate','Fruiting'];
+            const isoDate = value => {
+                const m = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+                return m ? new Date(Number(m[1]), Number(m[2])-1, Number(m[3])) : null;
+            };
+            const pct = date => ((date - windowStart) / 86400000) / windowDays * 100;
+            const groups = {};
+            active.forEach(b => (groups[b.strain] ||= []).push(b));
+            const axis = `<div style="display:grid;grid-template-columns:minmax(105px,28%) 1fr;gap:.45rem;margin:.1rem 0 .25rem;"><span></span><div style="display:flex;justify-content:space-between;position:relative;font-size:.55rem;color:var(--text-muted);padding-bottom:.15rem;"><span>30d ago</span><strong style="color:var(--primary);position:absolute;left:${todayPct}%;transform:translateX(-50%);">TODAY</strong><span>60d ahead</span></div></div>`;
+            host.innerHTML = axis + Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([strain, items]) => {
+                const theme = getStrainCardTheme(strain);
+                const rows = items.map(b => {
+                    const stage = stages.includes(b.stage) ? b.stage : 'Grain Spawn';
+                    let startValue = stage === 'Grain Spawn' ? getBatchStartDate(b) : getStageClockFromNotes(b.notes, stage);
+                    if (!startValue && b.stage === stage) startValue = getEffectiveStageDate(b);
+                    const stageStart = isoDate(startValue);
+                    if (!stageStart) return '';
+                    const targetDays = Math.max(1, Number(targets[stage] || 14));
+                    const targetEnd = new Date(stageStart); targetEnd.setDate(targetEnd.getDate() + targetDays);
+                    const actualEnd = today < stageStart ? stageStart : today;
+                    const visibleStart = Math.max(0, pct(stageStart));
+                    const visibleActualEnd = Math.min(100, pct(actualEnd));
+                    const visibleTargetEnd = Math.min(100, pct(targetEnd));
+                    const actualWidth = Math.max(0, visibleActualEnd - visibleStart);
+                    const projectedStart = Math.max(visibleStart, todayPct);
+                    const projectedWidth = Math.max(0, visibleTargetEnd - projectedStart);
+                    const color = colors[stage];
+                    const actualBar = actualWidth > 0 ? `<span title="${stageNames[stage]} · started ${escapeAttr(startValue)} · ${Math.max(0, Math.floor((today-stageStart)/86400000))} days elapsed" style="position:absolute;left:${visibleStart}%;width:${actualWidth}%;height:8px;top:0;background:${color};border-radius:6px;"></span>` : '';
+                    const projectedBar = projectedWidth > 0 ? `<span title="Target ${stageNames[stage]} end · ${localIsoDate(targetEnd)}" style="position:absolute;left:${projectedStart}%;width:${projectedWidth}%;height:8px;top:0;background:transparent;border:1.5px dashed ${color};border-radius:6px;"></span>` : '';
+                    const overdue = today >= targetEnd;
+                    const label = escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity));
+                    const dbId = encodeURIComponent(String(b.dbId || b.id || ''));
+                    const href = `index.html#pipelineContainer`;
+                    return `<a href="${href}" title="${label} · ${stageNames[stage]} · started ${escapeAttr(startValue)} · target ${localIsoDate(targetEnd)}" style="display:grid;grid-template-columns:minmax(105px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:none;color:inherit;padding:.18rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><span style="height:10px;background:#edf0ed;border-radius:8px;position:relative;display:block;overflow:visible;">${actualBar}${projectedBar}<i aria-hidden="true" style="position:absolute;left:${todayPct}%;top:-3px;height:16px;width:2px;background:#172b1c;z-index:3;transform:translateX(-50%);"></i></span><span style="grid-column:2;font-size:.54rem;color:var(--text-muted);margin-top:-.12rem;">${stageNames[stage]} · ${overdue ? `${Math.floor((today-targetEnd)/86400000)}d past target` : `${Math.max(0,Math.ceil((targetEnd-today)/86400000))}d to target`}</span></a>`;
                 }).join('');
-                const actual=[subNote?{d:subNote,c:'#166534',n:'Actual substrate'}:null,frtNote?{d:frtNote,c:'#1d4ed8',n:'Actual fruiting'}:null].filter(Boolean).map(m=>{const d=isoToDate(m.d),x=dateToPct(d);return x>=0&&x<=100?`<i title="${m.n}: ${m.d}" style="position:absolute;left:${x}%;top:-2px;height:11px;width:3px;background:${m.c};z-index:2;"></i>`:''}).join('');
-                return `<a href="strain.html?strain=${encodeURIComponent(b.strain)}#batch-${encodeURIComponent(String(b.id))}" style="display:grid;grid-template-columns:minmax(100px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:none;color:inherit;padding:.2rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${batchLabel}</span><span style="height:8px;background:#edf0ed;border-radius:8px;position:relative;display:block;">${bars}${actual}</span></a>`;
-              }).join('');
-              return `<section style="border:1px solid ${theme.border};border-left:4px solid ${theme.border};background:${theme.bg};border-radius:8px;padding:.45rem .55rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.75rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><div style="margin-top:.25rem;">${rows}</div></section>`;
+                return `<section style="border:1px solid ${theme.border};border-left:4px solid ${theme.border};background:${theme.bg};border-radius:8px;padding:.45rem .55rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.75rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><div style="margin-top:.25rem;">${rows}</div></section>`;
             }).join('');
         }
 
