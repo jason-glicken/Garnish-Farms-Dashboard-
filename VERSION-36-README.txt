@@ -1,14 +1,9 @@
 GARNISH FARMS — VERSION 36
 
-Built from the user's currently running Version 35 package.
+Start from the included HTML files. Before creating new batches, run v36-supabase-migration.sql in the Supabase SQL Editor. This creates the batch_items child table used for independent container IDs, stages, statuses, notes, and stage history.
 
-V36 changes:
-- Standardized compact sticky site header across all pages.
-- New Batch, Harvest, and Total Farm Yield share one aligned action row.
-- Removed the Browse Strains label while keeping strain navigation permanently expanded.
-- Strain links use their own tinted background colors.
-- Header remains present on dashboard, inventory, strain, batch, harvest, settings, activity, upcoming, and yield pages.
-- Reused the established jar, substrate-block, and fruiting icon artwork in key production summaries, legends, and timeline displays.
-- Kept existing V35 database migration and application data logic unchanged.
+New batch behavior: parent ID is STRAIN-MMDDYY (example LM-112526). Individual containers are LM-112526-1, LM-112526-2, etc. The Batch Details page lets each child container progress independently.
 
-No Supabase migration is required for these presentation-only changes.
+Existing v34 batches are retained as parent records; this migration does not fabricate individual historical container records for them.
+
+V36 note: the batch_items parent foreign key is BIGINT to match public.batches.id. If an earlier migration attempt created batch_items with a different type, inspect/drop that incomplete table before applying the corrected migration; do not drop a populated table.
