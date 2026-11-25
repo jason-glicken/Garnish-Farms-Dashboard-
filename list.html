@@ -425,91 +425,14 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
         function isFruitingStage(value) { const v=normalizeRecordValue(value); return v === 'fruiting' || v.includes('fruit'); }
 
         function renderContainerCards() {
-            const listEl = document.getElementById('containerCardsList');
-            const countEl = document.getElementById('containerCount');
-            const cfg = getAppSettings();
-            const stageTargets = cfg.stageTargets;
-            let matchingBatches = allBatches.filter(b => listType === 'all' || isRecordActive(b.status));
-            if (listType === 'all') {
-                matchingBatches = matchingBatches.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-            } else if (listType === 'bags') {
-                matchingBatches = matchingBatches.filter(b => isBagContainer(b.container) && !isFruitingStage(b.stage));
-            } else if (listType === 'fruiting') {
-                matchingBatches = matchingBatches.filter(b => isFruitingStage(b.stage));
-            } else {
-                matchingBatches = matchingBatches.filter(b => isJarContainer(b.container) && !isFruitingStage(b.stage));
-            }
-            if (selectedStrain) matchingBatches = matchingBatches.filter(b => normalizeRecordValue(b.strain) === normalizeRecordValue(selectedStrain));
-
-            const unitCards = [];
-            matchingBatches.forEach(b => {
-                const children = allBatchItems.filter(x => String(x.batch_id) === String(b.id));
-                const qty = listType === 'all' ? Math.max(1, children.length || Number(b.quantity || 1)) : Math.max(1, Number(b.quantity || 1));
-                const stageDate = getEffectiveStageDate(b);
-                const startDate = getBatchStartDate(b);
-                const days = Math.max(0, getDaysActive(startDate));
-                const stageTargetDays = Number(stageTargets[b.stage] || 14);
-                const targetDays = getStageTargetOffsetDays(b.stage, stageTargets);
-                for (let idx = 1; idx <= qty; idx++) {
-                    unitCards.push({
-                        batch: b,
-                        child: children[idx - 1] || null,
-                        unitIndex: idx,
-                        totalUnits: qty,
-                        unitId: formatContainerUnitId(b.batch_id, b.strain, b.date, idx),
-                        stageDate,
-                        days,
-                        stageTargetDays,
-                        targetDays
-                    });
-                }
-            });
-
-            const unitNoun = listType === 'all' ? 'batch' : (listType === 'bags' ? 'bag' : (listType === 'fruiting' ? 'block' : 'jar'));
-            countEl.innerText = `${unitCards.length} ${unitNoun}${unitCards.length === 1 ? '' : 's'}`;
-            const topQtyEl = document.getElementById('topVesselQtyVal');
-            if (topQtyEl) topQtyEl.innerText = String(unitCards.length);
-            if (unitCards.length === 0) {
-                listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1.2rem;">No active ${unitNoun}s found.</div>`;
-                return;
-            }
-            const renderUnit = (u, compact=false) => {
-                const { batch, child, unitIndex, totalUnits, unitId, stageDate, days, targetDays } = u;
-                const effective = child ? {...batch, ...child, stage: child.stage || batch.stage, status: child.status || batch.status, date: child.date || batch.date, notes: child.notes || batch.notes} : batch;
-                const theme = getStrainCardTheme(effective.strain || batch.strain);
-                const pastTarget = days > targetDays;
-                const badgeClass = pastTarget ? 'badge-yellow' : 'badge-green';
-                const badgeText = pastTarget ? `Past Day ${targetDays}` : `Day ${days} / ${targetDays}d`;
-                const subInfo = effective.substrate ? ` • ${escapeAttr(effective.substrate)}` : '';
-                const childLabel = listType === 'all' && totalUnits > 1 ? `<span class="badge badge-green">${unitIndex} of ${totalUnits}</span>` : '';
-                const actualId = child ? (child.container_id || child.item_id || unitId) : unitId;
-                const actionLink = effective.stage === 'Fruiting'
-                    ? `<div style="display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;"><a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding:.25rem .5rem;font-size:.68rem;">Edit</a><a href="harvest.html?id=${batch.id}" class="btn" style="padding:.25rem .55rem;font-size:.68rem;background-color:#d97706;">Harvest ➔</a></div>`
-                    : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding:.25rem .55rem;font-size:.68rem;">Edit Batch</a>`;
-                return `<div class="container-card strain-record-card" style="background-color:${theme.bg};border-left:4px solid ${theme.border};${compact?'margin:.28rem 0;padding:.5rem .6rem;':''}">
-                    <div class="strain-card-heading"><div style="min-width:0;"><div class="strain-card-name">${formatStrainWithScientific(effective.strain || batch.strain)}</div><div class="strain-card-id">${escapeAttr(actualId)} <span style="font-weight:500;color:var(--text-muted);">${formatUnitIconPatternHtml(effective.container || batch.container, unitIndex, totalUnits)}</span></div></div>${childLabel || `<span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>`}</div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;"><span class="strain-card-stage">${escapeAttr(effective.stage || batch.stage)}${subInfo}</span>${listType==='all'&&totalUnits>1?'':actionLink}</div>
-                    <div style="font-size:.68rem;color:var(--text-muted);">Batch Date: ${escapeAttr(effective.date || batch.date)}${compact?'':` • Stage Start: ${escapeAttr(stageDate)}`}</div>
-                    ${compact?'':renderContinuousStageBar(effective)}
-                </div>`;
-            };
-            if (listType === 'all') {
-                const groups = new Map();
-                unitCards.forEach(u => { const key=String(u.batch.id); if(!groups.has(key)) groups.set(key,[]); groups.get(key).push(u); });
-                listEl.innerHTML = [...groups.values()].map(group => {
-                    const first=group[0], b=first.batch, qty=group.length;
-                    if(qty<=1) return renderUnit(first);
-                    const childRows=group.map(u=>renderUnit(u,true)).join('');
-                    return `<details class="container-card all-batch-group" style="background:#fff;border-left:4px solid ${getStrainCardTheme(b.strain).border};padding:.68rem .75rem;">
-                      <summary style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;cursor:pointer;list-style:none;">
-                        <span style="min-width:0;"><strong style="display:block;color:var(--primary);font-size:.86rem;">${escapeAttr(getBaseBatchId(b.batch_id,b.strain,b.date))}</strong><span style="font-size:.72rem;color:var(--text-muted);">${formatStrainWithScientific(b.strain)} · ${escapeAttr(b.stage)} · ${escapeAttr(b.date||'')}</span></span>
-                        <span class="badge badge-green">${qty} containers ▾</span>
-                      </summary>
-                      <div style="margin-top:.55rem;border-top:1px solid var(--border);padding-top:.35rem;">${childRows}<div style="margin-top:.35rem;text-align:right;"><a href="new-batch.html?id=${b.id}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .5rem;">Edit Parent Batch</a></div></div>
-                    </details>`;
-                }).join('');
-            } else {
-                listEl.innerHTML = unitCards.map(renderUnit).join('');
+            // V43: the V41+ individual-container renderer is authoritative.
+            // The legacy parent-batch renderer previously raced this renderer and
+            // overwrote its per-container timelines with parent-level cards.
+            if (typeof window.gfV41RenderContainerCards === 'function') {
+                window.gfV41RenderContainerCards().catch(err => {
+                    const el=document.getElementById('containerCardsList');
+                    if(el) el.innerHTML='<div class="empty">Could not load individual containers: '+escapeAttr(err.message||err)+'</div>';
+                });
             }
         }
 
@@ -623,8 +546,8 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
 (function(){
  const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const isActive=x=>norm(x.status||'Active')==='active';
- const stageType=x=>{const s=norm(x.stage);if(s.includes('fruit'))return 'fruiting';if(s.includes('bulk')||s==='substrate')return 'bags';return 'jars';};
+ const isActive=x=>{const s=norm(x.status||'Active');return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(s);};
+ const stageType=x=>{const s=norm(x.stage),c=norm(x.container);if(s.includes('fruit')||c.includes('fruit'))return 'fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'bags';return 'jars';};
  window.gfV41RenderContainerCards=async function(){
    const listEl=document.getElementById('containerCardsList'),countEl=document.getElementById('containerCount');
    if(!listEl||!window.supabase)return;
@@ -645,16 +568,17 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
    const top=document.getElementById('topVesselQtyVal');if(top)top.textContent=String(units.length);
    if(!units.length){listEl.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1.2rem">No '+(all?'production containers':'active '+listType)+' found.</div>';return;}
    const targetsDefault={'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14};
-   function stageDate(x){return x.current_stage_started_on||({ 'Grain Spawn':x.grain_started_on,'Bulk Substrate':x.bulk_started_on,'Fruiting':x.fruiting_started_on }[x.stage])||x.date||'';}
+   function canonicalStage(v){const s=norm(v);if(s.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag')return 'Bulk Substrate';return 'Grain Spawn';}
+   function stageDate(x){const st=canonicalStage(x.stage);return x.current_stage_started_on||({ 'Grain Spawn':x.grain_started_on,'Bulk Substrate':x.bulk_started_on,'Fruiting':x.fruiting_started_on }[st])||x.date||'';}
    function timelineHtml(x){
      const order=['Grain Spawn','Bulk Substrate','Fruiting'];
      const hist=Array.isArray(x.stage_history)?x.stage_history:[];
      const dateKeys={'Grain Spawn':'grain_started_on','Bulk Substrate':'bulk_started_on','Fruiting':'fruiting_started_on'};
      const starts={};
      order.forEach(st=>{starts[st]=x[dateKeys[st]]||'';});
-     hist.forEach(h=>{if(h&&order.includes(h.stage)&&h.date&&!starts[h.stage])starts[h.stage]=String(h.date).slice(0,10);});
+     hist.forEach(h=>{if(h&&h.date){const hs=canonicalStage(h.stage);if(!starts[hs])starts[hs]=String(h.date).slice(0,10);}});
      if(!starts['Grain Spawn'])starts['Grain Spawn']=x.date||'';
-     if(x.current_stage_started_on&&order.includes(x.stage)&&!starts[x.stage])starts[x.stage]=x.current_stage_started_on;
+     const current=canonicalStage(x.stage);if(x.current_stage_started_on&&!starts[current])starts[current]=x.current_stage_started_on;
      const reached=order.filter(st=>starts[st]);
      if(!reached.length)return '<div class="batch-lifecycle-timeline" style="margin-top:.45rem;font-size:.68rem;color:var(--text-muted)">Timeline dates have not been recorded for this container.</div>';
      const targets={...targetsDefault,...(x.target_days||{}),...(x.target_overrides||{})};
@@ -666,7 +590,7 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
      }).join('')+'</div>';
    }
    function card(x,i,total){
-     const stage=x.stage||'Grain Spawn',date=stageDate(x),targetMap={...targetsDefault,...(x.target_days||{})},target=Number(targetMap[stage]||14);
+     const stage=canonicalStage(x.stage),date=stageDate(x),targetMap={...targetsDefault,...(x.target_days||{}),...(x.target_overrides||{})},target=Number(targetMap[stage]||14);
      const elapsed=date?Math.max(0,Math.floor((Date.now()-new Date(date+'T00:00:00').getTime())/86400000)):0;
      const id=x.container_id||x.parentBatchId||'Container';
      const method=x.fruiting_method?(' · '+x.fruiting_method):'';
