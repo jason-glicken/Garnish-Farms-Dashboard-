@@ -646,6 +646,25 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
    if(!units.length){listEl.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1.2rem">No '+(all?'production containers':'active '+listType)+' found.</div>';return;}
    const targetsDefault={'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14};
    function stageDate(x){return x.current_stage_started_on||({ 'Grain Spawn':x.grain_started_on,'Bulk Substrate':x.bulk_started_on,'Fruiting':x.fruiting_started_on }[x.stage])||x.date||'';}
+   function timelineHtml(x){
+     const order=['Grain Spawn','Bulk Substrate','Fruiting'];
+     const hist=Array.isArray(x.stage_history)?x.stage_history:[];
+     const dateKeys={'Grain Spawn':'grain_started_on','Bulk Substrate':'bulk_started_on','Fruiting':'fruiting_started_on'};
+     const starts={};
+     order.forEach(st=>{starts[st]=x[dateKeys[st]]||'';});
+     hist.forEach(h=>{if(h&&order.includes(h.stage)&&h.date&&!starts[h.stage])starts[h.stage]=String(h.date).slice(0,10);});
+     if(!starts['Grain Spawn'])starts['Grain Spawn']=x.date||'';
+     if(x.current_stage_started_on&&order.includes(x.stage)&&!starts[x.stage])starts[x.stage]=x.current_stage_started_on;
+     const reached=order.filter(st=>starts[st]);
+     if(!reached.length)return '<div class="batch-lifecycle-timeline" style="margin-top:.45rem;font-size:.68rem;color:var(--text-muted)">Timeline dates have not been recorded for this container.</div>';
+     const targets={...targetsDefault,...(x.target_days||{}),...(x.target_overrides||{})};
+     const today=new Date();today.setHours(0,0,0,0);
+     const dayDiff=(a,b)=>{if(!a||!b)return 0;const aa=new Date(String(a).slice(0,10)+'T00:00:00'),bb=new Date(String(b).slice(0,10)+'T00:00:00');return Math.max(0,Math.round((bb-aa)/86400000));};
+     return '<div class="batch-lifecycle-timeline" style="margin-top:.55rem;display:grid;gap:.48rem">'+reached.map((st,idx)=>{
+       const start=starts[st],next=reached[idx+1],end=next?starts[next]:today.toISOString().slice(0,10),elapsed=dayDiff(start,end),target=Math.max(1,Number(targets[st]||14)),horizon=Math.max(42,target,elapsed+1),actualW=Math.min(100,elapsed/horizon*100),targetW=Math.min(100,target/horizon*100),color=st==='Grain Spawn'?'#16a34a':st==='Bulk Substrate'?'#d97706':'#3b82f6';
+       return '<div><div style="display:flex;justify-content:space-between;gap:.4rem;font-size:.62rem;color:var(--text-muted);margin-bottom:.16rem"><strong style="color:var(--text-main)">'+esc(st)+'</strong><span>'+esc(start)+' · '+elapsed+'d / '+target+'d target</span></div><div style="position:relative;height:8px;background:#e8ebee;border-radius:99px;overflow:hidden"><div style="position:absolute;inset:0 auto 0 0;width:'+targetW+'%;border:1px dashed '+color+';border-radius:99px;box-sizing:border-box"></div><div style="position:absolute;inset:0 auto 0 0;width:'+actualW+'%;background:'+color+';border-radius:99px"></div></div></div>';
+     }).join('')+'</div>';
+   }
    function card(x,i,total){
      const stage=x.stage||'Grain Spawn',date=stageDate(x),targetMap={...targetsDefault,...(x.target_days||{})},target=Number(targetMap[stage]||14);
      const elapsed=date?Math.max(0,Math.floor((Date.now()-new Date(date+'T00:00:00').getTime())/86400000)):0;
@@ -653,7 +672,7 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
      const method=x.fruiting_method?(' · '+x.fruiting_method):'';
      const label=Number(x.unitTotal||1)>1?'<span class="badge badge-green">'+Number(x.unitIndex||i+1)+' of '+Number(x.unitTotal)+'</span>':'';
      const targetText=date?('Day '+elapsed+' / '+target+'d'):'Stage date not entered';
-     return `<article class="container-card strain-record-card" style="background:#f8faf7;border-left:4px solid #6b8f5e;padding:.65rem .75rem;margin:.3rem 0"><div class="strain-card-heading"><div style="min-width:0"><div class="strain-card-name">${esc(x.strain||'Unknown strain')}</div><div class="strain-card-id">${esc(id)} ${label}</div></div><span class="badge ${elapsed>target?'badge-yellow':'badge-green'}">${esc(targetText)}</span></div><div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap"><span class="strain-card-stage">${esc(stage)}${method?' · '+esc(method):''}</span><a href="batch.html?id=${encodeURIComponent(x.parentId)}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .55rem">Manage container</a></div><div style="font-size:.68rem;color:var(--text-muted)">Stage start: ${esc(date||'Not recorded')} · Batch: ${esc(x.parentBatchId||'')}</div></article>`;
+     return `<article class="container-card strain-record-card" style="background:#f8faf7;border-left:4px solid #6b8f5e;padding:.65rem .75rem;margin:.3rem 0"><div class="strain-card-heading"><div style="min-width:0"><div class="strain-card-name">${esc(x.strain||'Unknown strain')}</div><div class="strain-card-id">${esc(id)} ${label}</div></div><span class="badge ${elapsed>target?'badge-yellow':'badge-green'}">${esc(targetText)}</span></div><div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap"><span class="strain-card-stage">${esc(stage)}${method?' · '+esc(method):''}</span><a href="batch.html?id=${encodeURIComponent(x.parentId)}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .55rem">Manage container</a></div><div style="font-size:.68rem;color:var(--text-muted)">Stage start: ${esc(date||'Not recorded')} · Batch: ${esc(x.parentBatchId||'')}</div>${timelineHtml(x)}</article>`;
    }
    if(all){
      const groups=new Map();units.forEach(x=>{const k=String(x.parentId);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x);});
