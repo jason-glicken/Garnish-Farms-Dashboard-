@@ -560,6 +560,13 @@
                 </div>
                 <div id="recentActivitiesList" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
             </div>
+            <!-- Strain Breakdown stays visible beneath the calendar and recent activity feed. -->
+            <section id="strainBreakdownPanel" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.75rem;">
+                <div style="font-size:.75rem;font-weight:800;color:var(--primary);text-transform:uppercase;margin-bottom:.35rem;">Strain Breakdown · Current Production Mix</div>
+                <div style="position:relative;height:210px;display:flex;justify-content:center;align-items:center;">
+                    <canvas id="strainChart"></canvas>
+                </div>
+            </section>
                 <button type="button" id="upcomingTasksToggle" class="dashboard-collapse-toggle" aria-expanded="false" style="width:100%;text-align:left;margin-top:.35rem;">Show task cards · 0</button>
                 <div id="upcomingTasksList" class="is-collapsed" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
 
@@ -703,16 +710,6 @@
             </div>
         </div>
 
-        <!-- Strain Breakdown -->
-        <div class="card">
-            <div class="card-header">
-                <h2>Strain Breakdown</h2>
-            </div>
-            <div style="position: relative; height: 220px; display: flex; justify-content: center; align-items: center;">
-                <canvas id="strainChart"></canvas>
-            </div>
-        </div>
-
         <!-- Static Total Farm Yield Card -->
         <div class="card" id="totalFarmYieldCard">
             <div class="card-header" style="margin-bottom: 0.35rem;">
@@ -749,6 +746,7 @@
         let batches = [];
         let cultures = [];
         let strainChartInstance = null;
+        let firstHarvestDateByBatch = {};
 
         function setSyncState(state, message) {
             const dot = document.getElementById('syncDot');
@@ -797,6 +795,19 @@
                         notes: b.notes || ''
                     }));
                 }
+            }
+
+            firstHarvestDateByBatch = {};
+            records.forEach(r => {
+                const key = String(r.batch_id || '').trim();
+                const date = String(r.harvest_date || '').slice(0, 10);
+                if (key && date && (!firstHarvestDateByBatch[key] || date < firstHarvestDateByBatch[key])) firstHarvestDateByBatch[key] = date;
+            });
+
+            // Refresh lifecycle markers after harvest dates arrive from the harvest log.
+            if (batches.length) {
+                renderPipeline();
+                renderTable();
             }
 
             if (records.length === 0) {
@@ -1288,14 +1299,17 @@
             const fruit = getStageClockFromNotes(item.notes, 'Fruiting');
             const currentStage = item.stage;
             const today = localIsoDate(new Date());
+            const harvested = item.status === 'Harvested' || currentStage === 'Harvested';
+            const batchKey = String(item.batchId || '').trim();
+            const harvestEnd = harvested ? (firstHarvestDateByBatch[batchKey] || today) : today;
             const starts = { 'Grain Spawn': origin, 'Bulk Substrate': sub, 'Fruiting': fruit };
-            if (currentStage && currentStage !== 'Grain Spawn' && !starts[currentStage]) starts[currentStage] = getEffectiveStageDate(item);
+            if (currentStage && currentStage !== 'Grain Spawn' && currentStage !== 'Harvested' && !starts[currentStage]) starts[currentStage] = getEffectiveStageDate(item);
             const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
-            const currentIndex = Math.max(0, order.indexOf(currentStage));
+            const currentIndex = harvested ? 2 : Math.max(0, order.indexOf(currentStage));
             const actual = [];
             order.forEach((stage, i) => {
                 if (i > currentIndex || !starts[stage]) return;
-                const nextStageStart = i < currentIndex ? starts[order[i+1]] : today;
+                const nextStageStart = i < currentIndex ? starts[order[i+1]] : harvestEnd;
                 if (!nextStageStart) return;
                 actual.push({ stage, days: dateDiffDays(starts[stage], nextStageStart) });
             });
@@ -1307,25 +1321,33 @@
             const targets = cfg.stageTargets || {};
             const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
             const colors = { 'Grain Spawn': '#16a34a', 'Bulk Substrate': '#d97706', 'Fruiting': '#3b82f6' };
+            const shortNames = { 'Grain Spawn': 'Spawn', 'Bulk Substrate': 'Substrate', 'Fruiting': 'Fruiting' };
             const targetSegments = order.map(stage => ({ stage, days: Math.max(1, Number(targets[stage] || 14)) }));
             const actualSegments = item ? getBatchStageTimeline(item) : [];
             const targetTotal = targetSegments.reduce((sum, x) => sum + x.days, 0);
             const actualTotal = actualSegments.reduce((sum, x) => sum + x.days, 0);
-            const horizon = Math.max(targetTotal + 4, Number(cfg.timelineHorizon || 42), actualTotal || 0);
-            const makeSegments = (segments) => segments.map(seg => {
+            const horizon = Math.max(targetTotal, Number(cfg.timelineHorizon || 42), actualTotal + 2, 1);
+            const segmentHtml = (segments) => segments.map(seg => {
                 const width = Math.max(0, Math.min(100, (seg.days / horizon) * 100));
                 return `<div title="${escapeAttr(seg.stage)}: ${seg.days} days" style="width:${width}%;height:100%;background:${colors[seg.stage]};flex:0 0 auto;"></div>`;
             }).join('');
+            const markerPct = Math.max(0, Math.min(100, (actualTotal / horizon) * 100));
+            const harvested = item && (item.status === 'Harvested' || item.stage === 'Harvested');
             const actualText = actualSegments.length
-                ? actualSegments.map(x => `${x.stage === 'Grain Spawn' ? 'Grain' : x.stage === 'Bulk Substrate' ? 'Substrate' : 'Fruiting'} ${x.days}d`).join(' · ')
+                ? actualSegments.map(x => `${shortNames[x.stage]} ${x.days}d`).join(' · ')
                 : 'Actual stage dates will appear as stages are recorded';
+            const markerLabel = harvested ? 'HARVESTED' : `DAY ${actualTotal} · NOW`;
+            const track = (segments, height, marker=false) => `<div style="position:relative;height:${height}px;background:#e8ebee;border-radius:999px;overflow:hidden;display:flex;">${segmentHtml(segments)}${marker ? `<div title="${markerLabel}" style="position:absolute;left:${markerPct}%;top:-2px;bottom:-2px;width:3px;background:#172b1c;border:1px solid #fff;z-index:2;transform:translateX(-50%);"></div>` : ''}</div>`;
             return `
-                <div style="margin-top:.35rem;display:grid;gap:.28rem;">
-                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">TARGET</strong><span>${targetTotal}d planned · ${horizon}d scale</span></div>
-                    <div style="height:7px;background:#e5e7eb;border-radius:999px;overflow:hidden;display:flex;">${makeSegments(targetSegments)}</div>
-                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">ACTUAL</strong><span>${actualTotal}d elapsed</span></div>
-                    <div style="height:9px;background:#e5e7eb;border-radius:999px;overflow:hidden;display:flex;">${makeSegments(actualSegments)}</div>
-                    <div style="font-size:.58rem;color:var(--text-muted);line-height:1.35;">${escapeAttr(actualText)}</div>
+                <div class="batch-lifecycle-timeline" style="margin-top:.42rem;display:grid;gap:.28rem;">
+                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">TARGET · FULL LIFECYCLE</strong><span>${targetTotal}d planned</span></div>
+                    ${track(targetSegments,7)}
+                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">ACTUAL · RUNNING LIFECYCLE</strong><span>${actualTotal}d ${harvested ? 'to harvest' : 'elapsed'}</span></div>
+                    ${track(actualSegments,10,true)}
+                    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;font-size:.54rem;font-weight:700;color:var(--text-muted);text-align:center;">
+                        <span style="text-align:left;">SPAWN</span><span>SUBSTRATE</span><span>FRUITING</span><span style="text-align:right;">HARVEST</span>
+                    </div>
+                    <div style="font-size:.57rem;color:var(--text-muted);line-height:1.35;">${escapeAttr(actualText)}${harvested ? ' · Harvest milestone reached' : ' · Marker shows current lifecycle position'}</div>
                 </div>
             `;
         }
@@ -2151,7 +2173,7 @@
                 const badgeClass = b.status === 'Active' ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
                 return `
                     <tr style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
-                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date, b.quantity))}</strong></td>
+                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date, b.quantity))}</strong><div style="min-width:180px;max-width:260px;">${renderContinuousStageBar(0, 0, 0, b.stage, b)}</div></td>
                         <td>${b.date}</td>
                         <td><strong>${b.strain}</strong></td>
                         <td>${b.stage}</td>
@@ -2271,7 +2293,7 @@
         function renderChart() {
             const ctx = document.getElementById('strainChart').getContext('2d');
             const strainCounts = {};
-            batches.forEach(b => {
+            batches.filter(b => b.status === 'Active').forEach(b => {
                 strainCounts[b.strain] = (strainCounts[b.strain] || 0) + Number(b.quantity);
             });
 
