@@ -1,0 +1,10 @@
+GARNISH FARMS — VERSION 36 HEADER CORRECTION
+
+This is a correction to the V36 header presentation, not a new database release.
+
+- Restores the compact KPI-card visual treatment for New Batch, Harvest, and Total Farm Yield.
+- Places all three cards on one horizontal row, with New Batch and Harvest to the left of Total Farm Yield.
+- Keeps the rest of the V36 header and site pages intact.
+- No Supabase SQL migration is required.
+
+Install this package in place of the earlier V36 package. Keep your current V35/V36 backup.
