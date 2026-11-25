@@ -212,6 +212,17 @@
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             return Math.floor((today - initiated) / (1000 * 60 * 60 * 24));
         }
+        // Local calendar date helper used by the continuous batch lifecycle timeline.
+        // Keeping this in sync with index.html prevents the container list from
+        // failing before its cards are rendered.
+        function localIsoDate(date = new Date()) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function dateDiffDays(startDate, endDate) {
             if (!startDate || !endDate) return 0;
             const a = String(startDate).split('-').map(Number);
