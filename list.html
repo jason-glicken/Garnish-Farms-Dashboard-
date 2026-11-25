@@ -73,11 +73,30 @@
 .gf-site-header a.gf-active:not(.header-action-card){color:var(--primary)}
 @media(max-width:520px){.gf-site-header{padding:.4rem .5rem!important;gap:.26rem!important}.gf-brand h1{font-size:.96rem!important}.gf-site-header .header-production-actions{grid-template-columns:1fr 1fr 1.35fr}.gf-site-header .header-action-card{min-height:24px;font-size:.54rem}.gf-site-header .header-action-card strong{font-size:.6rem}.gf-site-header .strain-nav-scroll a{font-size:.56rem;padding:.14rem .3rem}}
 
+
+/* V38 header refinements: override legacy page header selectors */
+header.gf-site-header{display:flex!important;flex-direction:column!important;align-items:stretch!important;grid-template-columns:none!important;gap:.3rem!important}
+header.gf-site-header>div,header.gf-site-header>nav{grid-column:auto!important;min-width:0!important}
+header.gf-site-header>.gf-brand-row{display:flex!important;justify-content:space-between!important;align-items:center!important}
+header.gf-site-header>.gf-brand-row .gf-header-actions{display:flex;align-items:center;gap:.35rem;flex:0 0 auto}
+.gf-home{background:#2d5a27!important;color:#fff!important;border:1px solid #2d5a27!important;padding:.3rem .55rem!important;font-size:.68rem!important;white-space:nowrap}
+.gf-site-header .stat-link-card{transition:background .15s,border-color .15s}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(1){background:#f1f6ef!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(2){background:#f0f5fb!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(3){background:#fbf4ed!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(4){background:#f5f1fa!important}
+.gf-site-header .header-production-actions a:nth-child(1){background:#2d5a27!important;border:1px solid #244a20!important;color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(1) span,.gf-site-header .header-production-actions a:nth-child(1) strong{color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(2){background:#fff8e9!important}
+.gf-site-header .header-production-actions a:nth-child(3){background:#f1f6ef!important}
+.gf-site-header .header-production-actions a.gf-active{filter:brightness(.97)}
+.gf-home:focus,.gf-home:hover{background:#244a20!important}
+
 </style>
 </head>
 <body>
     <header class="gf-site-header">
- <div class="gf-brand-row"><a href="index.html" class="gf-brand"><h1>Garnish Farms - Mushrooms</h1><p><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Cloud Sync</span></p></a><a href="settings.html" class="btn btn-outline gf-settings">Settings</a></div>
+ <div class="gf-brand-row"><a href="index.html" class="gf-brand"><h1>Garnish Farms - Mushrooms</h1><p><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Cloud Sync</span></p></a><div class="gf-header-actions"><a href="settings.html" class="btn btn-outline gf-settings">Settings</a><a href="index.html" class="btn gf-home">Home</a></div></div>
         <!-- Compact KPI Counters in Header -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; width: 100%; margin-top: 0.4rem; text-align: center;">
             <a href="list.html?type=all" class="stat-link-card" style="padding:.35rem .25rem;display:flex;flex-direction:column;justify-content:center;align-items:center;">
@@ -160,6 +179,7 @@
         const params = new URLSearchParams(window.location.search);
         const listType = (params.get('type') || 'jars').toLowerCase();
         let allBatches = [];
+        let allBatchItems = [];
         let selectedStrain = params.get('strain') || '';
 
         function escapeAttr(str) {
@@ -395,7 +415,8 @@
 
             const unitCards = [];
             matchingBatches.forEach(b => {
-                const qty = listType === 'all' ? 1 : Math.max(1, Number(b.quantity || 1));
+                const children = allBatchItems.filter(x => String(x.batch_id) === String(b.id));
+                const qty = listType === 'all' ? Math.max(1, children.length || Number(b.quantity || 1)) : Math.max(1, Number(b.quantity || 1));
                 const stageDate = getEffectiveStageDate(b);
                 const startDate = getBatchStartDate(b);
                 const days = Math.max(0, getDaysActive(startDate));
@@ -404,6 +425,7 @@
                 for (let idx = 1; idx <= qty; idx++) {
                     unitCards.push({
                         batch: b,
+                        child: children[idx - 1] || null,
                         unitIndex: idx,
                         totalUnits: qty,
                         unitId: formatContainerUnitId(b.batch_id, b.strain, b.date, idx),
@@ -423,38 +445,44 @@
                 listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1.2rem;">No active ${unitNoun}s found.</div>`;
                 return;
             }
-            listEl.innerHTML = unitCards.map(u => {
-                const { batch, unitIndex, totalUnits, unitId, stageDate, days, stageTargetDays, targetDays } = u;
-                const theme = getStrainCardTheme(batch.strain);
+            const renderUnit = (u, compact=false) => {
+                const { batch, child, unitIndex, totalUnits, unitId, stageDate, days, targetDays } = u;
+                const effective = child ? {...batch, ...child, stage: child.stage || batch.stage, status: child.status || batch.status, date: child.date || batch.date, notes: child.notes || batch.notes} : batch;
+                const theme = getStrainCardTheme(effective.strain || batch.strain);
                 const pastTarget = days > targetDays;
                 const badgeClass = pastTarget ? 'badge-yellow' : 'badge-green';
                 const badgeText = pastTarget ? `Past Day ${targetDays}` : `Day ${days} / ${targetDays}d`;
-                const subInfo = batch.substrate ? ` • ${escapeAttr(batch.substrate)}` : '';
-                const actionLink = batch.stage === 'Fruiting'
-                    ? `<div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-outline revert-fruiting-btn" data-id="${batch.id}" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">↩ Bulk Sub</button>
-                        <a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">Edit</a>
-                        <a href="harvest.html?id=${batch.id}" class="btn" style="padding: 0.25rem 0.55rem; font-size: 0.68rem; background-color: #d97706;">Harvest ➔</a>
-                       </div>`
-                    : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.68rem;">Edit Batch</a>`;
-                return `
-                    <div class="container-card strain-record-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
-                        <div class="strain-card-heading">
-                            <div style="min-width:0;">
-                                <div class="strain-card-name">${formatStrainWithScientific(batch.strain)}</div>
-                                <div class="strain-card-id">${escapeAttr(unitId)} <span style="font-weight:500;color:var(--text-muted);">${formatUnitIconPatternHtml(batch.container, unitIndex, totalUnits)}</span></div>
-                            </div>
-                            <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;">
-                            <span class="strain-card-stage">${escapeAttr(batch.stage)}${subInfo}</span>
-                            ${actionLink}
-                        </div>
-                        <div style="font-size: 0.68rem; color: var(--text-muted);">Batch Date: ${escapeAttr(batch.date)} • Stage Start: ${escapeAttr(stageDate)}</div>
-                        ${renderContinuousStageBar(batch)}
-                    </div>
-                `;
-            }).join('');
+                const subInfo = effective.substrate ? ` • ${escapeAttr(effective.substrate)}` : '';
+                const childLabel = listType === 'all' && totalUnits > 1 ? `<span class="badge badge-green">${unitIndex} of ${totalUnits}</span>` : '';
+                const actualId = child ? (child.container_id || child.item_id || unitId) : unitId;
+                const actionLink = effective.stage === 'Fruiting'
+                    ? `<div style="display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;"><a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding:.25rem .5rem;font-size:.68rem;">Edit</a><a href="harvest.html?id=${batch.id}" class="btn" style="padding:.25rem .55rem;font-size:.68rem;background-color:#d97706;">Harvest ➔</a></div>`
+                    : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding:.25rem .55rem;font-size:.68rem;">Edit Batch</a>`;
+                return `<div class="container-card strain-record-card" style="background-color:${theme.bg};border-left:4px solid ${theme.border};${compact?'margin:.28rem 0;padding:.5rem .6rem;':''}">
+                    <div class="strain-card-heading"><div style="min-width:0;"><div class="strain-card-name">${formatStrainWithScientific(effective.strain || batch.strain)}</div><div class="strain-card-id">${escapeAttr(actualId)} <span style="font-weight:500;color:var(--text-muted);">${formatUnitIconPatternHtml(effective.container || batch.container, unitIndex, totalUnits)}</span></div></div>${childLabel || `<span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>`}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;"><span class="strain-card-stage">${escapeAttr(effective.stage || batch.stage)}${subInfo}</span>${listType==='all'&&totalUnits>1?'':actionLink}</div>
+                    <div style="font-size:.68rem;color:var(--text-muted);">Batch Date: ${escapeAttr(effective.date || batch.date)}${compact?'':` • Stage Start: ${escapeAttr(stageDate)}`}</div>
+                    ${compact?'':renderContinuousStageBar(effective)}
+                </div>`;
+            };
+            if (listType === 'all') {
+                const groups = new Map();
+                unitCards.forEach(u => { const key=String(u.batch.id); if(!groups.has(key)) groups.set(key,[]); groups.get(key).push(u); });
+                listEl.innerHTML = [...groups.values()].map(group => {
+                    const first=group[0], b=first.batch, qty=group.length;
+                    if(qty<=1) return renderUnit(first);
+                    const childRows=group.map(u=>renderUnit(u,true)).join('');
+                    return `<details class="container-card all-batch-group" style="background:#fff;border-left:4px solid ${getStrainCardTheme(b.strain).border};padding:.68rem .75rem;">
+                      <summary style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;cursor:pointer;list-style:none;">
+                        <span style="min-width:0;"><strong style="display:block;color:var(--primary);font-size:.86rem;">${escapeAttr(getBaseBatchId(b.batch_id,b.strain,b.date))}</strong><span style="font-size:.72rem;color:var(--text-muted);">${formatStrainWithScientific(b.strain)} · ${escapeAttr(b.stage)} · ${escapeAttr(b.date||'')}</span></span>
+                        <span class="badge badge-green">${qty} containers ▾</span>
+                      </summary>
+                      <div style="margin-top:.55rem;border-top:1px solid var(--border);padding-top:.35rem;">${childRows}<div style="margin-top:.35rem;text-align:right;"><a href="new-batch.html?id=${b.id}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .5rem;">Edit Parent Batch</a></div></div>
+                    </details>`;
+                }).join('');
+            } else {
+                listEl.innerHTML = unitCards.map(renderUnit).join('');
+            }
         }
 
         async function revertFruitingToBulk(dbId) {
@@ -488,8 +516,10 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             setupHeader();
-            const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
+            const { data, error } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
+            if (error) { document.getElementById('containerCardsList').innerHTML = `<div class="empty">Could not load batches: ${escapeAttr(error.message)}</div>`; return; }
             allBatches = data || [];
+            try { const childResult = await _supabase.from('batch_items').select('*'); allBatchItems = childResult.error ? [] : (childResult.data || []); } catch (e) { allBatchItems = []; }
             const strains = [...new Set(allBatches.filter(b => b.status === 'Active').map(b => b.strain))];
             const pillBar = document.getElementById('strainFilterPills');
             pillBar.innerHTML = `<button type="button" class="pill-btn selected" data-strain="">All Strains</button>` +

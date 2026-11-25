@@ -21,9 +21,28 @@
 .gf-site-header a.gf-active:not(.header-action-card){color:var(--primary)}
 @media(max-width:520px){.gf-site-header{padding:.4rem .5rem!important;gap:.26rem!important}.gf-brand h1{font-size:.96rem!important}.gf-site-header .header-production-actions{grid-template-columns:1fr 1fr 1.35fr}.gf-site-header .header-action-card{min-height:24px;font-size:.54rem}.gf-site-header .header-action-card strong{font-size:.6rem}.gf-site-header .strain-nav-scroll a{font-size:.56rem;padding:.14rem .3rem}}
 
+
+/* V38 header refinements: override legacy page header selectors */
+header.gf-site-header{display:flex!important;flex-direction:column!important;align-items:stretch!important;grid-template-columns:none!important;gap:.3rem!important}
+header.gf-site-header>div,header.gf-site-header>nav{grid-column:auto!important;min-width:0!important;display:flex!important;justify-content:initial!important;align-items:stretch!important}
+header.gf-site-header>.gf-brand-row{display:flex!important;justify-content:space-between!important;align-items:center!important}
+header.gf-site-header>.gf-brand-row .gf-header-actions{display:flex;align-items:center;gap:.35rem;flex:0 0 auto}
+.gf-home{background:#2d5a27!important;color:#fff!important;border:1px solid #2d5a27!important;padding:.3rem .55rem!important;font-size:.68rem!important;white-space:nowrap}
+.gf-site-header .stat-link-card{transition:background .15s,border-color .15s}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(1){background:#f1f6ef!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(2){background:#f0f5fb!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(3){background:#fbf4ed!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(4){background:#f5f1fa!important}
+.gf-site-header .header-production-actions a:nth-child(1){background:#2d5a27!important;border:1px solid #244a20!important;color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(1) span,.gf-site-header .header-production-actions a:nth-child(1) strong{color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(2){background:#fff8e9!important}
+.gf-site-header .header-production-actions a:nth-child(3){background:#f1f6ef!important}
+.gf-site-header .header-production-actions a.gf-active{filter:brightness(.97)}
+.gf-home:focus,.gf-home:hover{background:#244a20!important}
+
 </style></head><body>
 <header class="gf-site-header">
- <div class="gf-brand-row"><a href="index.html" class="gf-brand"><h1>Garnish Farms - Mushrooms</h1><p><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Cloud Sync</span></p></a><a href="settings.html" class="btn btn-outline gf-settings">Settings</a></div>
+ <div class="gf-brand-row"><a href="index.html" class="gf-brand"><h1>Garnish Farms - Mushrooms</h1><p><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Cloud Sync</span></p></a><div class="gf-header-actions"><a href="settings.html" class="btn btn-outline gf-settings">Settings</a><a href="index.html" class="btn gf-home">Home</a></div></div>
         <!-- Compact KPI Counters in Header -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; width: 100%; margin-top: 0.4rem; text-align: center;">
             <a href="list.html?type=all" class="stat-link-card" style="padding:.35rem .25rem;display:flex;flex-direction:column;justify-content:center;align-items:center;">
@@ -82,9 +101,48 @@ function drawTimeline(batches){
   return `<div class="lane" style="grid-template-columns:minmax(112px,34%) 1fr;gap:.45rem"><div class="lane-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.68rem">${id}<small style="display:block;font-size:.59rem;color:var(--muted);font-weight:600">${icons[stage]} ${stage==='Grain Spawn'?'Spawn':stage==='Bulk Substrate'?'Substrate':'Fruiting'} · ${overdue?`${Math.floor((today-targetEnd)/86400000)}d overdue`:`${Math.max(0,Math.ceil((targetEnd-today)/86400000))}d to target`}</small></div><a href="index.html#pipelineContainer" class="track" style="height:14px;display:block;position:relative;overflow:visible;text-decoration:none"><i class="tick" style="left:25%"></i><i class="tick" style="left:50%"></i><i class="tick" style="left:75%"></i>${actual}${projected}<i title="Today" style="position:absolute;left:${todayPct}%;top:-4px;height:22px;width:2px;background:#172b1c;z-index:4;transform:translateX(-50%)"></i></a></div>`;
  }).join('')||'<div class="empty">No active batches to show.</div>';
 }
-async function init(){if(!strain){document.getElementById('strainTitle').textContent='Choose a strain';return;}document.getElementById('strainTitle').textContent=strain;const names={'Blue Oyster':'Pleurotus ostreatus','Pink Oyster':'Pleurotus djamor',"Lion's Mane":'Hericium erinaceus','Shiitake':'Lentinula edodes','Maitake':'Grifola frondosa','Chestnut':'Pholiota adiposa','Golden Teacher':'Psilocybe cubensis','Reishi':'Ganoderma lingzhi'};document.getElementById('strainScientific').textContent=names[strain]||'';
-const [{data:rows,error},{data:harvests}]=await Promise.all([db.from('batches').select('*').eq('strain',strain).order('created_at',{ascending:false}),db.from('harvests').select('*').eq('strain',strain).order('harvest_date',{ascending:false})]);if(error){const sd=document.getElementById('strainSyncDot');if(sd)sd.classList.add('error');const ss=document.getElementById('strainSyncStatus');if(ss)ss.textContent='Offline / sync error';document.getElementById('timeline').innerHTML='<div class="empty">Could not load strain batches. Check connection and try again.</div>';return;}const sd=document.getElementById('strainSyncDot');if(sd)sd.classList.add('connected');const ss=document.getElementById('strainSyncStatus');if(ss)ss.textContent='Connected';const parents=rows||[];const parentById=new Map(parents.map(b=>[String(b.id),b]));let childRows=[],childError=null;const childResult=await db.from('batch_items').select('*').eq('strain',strain).order('created_at',{ascending:false});childRows=childResult.data||[];childError=childResult.error;let all;if(!childError&&childRows.length){const grouped=new Map();childRows.forEach(x=>{const k=String(x.batch_id);if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(x)});all=childRows.map(x=>{const parent=parentById.get(String(x.batch_id))||{};const siblings=grouped.get(String(x.batch_id))||[];return {...parent,...x,id:x.id,parentId:x.batch_id,batch_id:parent.batch_id||x.container_id,quantity:1,unitIndex:siblings.findIndex(y=>String(y.id)===String(x.id))+1,unitTotal:siblings.length,container_id:x.container_id||x.batch_id,date:x.date||parent.date,stage:x.stage||parent.stage,status:x.status||parent.status,notes:x.notes||parent.notes};});}else{all=parents.map(b=>({...b,parentId:b.id}));}const active=all.filter(b=>b.status==='Active'),jars=active.filter(b=>b.stage==='Grain Spawn'&&String(b.container||'Jar').toLowerCase().includes('jar')),bags=active.filter(b=>b.stage==='Bulk Substrate'&&String(b.container||'Bag').toLowerCase().includes('bag')),fruit=active.filter(b=>b.stage==='Fruiting');document.getElementById('jarCount').textContent=childRows.length?jars.length:jars.reduce((n,b)=>n+Number(b.quantity||1),0);document.getElementById('bagCount').textContent=childRows.length?bags.length:bags.reduce((n,b)=>n+Number(b.quantity||1),0);document.getElementById('fruitCount').textContent=childRows.length?fruit.length:fruit.reduce((n,b)=>n+Number(b.quantity||1),0);[['jarList',jars],['bagList',bags],['fruitList',fruit]].forEach(([id,list])=>{document.getElementById(id).innerHTML=list.length?list.map(batchCard).join(''):'<div class="empty">No active containers in this stage.</div>';document.getElementById(id+'Count').textContent=list.length;});
-drawTimeline(all);const starts=[['Spawn',all.map(b=>dateOfStage(b,'Grain Spawn'))],['Substrate',all.map(b=>dateOfStage(b,'Bulk Substrate'))],['Fruiting',all.map(b=>dateOfStage(b,'Fruiting'))]];document.getElementById('cadence').innerHTML=starts.map(([name,dates])=>{const sorted=dates.filter(Boolean).sort();const last=sorted.at(-1)||'—';return `<div><b>${name}</b><small>Last start</small><b>${last}</b><small>Average gap: ${avgGap(sorted)}</small></div>`}).join('');const h=harvests||[];document.getElementById('harvestCount').textContent=h.length;document.getElementById('harvestList').innerHTML=h.length?h.map(x=>`<div class="batch"><span><strong>${esc(x.batch_id)}</strong><br><span class="muted">${esc(x.harvest_date)} · Flush ${esc(x.flush_number||1)}</span></span><span class="pill">${Number(x.weight_lbs||0).toFixed(2)} lbs</span></div>`).join(''):'<div class="empty">No harvests recorded yet.</div>';
+async function init(){
+ if(!strain){document.getElementById('strainTitle').textContent='Choose a strain';return;}
+ document.getElementById('strainTitle').textContent=strain;
+ const names={'Blue Oyster':'Pleurotus ostreatus','Pink Oyster':'Pleurotus djamor',"Lion's Mane":'Hericium erinaceus','Shiitake':'Lentinula edodes','Maitake':'Grifola frondosa','Chestnut':'Pholiota adiposa','Golden Teacher':'Psilocybe cubensis','Reishi':'Ganoderma lingzhi'};
+ document.getElementById('strainScientific').textContent=names[strain]||'';
+ const norm=v=>String(v||'').trim().toLowerCase().replace(/’/g,"'").replace(/\s+/g,' ');
+ try {
+   // Fetch broadly, then match client-side so minor capitalization/spacing differences do not blank a strain page.
+   const [{data:allParents,error:parentError},{data:allHarvests,error:harvestError}] = await Promise.all([
+     db.from('batches').select('*').order('created_at',{ascending:false}),
+     db.from('harvests').select('*').order('harvest_date',{ascending:false})
+   ]);
+   if(parentError) throw parentError;
+   const parents=(allParents||[]).filter(b=>norm(b.strain)===norm(strain));
+   const harvests=(allHarvests||[]).filter(h=>norm(h.strain)===norm(strain));
+   let childRows=[];
+   try { const cr=await db.from('batch_items').select('*'); if(!cr.error) childRows=(cr.data||[]).filter(x=>norm(x.strain)===norm(strain)||parents.some(p=>String(p.id)===String(x.batch_id))); } catch(e) { childRows=[]; }
+   const parentById=new Map(parents.map(b=>[String(b.id),b]));
+   let all;
+   if(childRows.length){
+     const grouped=new Map();childRows.forEach(x=>{const k=String(x.batch_id);if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(x)});
+     all=childRows.map(x=>{const parent=parentById.get(String(x.batch_id))||{};const siblings=grouped.get(String(x.batch_id))||[];return {...parent,...x,id:x.id,parentId:x.batch_id,batch_id:parent.batch_id||x.container_id,quantity:1,unitIndex:siblings.findIndex(y=>String(y.id)===String(x.id))+1,unitTotal:siblings.length,container_id:x.container_id||x.item_id||x.batch_id,date:x.date||parent.date,stage:x.stage||parent.stage,status:x.status||parent.status,notes:x.notes||parent.notes,strain:x.strain||parent.strain};});
+   } else { all=parents.map(b=>({...b,parentId:b.id})); }
+   const active=all.filter(b=>String(b.status||'Active').toLowerCase()==='active');
+   const jars=active.filter(b=>b.stage==='Grain Spawn'&&String(b.container||'Jar').toLowerCase().includes('jar'));
+   const bags=active.filter(b=>b.stage==='Bulk Substrate'&&String(b.container||'Bag').toLowerCase().includes('bag'));
+   const fruit=active.filter(b=>b.stage==='Fruiting');
+   const count=(arr)=>arr.reduce((n,b)=>n+Number(b.quantity||1),0);
+   document.getElementById('jarCount').textContent=count(jars);document.getElementById('bagCount').textContent=count(bags);document.getElementById('fruitCount').textContent=count(fruit);
+   [['jarList',jars],['bagList',bags],['fruitList',fruit]].forEach(([id,list])=>{document.getElementById(id).innerHTML=list.length?list.map(batchCard).join(''):'<div class="empty">No active containers in this stage.</div>';document.getElementById(id+'Count').textContent=list.length;});
+   drawTimeline(all);
+   const starts=[['Spawn',all.map(b=>dateOfStage(b,'Grain Spawn'))],['Substrate',all.map(b=>dateOfStage(b,'Bulk Substrate'))],['Fruiting',all.map(b=>dateOfStage(b,'Fruiting'))]];
+   document.getElementById('cadence').innerHTML=starts.map(([name,dates])=>{const sorted=dates.filter(Boolean).sort();const last=sorted.at(-1)||'—';return `<div><b>${name}</b><small>Last start</small><b>${formatDateDisplay(last)||'—'}</b><small>Average gap: ${avgGap(sorted)}</small></div>`}).join('');
+   document.getElementById('harvestCount').textContent=harvests.length;
+   document.getElementById('harvestList').innerHTML=harvests.length?harvests.map(x=>`<div class="batch"><span><strong>${esc(x.batch_id||'Harvest')}</strong><br><span class="muted">${esc(formatDateDisplay(x.harvest_date)||x.harvest_date||'')} · Flush ${esc(x.flush_number||1)}</span></span><span class="pill">${Number(x.weight_lbs||0).toFixed(2)} lbs</span></div>`).join(''):'<div class="empty">No harvests recorded yet.</div>';
+   const sd=document.getElementById('strainSyncDot');if(sd)sd.classList.add('connected');const ss=document.getElementById('strainSyncStatus');if(ss)ss.textContent='Connected';
+   if(!parents.length){document.getElementById('timeline').innerHTML='<div class="empty">No batches recorded for this strain yet.</div>';}
+ } catch(error) {
+   const sd=document.getElementById('strainSyncDot');if(sd)sd.classList.add('error');const ss=document.getElementById('strainSyncStatus');if(ss)ss.textContent='Offline / sync error';
+   document.getElementById('timeline').innerHTML=`<div class="empty">Could not load strain records: ${esc(error.message||error)}</div>`;
+   ['jarList','bagList','fruitList','harvestList'].forEach(id=>document.getElementById(id).innerHTML='<div class="empty">Data could not be loaded.</div>');
+ }
 }
 init();
 </script><script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
