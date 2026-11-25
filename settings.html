@@ -95,14 +95,14 @@
                     <div class="form-group">
                         <label for="defaultStrain">Default Strain</label>
                         <select id="defaultStrain" class="form-control">
-                            <option value="Blue Oyster">Blue Oyster</option>
-                            <option value="Lion's Mane">Lion's Mane</option>
-                            <option value="Golden Teacher">Golden Teacher</option>
-                            <option value="Reishi">Reishi</option>
-                            <option value="Chestnut">Chestnut</option>
-                            <option value="Shiitake">Shiitake</option>
-                            <option value="Pink Oyster">Pink Oyster</option>
-                    <option value="Maitake">Maitake</option>
+                            <option value="Blue Oyster">Blue Oyster (Pleurotus ostreatus)</option>
+                            <option value="Lion's Mane">Lion's Mane (Hericium erinaceus)</option>
+                            <option value="Golden Teacher">Golden Teacher (Psilocybe cubensis)</option>
+                            <option value="Reishi">Reishi (Ganoderma lingzhi)</option>
+                            <option value="Chestnut">Chestnut (Pholiota adiposa)</option>
+                            <option value="Shiitake">Shiitake (Lentinula edodes)</option>
+            <option value="Maitake">Maitake (Grifola frondosa)</option>
+                            <option value="Pink Oyster">Pink Oyster (Pleurotus djamor)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -131,15 +131,6 @@
     </main>
 
     <script>
-        function getLocalYYYYMMDD(dateObj = new Date()) {
-            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
-            if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        }
-
         const SETTINGS_KEY = 'garnish_farms_settings_v1';
         const DEFAULT_SETTINGS = {
             stageTargets: {

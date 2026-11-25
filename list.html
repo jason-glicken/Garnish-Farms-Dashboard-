@@ -4,16 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Container List - Garnish Farms</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-        function getLocalYYYYMMDD(dateObj = new Date()) {
-            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
-            if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        }
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -46,6 +37,7 @@
         .badge { padding: 0.14rem 0.45rem; border-radius: 999px; font-size: 0.66rem; font-weight: 700; }
         .badge-green { background: #dcfce7; color: #166534; }
         .badge-yellow { background: #fef9c3; color: #854d0e; }
+            .strain-scientific { font-size: .78em; color: var(--text-muted); font-style: italic; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -127,6 +119,25 @@
         function escapeAttr(str) {
             return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
+        
+        function getScientificName(strain) {
+            const s = String(strain || '').trim().toLowerCase();
+            if (s.includes('blue oyster') || s === 'bo' || s.includes('pearl oyster') || s === 'oy') return 'Pleurotus ostreatus';
+            if (s.includes("lion's mane") || s.includes('lions mane') || s.includes('pink lion')) return 'Hericium erinaceus';
+            if (s.includes('shiitake') || s === 'sh') return 'Lentinula edodes';
+            if (s.includes('maitake')) return 'Grifola frondosa';
+            if (s.includes('pink oyster') || s === 'po') return 'Pleurotus djamor';
+            if (s.includes('reishi') || s === 're') return 'Ganoderma lingzhi';
+            if (s.includes('chestnut') || s === 'ch') return 'Pholiota adiposa';
+            if (s.includes('golden teacher') || s === 'gt') return 'Psilocybe cubensis';
+            return '';
+        }
+        function formatStrainWithScientific(strain) {
+            const common = String(strain || '').trim();
+            const scientific = getScientificName(common);
+            return scientific ? `${common} <span class="strain-scientific">(${scientific})</span>` : escapeAttr(common);
+        }
+
         function formatStrainCode(strain) {
             const cleaned = String(strain || '').trim();
             if (!cleaned) return 'BATCH';
@@ -138,7 +149,6 @@
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
             if (lower.includes('pink oyster') || lower === 'po') return 'PO';
-            if (lower.includes('maitake') || lower === 'ma' || lower.includes('grifola')) return 'MA';
             if (lower.includes('pearl oyster') || lower === 'oy') return 'OY';
             const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
             if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
@@ -170,8 +180,7 @@
                 'CH': { bg: '#fdf8f6', border: '#92400e' },
                 'SH': { bg: '#f5f3ff', border: '#6d28d9' },
                 'PO': { bg: '#fdf2f8', border: '#db2777' },
-                'PI': { bg: '#f0fdf4', border: '#15803d' },
-                'MA': { bg: '#f0fdf9', border: '#0f766e' }
+                'PI': { bg: '#f0fdf4', border: '#15803d' }
             };
             return themes[code] || { bg: '#f8fafc', border: '#4c9a2a' };
         }
@@ -365,7 +374,7 @@
                             <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.74rem; color: var(--text-muted);">
-                            <span><strong style="color: var(--primary);">${escapeAttr(batch.strain)}</strong> • ${escapeAttr(batch.stage)}${subInfo}</span>
+                            <span><strong style="color: var(--primary);">${formatStrainWithScientific(batch.strain)}</strong> • ${escapeAttr(batch.stage)}${subInfo}</span>
                             ${actionLink}
                         </div>
                         <div style="font-size: 0.68rem; color: var(--text-muted);">Batch Date: ${escapeAttr(batch.date)} • Stage Start: ${escapeAttr(stageDate)}</div>
@@ -411,7 +420,7 @@
             const strains = [...new Set(allBatches.filter(b => b.status === 'Active').map(b => b.strain))];
             const pillBar = document.getElementById('strainFilterPills');
             pillBar.innerHTML = `<button type="button" class="pill-btn selected" data-strain="">All Strains</button>` +
-                strains.map(s => `<button type="button" class="pill-btn" data-strain="${escapeAttr(s)}">${escapeAttr(s)}</button>`).join('');
+                strains.map(s => `<button type="button" class="pill-btn" data-strain="${escapeAttr(s)}">${formatStrainWithScientific(s)}</button>`).join('');
             pillBar.addEventListener('click', (e) => {
                 const btn = e.target.closest('.pill-btn');
                 if (!btn) return;

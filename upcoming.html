@@ -4,220 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Upcoming Tasks - Garnish Farms</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-        function getLocalYYYYMMDD(dateObj = new Date()) {
-            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
-            if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        }
-
-        let calViewDate = new Date();
-        calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth(), 1);
-        let selectedCalIso = getLocalYYYYMMDD();
-        let selectedCalStrain = 'ALL';
-        let allScheduledItems = [];
-
-        function buildCalendarEventsFromItems(items) {
-            const eventsByDate = {};
-            const addEv = (iso, entry) => {
-                if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
-                if (!eventsByDate[iso]) eventsByDate[iso] = [];
-                eventsByDate[iso].push(entry);
-            };
-
-            items.forEach(entry => {
-                const { b, stageDate, targetDate, stageTargetDays, targetDays, days, pastTarget, nextAction } = entry;
-                const code = formatStrainCode(b.strain);
-                const shortLabel = `${code} → ${nextAction === 'Bulk Substrate' ? 'Bulk' : (nextAction === 'Fruiting' ? 'Fruit' : 'Harv')}`;
-                addEv(targetDate, {
-                    ...entry,
-                    kind: 'target',
-                    chipText: `${pastTarget ? '⚠️ ' : '● '}${shortLabel}`,
-                    badgeText: pastTarget ? `Past Day ${targetDays} (Tgt ${targetDate})` : `Target ${targetDate}`,
-                    badgeClass: pastTarget ? 'badge-yellow' : 'badge-green',
-                    isOverdue: pastTarget
-                });
-                if (stageDate && stageDate !== targetDate) {
-                    addEv(stageDate, {
-                        ...entry,
-                        kind: 'stage-start',
-                        chipText: `▶ ${code} ${b.stage.split(' ')[0]}`,
-                        badgeText: `Stage Start ${stageDate}`,
-                        badgeClass: 'badge-green',
-                        isOverdue: false
-                    });
-                }
-            });
-            return eventsByDate;
-        }
-
-        function renderStrainFilterBar(items) {
-            const container = document.getElementById('calStrainFilters');
-            if (!container) return;
-            const strains = ['ALL', ...Array.from(new Set(items.map(x => x.b.strain).filter(Boolean)))];
-            container.innerHTML = strains.map(st => {
-                const active = selectedCalStrain === st;
-                const label = st === 'ALL' ? 'All Strains' : st;
-                return `<button type="button" class="btn ${active ? '' : 'btn-outline'}" data-cal-strain="${escapeAttr(st)}" style="padding: 0.22rem 0.55rem; font-size: 0.68rem;">${escapeAttr(label)}</button>`;
-            }).join('');
-
-            container.querySelectorAll('[data-cal-strain]').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    selectedCalStrain = btn.getAttribute('data-cal-strain') || 'ALL';
-                    renderMonthlyCalendar();
-                });
-            });
-        }
-
-        function renderSelectedDayDetails(eventsByDate) {
-            const titleEl = document.getElementById('calDetailTitle');
-            const countEl = document.getElementById('calDetailCount');
-            const listEl = document.getElementById('calDetailList');
-            if (!titleEl || !countEl || !listEl) return;
-
-            const dayEvents = (eventsByDate[selectedCalIso] || []).filter(ev =>
-                selectedCalStrain === 'ALL' || ev.b.strain === selectedCalStrain
-            );
-
-            titleEl.innerText = `Milestones for ${selectedCalIso}`;
-            countEl.innerText = `${dayEvents.length} item${dayEvents.length === 1 ? '' : 's'}`;
-
-            if (dayEvents.length === 0) {
-                listEl.innerHTML = `<div style="font-size: 0.74rem; color: var(--text-muted);">No stage targets or milestones scheduled on this date.</div>`;
-                return;
-            }
-
-            listEl.innerHTML = dayEvents.map(ev => {
-                const { b, stageTargetDays, targetDays, days, nextAction, badgeText, badgeClass } = ev;
-                const theme = getStrainCardTheme(b.strain);
-                return `
-                    <div class="task-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; flex-wrap: wrap;">
-                            <div>
-                                <span style="font-size: 0.8rem; font-weight: 700;">${escapeAttr(formatDisplayBatchId(b.batch_id, b.strain, b.date, b.quantity))}</span>
-                                <span style="font-size: 0.74rem; color: var(--text-muted);">• ${escapeAttr(b.strain)} (${escapeAttr(b.stage)} &rarr; ${escapeAttr(nextAction)})</span>
-                            </div>
-                            <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
-                        </div>
-                        <div style="font-size: 0.7rem; color: var(--text-muted);">${b.quantity} ${escapeAttr(b.container || '')} &bull; Day ${days} (Stage target ${stageTargetDays}d / Cum. Day ${targetDays})</div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderMonthlyCalendar() {
-            const gridEl = document.getElementById('calMonthGrid');
-            const labelEl = document.getElementById('calMonthLabel');
-            if (!gridEl || !labelEl) return;
-
-            const filteredItems = selectedCalStrain === 'ALL'
-                ? allScheduledItems
-                : allScheduledItems.filter(x => x.b.strain === selectedCalStrain);
-
-            const eventsByDate = buildCalendarEventsFromItems(filteredItems);
-
-            const year = calViewDate.getFullYear();
-            const month = calViewDate.getMonth();
-            labelEl.innerText = calViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-            const firstDayOfMonth = new Date(year, month, 1);
-            const startWeekday = firstDayOfMonth.getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const prevMonthDays = new Date(year, month, 0).getDate();
-
-            const todayIso = getLocalYYYYMMDD();
-            const cells = [];
-
-            // Leading days from previous month
-            for (let i = startWeekday - 1; i >= 0; i--) {
-                const dayNum = prevMonthDays - i;
-                const prevM = month === 0 ? 11 : month - 1;
-                const prevY = month === 0 ? year - 1 : year;
-                const iso = `${prevY}-${String(prevM + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                cells.push({ dayNum, iso, muted: true, events: eventsByDate[iso] || [] });
-            }
-
-            // Current month days
-            for (let d = 1; d <= daysInMonth; d++) {
-                const iso = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                cells.push({ dayNum: d, iso, muted: false, events: eventsByDate[iso] || [] });
-            }
-
-            // Trailing days to complete weeks
-            const remainder = cells.length % 7;
-            if (remainder !== 0) {
-                const needed = 7 - remainder;
-                for (let n = 1; n <= needed; n++) {
-                    const nextM = month === 11 ? 0 : month + 1;
-                    const nextY = month === 11 ? year + 1 : year;
-                    const iso = `${nextY}-${String(nextM + 1).padStart(2, '0')}-${String(n).padStart(2, '0')}`;
-                    cells.push({ dayNum: n, iso, muted: true, events: eventsByDate[iso] || [] });
-                }
-            }
-
-            gridEl.innerHTML = cells.map(cell => {
-                const classes = ['cal-day-cell'];
-                if (cell.muted) classes.push('is-muted');
-                if (cell.iso === todayIso) classes.push('is-today');
-                if (cell.iso === selectedCalIso) classes.push('is-selected');
-
-                const maxChips = 2;
-                const chipsHtml = cell.events.slice(0, maxChips).map(ev => {
-                    const theme = getStrainCardTheme(ev.b.strain);
-                    return `<div class="cal-event-chip ${ev.isOverdue ? 'is-overdue' : ''}" style="border-left-color: ${theme.border};">${escapeAttr(ev.chipText)}</div>`;
-                }).join('');
-                const extraCount = cell.events.length - maxChips;
-                const moreHtml = extraCount > 0
-                    ? `<div style="font-size: 0.58rem; font-weight: 700; color: var(--text-muted);">+${extraCount} more</div>`
-                    : '';
-
-                return `
-                    <div class="${classes.join(' ')}" data-cal-iso="${cell.iso}">
-                        <div class="cal-day-num">
-                            <span>${cell.dayNum}</span>
-                            ${cell.events.length > 0 ? `<span style="font-size: 0.58rem; color: var(--primary);">${cell.events.length}</span>` : ''}
-                        </div>
-                        ${chipsHtml}
-                        ${moreHtml}
-                    </div>
-                `;
-            }).join('');
-
-            gridEl.querySelectorAll('[data-cal-iso]').forEach(el => {
-                el.addEventListener('click', () => {
-                    selectedCalIso = el.getAttribute('data-cal-iso') || todayIso;
-                    const parts = selectedCalIso.split('-').map(Number);
-                    if (parts.length === 3) {
-                        calViewDate = new Date(parts[0], parts[1] - 1, 1);
-                    }
-                    renderMonthlyCalendar();
-                });
-            });
-
-            renderSelectedDayDetails(eventsByDate);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('calPrevBtn')?.addEventListener('click', () => {
-                calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth() - 1, 1);
-                renderMonthlyCalendar();
-            });
-            document.getElementById('calNextBtn')?.addEventListener('click', () => {
-                calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth() + 1, 1);
-                renderMonthlyCalendar();
-            });
-            document.getElementById('calTodayBtn')?.addEventListener('click', () => {
-                const now = new Date();
-                calViewDate = new Date(now.getFullYear(), now.getMonth(), 1);
-                selectedCalIso = getLocalYYYYMMDD(now);
-                renderMonthlyCalendar();
-            });
-        });
-    
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -244,28 +31,7 @@
         .badge { padding: 0.14rem 0.45rem; border-radius: 999px; font-size: 0.66rem; font-weight: 700; }
         .badge-green { background: #dcfce7; color: #166534; }
         .badge-yellow { background: #fef9c3; color: #854d0e; }
-    
-        .view-toggle-bar { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.65rem; }
-        .cal-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
-        .cal-month-title { font-size: 0.95rem; font-weight: 700; color: var(--primary); }
-        .cal-nav-group { display: flex; gap: 0.35rem; align-items: center; }
-        .cal-grid-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-size: 0.68rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .cal-day-cell { min-height: 76px; background: #fcfdfb; border: 1px solid var(--border); border-radius: 8px; padding: 0.3rem; display: flex; flex-direction: column; gap: 0.2rem; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; text-align: left; }
-        .cal-day-cell:hover { border-color: var(--accent); }
-        .cal-day-cell.is-muted { background: #f3f4f6; opacity: 0.55; }
-        .cal-day-cell.is-today { border: 2px solid var(--primary); background: #f0fdf4; }
-        .cal-day-cell.is-selected { border: 2px solid #b85d19; box-shadow: 0 0 0 2px rgba(184, 93, 25, 0.15); }
-        .cal-day-num { font-size: 0.72rem; font-weight: 700; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
-        .cal-event-chip { font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.28rem; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid var(--primary); background: #eef6ec; color: #1f2937; }
-        .cal-event-chip.is-overdue { background: #fef9c3; border-left-color: #ca8a04; color: #854d0e; }
-        .cal-day-detail { margin-top: 0.7rem; border-top: 1px solid var(--border); padding-top: 0.65rem; }
-        .cal-day-detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; font-size: 0.78rem; font-weight: 700; color: var(--primary); }
-        @media (max-width: 600px) {
-            .cal-day-cell { min-height: 62px; padding: 0.22rem; }
-            .cal-event-chip { font-size: 0.56rem; padding: 0.08rem 0.2rem; }
-        }
-    
+            .strain-scientific { font-size: .78em; color: var(--text-muted); font-style: italic; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -278,36 +44,6 @@
     </header>
 
     <main>
-        
-        <div class="card" id="monthlyCalendarCard">
-            <div class="cal-header">
-                <div>
-                    <div class="cal-month-title" id="calMonthLabel">November 2026</div>
-                    <div style="font-size: 0.68rem; color: var(--text-muted);">Tap any day to inspect scheduled stage targets &amp; milestones</div>
-                </div>
-                <div class="cal-nav-group">
-                    <button type="button" class="btn btn-outline" id="calPrevBtn" style="padding: 0.3rem 0.55rem; font-size: 0.72rem;">&larr; Prev</button>
-                    <button type="button" class="btn btn-outline" id="calTodayBtn" style="padding: 0.3rem 0.55rem; font-size: 0.72rem;">Today</button>
-                    <button type="button" class="btn btn-outline" id="calNextBtn" style="padding: 0.3rem 0.55rem; font-size: 0.72rem;">Next &rarr;</button>
-                </div>
-            </div>
-            <div style="display: flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.55rem;">
-                <span style="font-size: 0.68rem; font-weight: 700; color: var(--text-muted);">Strain:</span>
-                <div id="calStrainFilters" style="display: flex; gap: 0.3rem; flex-wrap: wrap;"></div>
-            </div>
-            <div class="cal-grid-weekdays">
-                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-            </div>
-            <div class="cal-grid" id="calMonthGrid"></div>
-            <div class="cal-day-detail" id="calSelectedDayDetail">
-                <div class="cal-day-detail-header">
-                    <span id="calDetailTitle">Selected Day Milestones</span>
-                    <span id="calDetailCount" style="font-size: 0.7rem; color: var(--text-muted);">0 items</span>
-                </div>
-                <div id="calDetailList" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
-            </div>
-        </div>
-    
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.65rem;">
                 <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Chronological Schedule & Continuous Jar→Harvest Timeline</span>
@@ -371,6 +107,25 @@
             return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
+        
+        function getScientificName(strain) {
+            const s = String(strain || '').trim().toLowerCase();
+            if (s.includes('blue oyster') || s === 'bo' || s.includes('pearl oyster') || s === 'oy') return 'Pleurotus ostreatus';
+            if (s.includes("lion's mane") || s.includes('lions mane') || s.includes('pink lion')) return 'Hericium erinaceus';
+            if (s.includes('shiitake') || s === 'sh') return 'Lentinula edodes';
+            if (s.includes('maitake')) return 'Grifola frondosa';
+            if (s.includes('pink oyster') || s === 'po') return 'Pleurotus djamor';
+            if (s.includes('reishi') || s === 're') return 'Ganoderma lingzhi';
+            if (s.includes('chestnut') || s === 'ch') return 'Pholiota adiposa';
+            if (s.includes('golden teacher') || s === 'gt') return 'Psilocybe cubensis';
+            return '';
+        }
+        function formatStrainWithScientific(strain) {
+            const common = String(strain || '').trim();
+            const scientific = getScientificName(common);
+            return scientific ? `${common} <span class="strain-scientific">(${scientific})</span>` : escapeAttr(common);
+        }
+
         function formatStrainCode(strain) {
             const cleaned = String(strain || '').trim();
             if (!cleaned) return 'BATCH';
@@ -382,7 +137,6 @@
             if (lower.includes('chestnut')) return 'CH';
             if (lower.includes('shiitake')) return 'SH';
             if (lower.includes('pink oyster')) return 'PO';
-            if (lower.includes('maitake') || lower === 'ma' || lower.includes('grifola')) return 'MA';
             const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
             if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
             return words[0].slice(0, 2).toUpperCase();
@@ -399,8 +153,7 @@
                 'CH': { bg: '#fdf8f6', border: '#92400e' },
                 'SH': { bg: '#f5f3ff', border: '#6d28d9' },
                 'PO': { bg: '#fdf2f8', border: '#db2777' },
-                'PI': { bg: '#f0fdf4', border: '#15803d' },
-                'MA': { bg: '#f0fdf9', border: '#0f766e' }
+                'PI': { bg: '#f0fdf4', border: '#15803d' }
             };
             return themes[code] || { bg: '#f8fafc', border: '#4c9a2a' };
         }
@@ -518,9 +271,6 @@
                     };
                 }).sort((a, b) => String(a.targetDate || '').localeCompare(String(b.targetDate || '')));
 
-                allScheduledItems = items;
-                renderStrainFilterBar(items);
-                renderMonthlyCalendar();
                 summaryEl.innerText = `${items.length} active task${items.length === 1 ? '' : 's'}`;
 
                 if (items.length === 0) {
@@ -538,7 +288,7 @@
                                 <div>
                                     <span style="font-size: 0.7rem; font-weight: 700; color: var(--primary);">${escapeAttr(targetDate)}</span>
                                     <span style="font-size: 0.82rem; font-weight: 700; margin-left: 0.35rem;">${escapeAttr(formatDisplayBatchId(b.batch_id, b.strain, b.date, b.quantity))}</span>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);">• ${escapeAttr(b.strain)} (${escapeAttr(b.stage)} ➔ ${escapeAttr(nextAction)})</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">• ${formatStrainWithScientific(b.strain)} (${escapeAttr(b.stage)} ➔ ${escapeAttr(nextAction)})</span>
                                 </div>
                                 <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
                             </div>

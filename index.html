@@ -4,16 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Garnish Farms - Mushrooms</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js">
-        function getLocalYYYYMMDD(dateObj = new Date()) {
-            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
-            if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        }
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -430,6 +421,28 @@
             gap: 0.4rem;
         }
 
+
+        .strain-scientific { font-size: 0.88em; color: var(--text-muted); font-style: italic; font-weight: 500; }
+        .task-calendar { margin-top: .7rem; padding-top: .65rem; border-top: 1px solid var(--border); }
+        .calendar-head { display:flex; align-items:center; justify-content:space-between; gap:.4rem; margin-bottom:.55rem; }
+        .calendar-month { font-size:.88rem; font-weight:800; color:var(--text-main); }
+        .calendar-nav { display:flex; align-items:center; gap:.3rem; }
+        .calendar-nav button { border:1px solid var(--border); background:#fff; color:var(--primary); border-radius:7px; padding:.28rem .5rem; font-weight:700; font-size:.72rem; cursor:pointer; }
+        .calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; }
+        .calendar-weekday { text-align:center; color:var(--text-muted); font-size:.62rem; font-weight:800; padding:.25rem 0; }
+        .calendar-day { min-height:58px; border:1px solid var(--border); background:#fff; border-radius:6px; padding:3px; text-align:left; cursor:pointer; min-width:0; }
+        .calendar-day.outside { opacity:.38; background:var(--bg-light); }
+        .calendar-day.today { border:2px solid var(--accent); }
+        .calendar-day.selected { background:#edf6e9; border:2px solid var(--primary); }
+        .calendar-day-num { display:block; font-size:.67rem; font-weight:800; color:var(--text-main); margin-bottom:2px; }
+        .calendar-event { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.54rem; line-height:1.35; border-radius:3px; padding:1px 2px; margin-top:2px; background:#e7f1e3; color:#285b22; }
+        .calendar-event.shake { background:#fff2cf; color:#8a5800; }
+        .calendar-more { font-size:.52rem; color:var(--text-muted); }
+        .calendar-day-detail { margin-top:.55rem; background:#fff; border:1px solid var(--border); border-radius:7px; padding:.55rem; }
+        .calendar-task-row { font-size:.7rem; padding:.35rem 0; border-bottom:1px solid #edf0ed; }
+        .calendar-task-row:last-child { border-bottom:0; }
+        @media (max-width:420px) { .calendar-day { min-height:49px; padding:2px; } .calendar-event { font-size:.48rem; } }
+
     </style>
 </head>
 <body>
@@ -501,6 +514,24 @@
                     </div>
                 </div>
                 <div id="upcomingTasksList" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+
+                <section class="task-calendar" aria-label="Monthly task calendar">
+                    <div class="calendar-head">
+                        <div>
+                            <div style="font-size:.68rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Monthly view</div>
+                            <div class="calendar-month" id="taskCalendarMonth">Loading calendar…</div>
+                        </div>
+                        <div class="calendar-nav">
+                            <button type="button" id="calendarTodayBtn">Today</button>
+                            <button type="button" id="calendarPrevBtn" aria-label="Previous month">‹</button>
+                            <button type="button" id="calendarNextBtn" aria-label="Next month">›</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="taskCalendarGrid"></div>
+                    <div style="font-size:.62rem;color:var(--text-muted);margin-top:.35rem;">Tap a day to see its tasks. Green = stage milestone · Gold = shake reminder.</div>
+                    <div class="calendar-day-detail" id="taskCalendarDetails"><span style="font-size:.7rem;color:var(--text-muted);">Select a day to see scheduled tasks.</span></div>
+                </section>
+
             </div>
             <!-- Last 5 Activities Feed -->
             <div id="recentActivitiesBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
@@ -758,7 +789,7 @@
                 <tr style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
                     <td>${escapeAttr(r.harvest_date)}</td>
                     <td><strong>${escapeAttr(getBaseBatchId(r.batch_id, r.strain, r.harvest_date))}</strong></td>
-                    <td><strong>${escapeAttr(r.strain)}</strong></td>
+                    <td><strong>${formatStrainWithScientific(r.strain)}</strong></td>
                     <td><span class="badge badge-active">${flushText(r.flush_number)} Flush</span></td>
                     <td><strong>${Number(r.weight_lbs || 0).toFixed(2)} lbs</strong></td>
                     <td style="color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${escapeAttr(r.notes || '—')}</td>
@@ -899,7 +930,7 @@
                         return `
                             <div style="background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.07); border-left: 4px solid ${theme.border}; border-radius: 8px; padding: 0.6rem 0.7rem; display: flex; flex-direction: column; gap: 0.2rem;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.35rem;">
-                                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-main);">${escapeAttr(strainName)}</span>
+                                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-main);">${formatStrainWithScientific(strainName)}</span>
                                     <span style="background: ${theme.badgeBg}; color: ${theme.badgeText}; padding: 0.06rem 0.34rem; border-radius: 999px; font-size: 0.6rem; font-weight: 700;">${escapeAttr(formatStrainCode(strainName))}</span>
                                 </div>
                                 <div style="font-size: 1.02rem; font-weight: 700; color: var(--primary);">${Number(lbs || 0).toFixed(1)} lbs</div>
@@ -934,7 +965,7 @@
             if (!batch) return;
 
             const map = getShakenMap();
-            const todayStr = getLocalYYYYMMDD();
+            const todayStr = new Date().toISOString().split('T')[0];
             map[String(dbId)] = {
                 batchDate: batch.date,
                 shakenDate: todayStr
@@ -1099,6 +1130,25 @@
             return '';
         }
 
+        
+        function getScientificName(strain) {
+            const s = String(strain || '').trim().toLowerCase();
+            if (s.includes('blue oyster') || s === 'bo' || s.includes('pearl oyster') || s === 'oy') return 'Pleurotus ostreatus';
+            if (s.includes("lion's mane") || s.includes('lions mane') || s.includes('pink lion')) return 'Hericium erinaceus';
+            if (s.includes('shiitake') || s === 'sh') return 'Lentinula edodes';
+            if (s.includes('maitake')) return 'Grifola frondosa';
+            if (s.includes('pink oyster') || s === 'po') return 'Pleurotus djamor';
+            if (s.includes('reishi') || s === 're') return 'Ganoderma lingzhi';
+            if (s.includes('chestnut') || s === 'ch') return 'Pholiota adiposa';
+            if (s.includes('golden teacher') || s === 'gt') return 'Psilocybe cubensis';
+            return '';
+        }
+        function formatStrainWithScientific(strain) {
+            const common = String(strain || '').trim();
+            const scientific = getScientificName(common);
+            return scientific ? `${common} <span class="strain-scientific">(${scientific})</span>` : escapeAttr(common);
+        }
+
         function formatStrainCode(strain) {
             const cleaned = String(strain || '').trim();
             if (!cleaned) return 'BATCH';
@@ -1110,7 +1160,6 @@
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
             if (lower.includes('pink oyster') || lower === 'po') return 'PO';
-            if (lower.includes('maitake') || lower === 'ma' || lower.includes('grifola')) return 'MA';
             if (lower.includes('pearl oyster') || lower === 'oy') return 'OY';
 
             const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
@@ -1232,6 +1281,99 @@
             `;
         }
 
+
+        let taskCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        let taskCalendarSelectedDate = localIsoDate(new Date());
+        let taskCalendarEvents = [];
+
+        function localIsoDate(date) {
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+        }
+        function addLocalDays(dateString, days) {
+            const p = String(dateString || '').split('-').map(Number);
+            if (p.length !== 3 || !p[0]) return '';
+            const d = new Date(p[0], p[1]-1, p[2]);
+            d.setDate(d.getDate() + Number(days || 0));
+            return localIsoDate(d);
+        }
+        function renderTaskCalendar(activeItems) {
+            const grid = document.getElementById('taskCalendarGrid');
+            const monthLabel = document.getElementById('taskCalendarMonth');
+            const detail = document.getElementById('taskCalendarDetails');
+            if (!grid || !monthLabel || !detail) return;
+            const cfg = getAppSettings();
+            const shakeThreshold = Number(cfg.shakeDay || 14);
+            const stageTargets = cfg.stageTargets || {};
+            const nextStage = { 'Grain Spawn':'Bulk Substrate', 'Bulk Substrate':'Fruiting', 'Fruiting':'Harvest' };
+            taskCalendarEvents = [];
+            activeItems.forEach(item => {
+                const start = getBatchStartDate(item);
+                const elapsed = Math.max(0, getDaysActive(start));
+                const offset = getStageTargetOffsetDays(item.stage, stageTargets);
+                const targetDate = addLocalDays(start, offset);
+                if (targetDate) {
+                    const dueDate = offset - elapsed <= 0 ? localIsoDate(new Date()) : targetDate;
+                    taskCalendarEvents.push({
+                        date: dueDate, kind:'stage',
+                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · ${nextStage[item.stage] || 'Next stage'}`,
+                        detail:`${item.strain} — ${item.stage} to ${nextStage[item.stage] || 'next stage'}`,
+                        strain:item.strain, dbId:item.dbId
+                    });
+                }
+                if (item.stage === 'Grain Spawn' && !isBatchShaken(item) && elapsed >= shakeThreshold) {
+                    taskCalendarEvents.push({
+                        date:localIsoDate(new Date()), kind:'shake',
+                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake`,
+                        detail:`${item.strain} — grain shake reminder`, strain:item.strain, dbId:item.dbId
+                    });
+                } else if (item.stage === 'Grain Spawn' && !isBatchShaken(item)) {
+                    const shakeDate = addLocalDays(start, shakeThreshold);
+                    if (shakeDate) taskCalendarEvents.push({
+                        date:shakeDate, kind:'shake',
+                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake`,
+                        detail:`${item.strain} — grain shake reminder`, strain:item.strain, dbId:item.dbId
+                    });
+                }
+            });
+            const y = taskCalendarMonth.getFullYear(), m = taskCalendarMonth.getMonth();
+            monthLabel.textContent = taskCalendarMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+            const first = new Date(y,m,1);
+            const start = new Date(y,m,1-first.getDay());
+            const today = localIsoDate(new Date());
+            const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+            let html = weekdays.map(d=>`<div class="calendar-weekday">${d}</div>`).join('');
+            for (let i=0;i<42;i++) {
+                const d = new Date(start); d.setDate(start.getDate()+i);
+                const iso = localIsoDate(d);
+                const events = taskCalendarEvents.filter(e=>e.date===iso);
+                const visible = events.slice(0,2);
+                html += `<button type="button" class="calendar-day ${d.getMonth()!==m?'outside':''} ${iso===today?'today':''} ${iso===taskCalendarSelectedDate?'selected':''}" data-calendar-date="${iso}">
+                    <span class="calendar-day-num">${d.getDate()}</span>
+                    ${visible.map(e=>`<span class="calendar-event ${e.kind==='shake'?'shake':''}">${escapeAttr(e.kind==='shake'?'Shake':e.strain)}</span>`).join('')}
+                    ${events.length>2?`<span class="calendar-more">+${events.length-2} more</span>`:''}
+                </button>`;
+            }
+            grid.innerHTML = html;
+            const selected = taskCalendarEvents.filter(e=>e.date===taskCalendarSelectedDate);
+            const selectedDate = new Date(taskCalendarSelectedDate+'T12:00:00');
+            detail.innerHTML = `<div style="font-size:.72rem;font-weight:800;color:var(--primary);margin-bottom:.25rem;">${selectedDate.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>` +
+                (selected.length ? selected.map(e=>`<div class="calendar-task-row"><strong>${escapeAttr(e.kind==='shake'?'Shake reminder':'Stage milestone')}</strong><br>${escapeAttr(e.title)}<div style="color:var(--text-muted);font-size:.64rem;">${escapeAttr(e.detail)}</div></div>`).join('') : `<div style="font-size:.68rem;color:var(--text-muted);">No tasks scheduled for this day.</div>`);
+        }
+        document.addEventListener('click', e => {
+            const day = e.target.closest('[data-calendar-date]');
+            if (day) {
+                taskCalendarSelectedDate = day.getAttribute('data-calendar-date');
+                const p = taskCalendarSelectedDate.split('-').map(Number);
+                taskCalendarMonth = new Date(p[0],p[1]-1,1);
+                renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
+            }
+        });
+        document.addEventListener('click', e => {
+            if (e.target.closest('#calendarPrevBtn')) { taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()-1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarNextBtn')) { taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()+1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarTodayBtn')) { const now=new Date(); taskCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1); taskCalendarSelectedDate=localIsoDate(now); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+        });
+
         function renderUpcomingTasks(filteredActive) {
             const listEl = document.getElementById('upcomingTasksList');
             const countEl = document.getElementById('upcomingTasksCount');
@@ -1322,7 +1464,7 @@
                 return `
                     <div style="background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 4px solid ${theme.border}; border-radius: 7px; padding: 0.45rem 0.55rem; display: flex; flex-direction: column; gap: 0.35rem;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-main);">${escapeAttr(strainName)}</span>
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-main);">${formatStrainWithScientific(strainName)}</span>
                             <span style="background: ${theme.badgeBg}; color: ${theme.badgeText}; padding: 0.06rem 0.35rem; border-radius: 999px; font-size: 0.62rem; font-weight: 700;">${strainTasks.length} item${strainTasks.length === 1 ? '' : 's'}</span>
                         </div>
                         ${rowsHtml}
@@ -1424,7 +1566,7 @@
                 return `
                 <div style="background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.07); border-left: 4px solid ${theme.border}; border-radius: 6px; padding: 0.4rem 0.55rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.72rem;">
                     <div style="min-width: 0;">
-                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date, act.quantity))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
+                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date, act.quantity))}</strong> • ${formatStrainWithScientific(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
                     </div>
                     <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap;">${escapeAttr(act.date || '')}</span>
                 </div>
@@ -1437,6 +1579,7 @@
                 ? activeBatches.filter(b => b.strain === selectedPipelineStrainFilter)
                 : activeBatches;
             renderUpcomingTasks(filteredActive);
+            renderTaskCalendar(filteredActive);
 
             renderRecentActivities(filteredActive);
 
@@ -1630,7 +1773,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.3rem;">
                                 <div>
                                     <div class="batch-id" style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;">
-                                        <span>${escapeAttr(g.strain)}</span>
+                                        <span>${formatStrainWithScientific(g.strain)}</span>
                                         <span style="background: ${theme.badgeBg}; color: ${theme.badgeText}; padding: 0.08rem 0.38rem; border-radius: 999px; font-size: 0.64rem; font-weight: 700;">${escapeAttr(formatStrainCode(g.strain))}</span>
                                         ${shakeAlert}
                                     </div>

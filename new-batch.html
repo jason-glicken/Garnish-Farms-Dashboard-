@@ -4,16 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>New Batch - Garnish Farms</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-        function getLocalYYYYMMDD(dateObj = new Date()) {
-            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
-            if (isNaN(d.getTime())) return '';
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, '0');
-            const day = String(d.getDate()).padStart(2, '0');
-            return `${y}-${m}-${day}`;
-        }
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -44,6 +35,7 @@
         .pill-btn { padding: 0.45rem 0.8rem; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-light); color: var(--text-main); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
         .pill-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
         .preview-banner { background: #e6f4ea; border: 1px solid #b7dfc2; color: #137333; padding: 0.6rem 0.75rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+            .strain-scientific { font-size: .78em; color: var(--text-muted); font-style: italic; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -63,14 +55,13 @@
                 <div class="form-group">
                     <label>Strain</label>
                     <div class="pill-group" id="strainPills">
-                        <button type="button" class="pill-btn active" data-strain="Blue Oyster">Blue Oyster</button>
-                        <button type="button" class="pill-btn" data-strain="Lion's Mane">Lion's Mane</button>
-                        <button type="button" class="pill-btn" data-strain="Golden Teacher">Golden Teacher</button>
-                        <button type="button" class="pill-btn" data-strain="Reishi">Reishi</button>
-                        <button type="button" class="pill-btn" data-strain="Chestnut">Chestnut</button>
-                        <button type="button" class="pill-btn" data-strain="Shiitake">Shiitake</button>
-                        <button type="button" class="pill-btn" data-strain="Pink Oyster">Pink Oyster</button>
-                    <button type="button" class="pill-btn" data-strain="Maitake">Maitake</button>
+                        <button type="button" class="pill-btn active" data-strain="Blue Oyster">Blue Oyster <span class="strain-scientific">(Pleurotus ostreatus)</span></button>
+                        <button type="button" class="pill-btn" data-strain="Lion's Mane">Lion's Mane <span class="strain-scientific">(Hericium erinaceus)</span></button>
+                        <button type="button" class="pill-btn" data-strain="Golden Teacher">Golden Teacher <span class="strain-scientific">(Psilocybe cubensis)</span></button>
+                        <button type="button" class="pill-btn" data-strain="Reishi">Reishi <span class="strain-scientific">(Ganoderma lingzhi)</span></button>
+                        <button type="button" class="pill-btn" data-strain="Chestnut">Chestnut <span class="strain-scientific">(Pholiota adiposa)</span></button>
+                        <button type="button" class="pill-btn" data-strain="Shiitake">Shiitake <span class="strain-scientific">(Lentinula edodes)</span></button>
+                        <button type="button" class="pill-btn" data-strain="Pink Oyster">Pink Oyster <span class="strain-scientific">(Pleurotus djamor)</span></button>
                     </div>
                     <input type="hidden" id="strainInput" value="Blue Oyster">
                 </div>
@@ -139,6 +130,25 @@
         const SETTINGS_KEY = 'garnish_farms_settings_v1';
         const editId = urlParams.get('id');
 
+        
+        function getScientificName(strain) {
+            const s = String(strain || '').trim().toLowerCase();
+            if (s.includes('blue oyster') || s === 'bo' || s.includes('pearl oyster') || s === 'oy') return 'Pleurotus ostreatus';
+            if (s.includes("lion's mane") || s.includes('lions mane') || s.includes('pink lion')) return 'Hericium erinaceus';
+            if (s.includes('shiitake') || s === 'sh') return 'Lentinula edodes';
+            if (s.includes('maitake')) return 'Grifola frondosa';
+            if (s.includes('pink oyster') || s === 'po') return 'Pleurotus djamor';
+            if (s.includes('reishi') || s === 're') return 'Ganoderma lingzhi';
+            if (s.includes('chestnut') || s === 'ch') return 'Pholiota adiposa';
+            if (s.includes('golden teacher') || s === 'gt') return 'Psilocybe cubensis';
+            return '';
+        }
+        function formatStrainWithScientific(strain) {
+            const common = String(strain || '').trim();
+            const scientific = getScientificName(common);
+            return scientific ? `${common} <span class="strain-scientific">(${scientific})</span>` : escapeAttr(common);
+        }
+
         function formatStrainCode(strain) {
             const lower = String(strain || '').trim().toLowerCase();
             if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
@@ -148,7 +158,6 @@
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
             if (lower.includes('pink oyster') || lower === 'po') return 'PO';
-            if (lower.includes('maitake') || lower === 'ma' || lower.includes('grifola')) return 'MA';
             const words = lower.replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
             if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
             return (words[0] || 'BA').slice(0, 2).toUpperCase();
