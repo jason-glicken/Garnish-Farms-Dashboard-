@@ -455,8 +455,10 @@
         .calendar-empty { color:var(--text-muted); font-size:.78rem; padding:.8rem .3rem; }
         @media (max-width:420px) { .calendar-day { min-height:49px; padding:2px; } .calendar-event { font-size:.48rem; } .calendar-day-view { padding:.65rem; } }
 
-    .strain-nav-card{width:100%;min-width:0;margin-top:.25rem;padding:.45rem .5rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:9px;overflow:hidden}.strain-nav-scroll{display:flex;gap:.35rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.1rem 0}.strain-nav-scroll a{flex:0 0 auto;border-radius:999px!important;text-decoration:none!important;font-weight:700!important}
-@media(max-width:520px){header{padding:.45rem .55rem;gap:.3rem}.logo-area h1{font-size:1.02rem!important}.header-production-actions .btn{font-size:.64rem!important;padding:.34rem .2rem!important}#headerTotalFarmYieldCard{padding:.3rem .35rem!important}#header-total-farm-yield-val{font-size:.75rem!important}}
+    .strain-nav-card{width:100%;min-width:0;margin-top:.25rem;padding:.45rem .5rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:9px;overflow:hidden}.strain-nav-scroll{display:flex;gap:.35rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.1rem 0}.strain-nav-scroll a{flex:0 0 auto;border-radius:999px!important;text-decoration:none!important;font-weight:700!important;font-size:.64rem!important;padding:.18rem .38rem!important;line-height:1.2!important}
+.header-action-card{min-height:28px;padding:.18rem .22rem!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.08rem;text-align:center;font-size:.58rem;font-weight:700;line-height:1.15;}
+.header-action-card strong{font-size:.66rem;color:var(--primary);font-weight:800;}
+@media(max-width:520px){header{padding:.45rem .55rem;gap:.3rem}.logo-area h1{font-size:1.02rem!important}.header-action-card{font-size:.54rem;min-height:26px;padding:.15rem .12rem!important}.header-action-card strong{font-size:.61rem!important}.strain-nav-scroll a{font-size:.6rem!important;padding:.16rem .32rem!important}}
 </style>
 </head>
 <body>
@@ -491,17 +493,11 @@
             </a>
         </div>
 
-        <div class="header-production-actions" style="display:grid;grid-template-columns:1fr 1fr 1.45fr;gap:.35rem;align-items:stretch;width:100%;margin-top:.3rem;">
-            <a href="new-batch.html" class="btn" style="padding:.38rem .35rem;font-size:.68rem;text-decoration:none;">+ New Batch</a>
-            <a href="harvest.html" class="btn btn-outline" style="padding:.38rem .35rem;font-size:.68rem;text-decoration:none;">Harvest</a>
-        <!-- Header Copy of Total Farm Yield Card -->
-        <a href="yield.html" id="headerTotalFarmYieldCard" style="min-width:0;margin:0;background:var(--bg-light);border:1px solid var(--border);border-radius:8px;padding:.35rem .5rem;display:flex;align-items:center;justify-content:space-between;gap:.35rem;text-decoration:none;color:inherit;text-align:left;">
-            <div>
-                <div style="font-size: 0.64rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Total Farm Yield</div>
-                <div style="font-size: 0.64rem; color: var(--text-muted);" id="header-total-farm-yield-meta">All Harvested Flushes & Batches</div>
-            </div>
-            <div style="font-size:.85rem;font-weight:700;color:var(--primary);white-space:nowrap;" id="header-total-farm-yield-val">0.0 lbs</div>
-        </a></div>
+        <div class="header-production-actions" style="display:grid;grid-template-columns:1fr 1fr 1.45fr;gap:.35rem;align-items:stretch;width:100%;margin-top:.25rem;text-align:center;">
+            <a href="new-batch.html" class="stat-link-card header-action-card"><span>+ New Batch</span></a>
+            <a href="harvest.html" class="stat-link-card header-action-card"><span>Harvest</span></a>
+            <a href="yield.html" class="stat-link-card header-action-card"><span>Total Farm Yield</span><strong id="header-total-farm-yield-val">0.0 lbs</strong></a>
+        </div>
     <nav class="strain-nav-card" aria-label="Strain navigation"><div class="strain-nav-scroll"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#1d4ed8;text-decoration:underline;background:#eff6ff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#475569;text-decoration:underline;background:#f1f5f9;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#6d28d9;text-decoration:underline;background:#f5f3ff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#166534;text-decoration:underline;background:#f0fdf4;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#be185d;text-decoration:underline;background:#fdf2f8;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#78350f;text-decoration:underline;background:#fdf8f6;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#854d0e;text-decoration:underline;background:#fefce8;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#9a3412;text-decoration:underline;background:#fff7ed;">Reishi</a></div></nav></header>
 
     <main>
@@ -544,7 +540,7 @@
         <section class="card" id="productionRhythmPlanner" style="margin-top:.75rem;">
           <div class="card-header"><h2>Production Rhythm Planner</h2><span style="font-size:.68rem;color:var(--text-muted);">Set weekly goals · plan starts</span></div>
           <p style="font-size:.7rem;color:var(--text-muted);margin:.1rem 0 .65rem;line-height:1.45;">Set a weekly fresh-harvest goal and your estimated pounds per fruiting block. The planner works backward to estimate how many jars and substrate blocks to start each week, compares that cadence with starts already recorded in the last 7 days, and shows current stage inventory. These are planning estimates—not guaranteed harvest promises.</p>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;font-size:.62rem;color:var(--text-muted);margin-bottom:.55rem;"><span>🫙 Jars = spawn starts</span><span>🧱 Substrate blocks = bag starts</span><span>🍄 Fruiting = blocks entering fruiting</span></div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;font-size:.62rem;color:var(--text-muted);margin-bottom:.55rem;"><span><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg> Jars = spawn starts</span><span><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg> Substrate blocks = bag starts</span><span>🍄 Fruiting = blocks entering fruiting</span></div>
           <div id="productionRhythmPlannerList" style="display:grid;gap:.6rem;"><div style="font-size:.75rem;color:var(--text-muted);">Loading production data…</div></div>
           <div style="font-size:.62rem;color:var(--text-muted);margin-top:.6rem;">Planner goals are saved in this browser on this device. Stage lead times use your configured targets until enough recorded transitions are available. One spawn unit per substrate block is the default assumption and can be changed per strain.</div>
         </section>
@@ -697,6 +693,8 @@
     </main>
 
     <script>
+function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg>`:kind==='bag'?`<svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg>`:'🍄';}
+
         const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
         const { createClient } = supabase;
@@ -1421,7 +1419,7 @@
                 const items=byDate[iso]||[];
                 const counts={jar:0,bag:0,fruit:0};
                 items.forEach(b=>{if(b.stage==='Grain Spawn')counts.jar+=Number(b.quantity||1);else if(b.stage==='Bulk Substrate')counts.bag+=Number(b.quantity||1);else counts.fruit+=Number(b.quantity||1);});
-                const icons=[['🫙',counts.jar,'jar'],['🧱',counts.bag,'bag'],['🍄',counts.fruit,'fruit']].filter(x=>x[1]>0);
+                const icons=[[productionIcon('jar'),counts.jar,'jar'],[productionIcon('bag'),counts.bag,'bag'],[productionIcon('fruit'),counts.fruit,'fruit']].filter(x=>x[1]>0);
                 html+=`<div class="calendar-day ${d.getMonth()!==strainCalendarMonth.getMonth()?'outside':''}" style="min-height:54px;cursor:default;"><span class="calendar-day-num">${d.getDate()}</span><div style="display:flex;flex-wrap:wrap;gap:2px;">${icons.map(([ico,n,kind])=>`<button type="button" data-strain-cal-date="${iso}" data-strain-cal-kind="${kind}" title="${n} ${kind} · open batch" style="border:0;border-radius:4px;background:#edf4ea;padding:1px 3px;font-size:.62rem;cursor:pointer;">${ico} ${n}</button>`).join('')}</div></div>`;
             }
             grid.innerHTML=html;
@@ -2422,7 +2420,7 @@
             if (!strains.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No strain data available.</td></tr>'; return; }
             tbody.innerHTML = strains.map(s => {
                 const theme=getStrainCardTheme(s.strain);
-                const stageText=`🫙 ${s.stages['Grain Spawn']} &nbsp; 🧱 ${s.stages['Bulk Substrate']} &nbsp; 🍄 ${s.stages['Fruiting']}`;
+                const stageText=`${productionIcon('jar')} ${s.stages['Grain Spawn']} &nbsp; ${productionIcon('bag')} ${s.stages['Bulk Substrate']} &nbsp; ${productionIcon('fruit')} ${s.stages['Fruiting']}`;
                 return `<tr style="background-color:${theme.bg};border-left:4px solid ${theme.border};">
                     <td><a href="strain.html?strain=${encodeURIComponent(s.strain)}" style="font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(s.strain)}</a></td>
                     <td style="font-size:.75rem;white-space:nowrap;">${stageText}</td>
@@ -2442,7 +2440,7 @@
             if(!items.length){list.innerHTML='<div style="font-size:.72rem;color:var(--text-muted);">No active batches for this selection.</div>';return;}
             list.innerHTML=items.map(b=>{
                 const theme=getStrainCardTheme(b.strain);
-                const icon=b.stage==='Grain Spawn'?'🫙':(b.stage==='Bulk Substrate'?'🧱':'🍄');
+                const icon=b.stage==='Grain Spawn'?productionIcon('jar'):(b.stage==='Bulk Substrate'?productionIcon('bag'):productionIcon('fruit'));
                 return `<a href="strain.html?strain=${encodeURIComponent(b.strain)}#batch-${encodeURIComponent(String(b.dbId))}" style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.38rem .48rem;border-radius:6px;background:${theme.bg};border-left:4px solid ${theme.border};color:var(--text-main);text-decoration:none;font-size:.72rem;"><span><strong>${escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity))}</strong> · ${formatStrainWithScientific(b.strain)}</span><span style="white-space:nowrap;font-weight:700;color:var(--primary);">${icon} ${escapeAttr(b.stage)}</span></a>`;
             }).join('');
         }
