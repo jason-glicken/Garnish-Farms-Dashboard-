@@ -1,0 +1,38 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Batch Details · Garnish Farms</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>:root{--green:#2d5a27;--bg:#f4f7f2;--border:#e5e7eb}*{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:var(--bg);color:#1f2937}header{background:#fff;padding:.65rem .85rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:.5rem;position:sticky;top:0}h1{font-size:1rem;color:var(--green);margin:0}main{padding:.8rem;max-width:900px;margin:auto}.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:.85rem;margin-bottom:.75rem}.muted{color:#6b7280;font-size:.75rem}.item{border:1px solid var(--border);border-radius:9px;padding:.75rem;margin-top:.6rem;display:grid;grid-template-columns:1fr 1fr;gap:.55rem}.item strong{font-size:.86rem}.item label{font-size:.68rem;color:#6b7280;display:block;margin-bottom:.2rem}.item select,.item input{width:100%;padding:.48rem;border:1px solid var(--border);border-radius:7px;background:#fff}.btn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;border:0;border-radius:7px;padding:.45rem .7rem;font-size:.75rem;font-weight:700}.btn-outline{background:#fff;color:var(--green);border:1px solid var(--green)}@media(max-width:520px){.item{grid-template-columns:1fr}}</style></head><body><header><h1>Batch Details</h1><a class="btn btn-outline" href="index.html">Dashboard</a></header><main><section class="card"><div id="batchTitle"><strong>Loading batch…</strong></div><p class="muted" id="batchMeta"></p><div id="stageCounts" class="muted"></div></section><section class="card"><h2 style="font-size:.9rem;margin:0">Individual Containers</h2><p class="muted">Each container has its own stage and status. Updating one does not move the other containers.</p><div id="items">Loading…</div></section></main><script>
+const SUPABASE_URL='https://odtalucpwmxcydxbypke.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const id=new URLSearchParams(location.search).get('id');
+const stages=['Grain Spawn','Bulk Substrate','Fruiting','Harvested'];
+const statuses=['Active','Harvested','Contaminated','Archived'];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function load(){
+ if(!id){document.getElementById('items').textContent='Missing batch ID.';return;}
+ const [{data:b,error:be},{data:items,error:ie}]=await Promise.all([
+  db.from('batches').select('*').eq('id',id).single(),
+  db.from('batch_items').select('*').eq('batch_id',id).order('container_id')
+ ]);
+ if(be||ie){document.getElementById('items').textContent='Unable to load batch. Confirm the v35 Supabase migration has been run. '+(ie?.message||be?.message||'');return;}
+ document.getElementById('batchTitle').innerHTML='<strong>'+esc(b.batch_id)+' · '+esc(b.strain)+'</strong>';
+ document.getElementById('batchMeta').textContent=formatDateDisplay(b.date||'')+' · '+(b.quantity||items.length)+' containers · '+(b.container||'');
+ const counts={};items.forEach(x=>counts[x.stage]=(counts[x.stage]||0)+1);
+ document.getElementById('stageCounts').textContent=Object.entries(counts).map(([k,v])=>k+': '+v).join('  ·  ');
+ document.getElementById('items').innerHTML=items.map(x=>{
+  const stageOptions=stages.map(v=>'<option value="'+esc(v)+'" '+(x.stage===v?'selected':'')+'>'+esc(v)+'</option>').join('');
+  const statusOptions=statuses.map(v=>'<option value="'+esc(v)+'" '+(x.status===v?'selected':'')+'>'+esc(v)+'</option>').join('');
+  return '<article class="item" data-item-id="'+esc(x.id)+'"><div style="grid-column:1/-1"><strong>'+esc(x.container_id)+'</strong><div class="muted">'+esc(x.container||'Container')+' · Created '+esc(x.date||'')+'</div></div><div><label>Stage</label><select data-field="stage">'+stageOptions+'</select></div><div><label>Status</label><select data-field="status">'+statusOptions+'</select></div><div style="grid-column:1/-1"><label>Notes</label><input data-field="notes" value="'+esc(x.notes||'')+'"></div></article>';
+ }).join('')||'<p class="muted">No individual containers found.</p>';
+}
+async function updateItem(itemId,field,value){
+ const {data:item,error}=await db.from('batch_items').select('*').eq('id',itemId).single();
+ if(error){alert(error.message);return;}
+ const patch={[field]:value};
+ if(field==='stage'&&value!==item.stage){const hist=Array.isArray(item.stage_history)?item.stage_history:[];patch.stage_history=[...hist,{stage:value,date:new Date().toISOString().slice(0,10)}];}
+ const r=await db.from('batch_items').update(patch).eq('id',itemId);
+ if(r.error){alert(r.error.message);return;}
+ await load();
+}
+document.getElementById('items').addEventListener('change',e=>{const field=e.target.dataset.field;if(!field)return;const card=e.target.closest('[data-item-id]');if(card)updateItem(card.dataset.itemId,field,e.target.value);});
+load();
+</script><script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
+</body></html>

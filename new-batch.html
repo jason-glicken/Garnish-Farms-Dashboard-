@@ -21,7 +21,7 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
-        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
         header h1 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
         .btn { background-color: var(--primary); color: white; border: none; padding: 0.55rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; }
         .btn:hover { background-color: var(--primary-hover); }
@@ -42,12 +42,12 @@
     <header>
         <h1 id="pageTitle">+ New Batch</h1>
         <a href="index.html" class="btn btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;">← Dashboard</a>
-    <details style="width:100%;margin-top:.35rem;font-size:.7rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
+    <details open style="width:100%;margin-top:.18rem;font-size:.68rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#3b82f6;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#64748b;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#7c3aed;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#15803d;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#db2777;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#92400e;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#ca8a04;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#c2410c;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
 
     <main>
         <div class="card">
             <div class="preview-banner">
-                <span>Container IDs:</span>
+                <span>Batch ID &amp; Container IDs:</span>
                 <strong id="batchIdPreview">BO-112026-1</strong>
             </div>
 
@@ -178,7 +178,7 @@
         function buildDisplayRangeId(strain, dateStr, qty) {
             const base = buildBaseId(strain, dateStr);
             const n = Math.max(1, Number(qty || 1));
-            return n > 1 ? `${base}-1..${n}` : `${base}-1`;
+            return `${base}\n${Array.from({length:n}, (_,i)=>`${base}-${i+1}`).join(' · ')}`;
         }
 
         function updatePreview() {
@@ -241,8 +241,9 @@
             const strain = document.getElementById('strainInput').value;
             const dateVal = document.getElementById('dateInput').value;
             const qty = Math.max(1, Number(document.getElementById('quantityInput').value || 1));
+            const batchBaseId = buildBaseId(strain, dateVal);
             const payload = {
-                batch_id: buildDisplayRangeId(strain, dateVal, qty),
+                batch_id: batchBaseId,
                 strain,
                 date: dateVal,
                 stage: document.getElementById('stageInput').value,
@@ -261,11 +262,24 @@
                 let res;
                 if (editId) {
                     res = await _supabase.from('batches').update(payload).eq('id', editId);
+                    if (res.error) throw res.error;
+                    window.location.href = 'index.html';
                 } else {
-                    res = await _supabase.from('batches').insert([payload]);
+                    res = await _supabase.from('batches').insert([payload]).select('*').single();
+                    if (res.error) throw res.error;
+                    const parent = res.data;
+                    const items = Array.from({length:qty}, (_,i) => ({
+                        batch_id: parent.id, container_id: `${batchBaseId}-${i+1}`, strain, date: dateVal,
+                        stage: payload.stage, status: payload.status, container: payload.container,
+                        substrate: payload.substrate, notes: payload.notes, stage_history: [{stage:payload.stage, date:dateVal}]
+                    }));
+                    const childRes = await _supabase.from('batch_items').insert(items);
+                    if (childRes.error) {
+                        await _supabase.from('batches').delete().eq('id', parent.id);
+                        throw new Error(`Batch container tracking table is not ready. Run the included v35 Supabase migration, then try again. ${childRes.error.message || ''}`);
+                    }
+                    window.location.href = `batch.html?id=${encodeURIComponent(parent.id)}`;
                 }
-                if (res.error) throw res.error;
-                window.location.href = 'index.html';
             } catch (err) {
                 alert('Error saving batch: ' + (err.message || err));
                 saveBtn.disabled = false;
@@ -273,5 +287,6 @@
             }
         });
     </script>
+<script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
 </body>
 </html>
