@@ -27,7 +27,7 @@
         .btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
         main { flex: 1; padding: 0.85rem; max-width: 780px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; }
         .card { background: var(--card-bg); border-radius: var(--radius); padding: 0.9rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .tab-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 0.7rem; }
+        .tab-bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.3rem; margin-bottom: 0.7rem; }
         .tab-link { text-align: center; padding: 0.45rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-light); color: var(--text-main); font-size: 0.78rem; font-weight: 700; text-decoration: none; }
         .tab-link.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
         .pill-row { display: flex; gap: 0.35rem; overflow-x: auto; padding-bottom: 0.25rem; margin-bottom: 0.65rem; }
@@ -53,19 +53,20 @@
             </span>
         </div>
         <div style="display:flex;gap:0.35rem;"><a href="settings.html" class="btn btn-outline">Settings</a><a href="index.html" class="btn btn-outline">← Dashboard</a></div>
-    </header>
+    <details style="width:100%;margin-top:.35rem;font-size:.7rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
     <main>
         <div class="card">
             <div class="tab-bar">
                 <a href="list.html?type=jars" class="tab-link" id="tab-jars">Jars</a>
                 <a href="list.html?type=bags" class="tab-link" id="tab-bags">Bags</a>
-                <a href="list.html?type=fruiting" class="tab-link" id="tab-fruiting">Fruiting</a>
+                <a href="list.html?type=fruiting" class="tab-link" id="tab-fruiting">🍄 Fruiting</a>
+                <a href="list.html?type=all" class="tab-link" id="tab-all">All Batches</a>
             </div>
             <div class="pill-row" id="strainFilterPills">
                 <button type="button" class="pill-btn selected" data-strain="">All Strains</button>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.55rem;">
-                <span style="font-size: 0.76rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Individual Containers</span>
+                <span style="font-size: 0.76rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Batches / Containers</span>
                 <span style="font-size: 0.72rem; color: var(--text-muted);" id="containerCount">Loading...</span>
             </div>
             <div id="containerCardsList" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
@@ -332,14 +333,18 @@
             const heading = document.getElementById('pageHeading');
             const badge = document.getElementById('topVesselQtyBadge');
             document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
-            if (listType === 'bags') {
+            if (listType === 'all') {
+                heading.innerText = 'All Batches';
+                document.getElementById('tab-all').classList.add('active');
+                if (badge) badge.style.display='none';
+            } else if (listType === 'bags') {
                 heading.innerText = 'Active Bags';
                 document.getElementById('tab-bags').classList.add('active');
                 if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
             } else if (listType === 'fruiting') {
                 heading.innerText = 'Fruiting Blocks';
                 document.getElementById('tab-fruiting').classList.add('active');
-                if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
+                if (badge) badge.innerHTML = `<span aria-label="Fruiting blocks" title="Fruiting blocks">🍄</span><span>=</span><span id="topVesselQtyVal">0</span>`;
             } else {
                 heading.innerText = 'Active Jars';
                 document.getElementById('tab-jars').classList.add('active');
@@ -351,8 +356,10 @@
             const countEl = document.getElementById('containerCount');
             const cfg = getAppSettings();
             const stageTargets = cfg.stageTargets;
-            let matchingBatches = allBatches.filter(b => b.status === 'Active');
-            if (listType === 'bags') {
+            let matchingBatches = allBatches.filter(b => listType === 'all' || b.status === 'Active');
+            if (listType === 'all') {
+                matchingBatches = matchingBatches.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+            } else if (listType === 'bags') {
                 matchingBatches = matchingBatches.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
             } else if (listType === 'fruiting') {
                 matchingBatches = matchingBatches.filter(b => b.stage === 'Fruiting');
@@ -363,7 +370,7 @@
 
             const unitCards = [];
             matchingBatches.forEach(b => {
-                const qty = Math.max(1, Number(b.quantity || 1));
+                const qty = listType === 'all' ? 1 : Math.max(1, Number(b.quantity || 1));
                 const stageDate = getEffectiveStageDate(b);
                 const startDate = getBatchStartDate(b);
                 const days = Math.max(0, getDaysActive(startDate));
@@ -383,7 +390,7 @@
                 }
             });
 
-            const unitNoun = listType === 'bags' ? 'bag' : (listType === 'fruiting' ? 'block' : 'jar');
+            const unitNoun = listType === 'all' ? 'batch' : (listType === 'bags' ? 'bag' : (listType === 'fruiting' ? 'block' : 'jar'));
             countEl.innerText = `${unitCards.length} ${unitNoun}${unitCards.length === 1 ? '' : 's'}`;
             const topQtyEl = document.getElementById('topVesselQtyVal');
             if (topQtyEl) topQtyEl.innerText = String(unitCards.length);

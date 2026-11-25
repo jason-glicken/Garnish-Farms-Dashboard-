@@ -474,35 +474,115 @@
         </div>
         <!-- Compact KPI Counters in Header -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; width: 100%; margin-top: 0.4rem; text-align: center;">
-            <div style="background: var(--bg-light); padding: 0.35rem 0.25rem; border-radius: 6px; border: 1px solid var(--border); display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Batches</div>
-                <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-active">0</div>
-            </div>
+            <a href="list.html?type=all" class="stat-link-card" style="padding:.35rem .25rem;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+                <div style="font-size:.6rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">Batches</div>
+                <div style="font-size:.95rem;font-weight:700;color:var(--primary);" id="kpi-active">0</div>
+            </a>
             <a href="list.html?type=jars" class="stat-link-card" style="padding: 0.35rem 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                <div style="font-size: 0.58rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Jars ➔</div>
+                <div style="font-size: 0.58rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Jars</div>
                 <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 0.2rem;"><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="kpi-jars">0</span></div>
             </a>
             <a href="list.html?type=bags" class="stat-link-card" style="padding: 0.35rem 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                <div style="font-size: 0.58rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Bags ➔</div>
+                <div style="font-size: 0.58rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Bags</div>
                 <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 0.2rem;"><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg><span>=</span><span id="kpi-bags">0</span></div>
             </a>
             <a href="list.html?type=fruiting" class="stat-link-card" style="padding: 0.35rem 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Fruiting ➔</div>
-                <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-fruiting">0</div>
+                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Fruiting</div>
+                <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary); display:inline-flex;align-items:center;gap:.2rem;"><span aria-label="Fruiting blocks" title="Fruiting blocks">🍄</span><span id="kpi-fruiting">0</span></div>
             </a>
         </div>
 
         <!-- Header Copy of Total Farm Yield Card -->
-        <a href="#totalFarmYieldCard" id="headerTotalFarmYieldCard" style="width: 100%; margin-top: 0.35rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; text-decoration: none; color: inherit; text-align: left;">
+        <a href="yield.html" id="headerTotalFarmYieldCard" style="width: 100%; margin-top: 0.35rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; text-decoration: none; color: inherit; text-align: left;">
             <div>
                 <div style="font-size: 0.64rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Total Farm Yield</div>
                 <div style="font-size: 0.64rem; color: var(--text-muted);" id="header-total-farm-yield-meta">All Harvested Flushes & Batches</div>
             </div>
             <div style="font-size: 1rem; font-weight: 700; color: var(--primary); white-space: nowrap;" id="header-total-farm-yield-val">0.0 lbs</div>
         </a>
-    </header>
+    <details style="width:100%;margin-top:.35rem;font-size:.7rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#2d5a27;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
 
     <main>
+        <section id="strainBreakdownPanel" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.75rem;">
+                <div style="font-size:.75rem;font-weight:800;color:var(--primary);text-transform:uppercase;margin-bottom:.35rem;">Strain Breakdown · Current Production Mix</div>
+                <div style="position:relative;height:210px;display:flex;justify-content:center;align-items:center;">
+                    <canvas id="strainChart"></canvas>
+                </div>
+            </section>
+<!-- Strain Summary & Inventory -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Strain Summary & Inventory</h2>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Strain</th>
+                            <th>Active Batches</th>
+                            <th>Stage Breakdown</th>
+                            <th>Total Containers</th>
+                            <th>Total Yield</th>
+                        </tr>
+                    </thead>
+                    <tbody id="strainSummaryTableBody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Calculating strain totals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        
+
+        <section class="card" id="farmForecastPanel">
+          <div class="card-header"><h2>3-Month Production Forecast</h2><span style="font-size:.7rem;color:var(--text-muted);">Target dates with recorded stage starts</span></div>
+          <div style="display:flex;flex-wrap:wrap;gap:.65rem;font-size:.65rem;color:var(--text-muted);margin-bottom:.45rem;"><span>🟩 Spawn</span><span>🟧 Substrate</span><span>🟦 Fruiting</span><span>Solid marker = actual · outlined marker = target</span></div><div id="farmForecastTimeline" style="display:grid;gap:.55rem;"><div style="font-size:.75rem;color:var(--text-muted);">Building forecast…</div></div>
+          <div style="display:flex;justify-content:space-between;font-size:.62rem;color:var(--text-muted);margin-top:.45rem;"><span>30 days ago</span><span>Today</span><span>60 days ahead</span></div>
+        </section>
+        <section class="card" id="productionRhythmPlanner" style="margin-top:.75rem;">
+          <div class="card-header"><h2>Production Rhythm Planner</h2><span style="font-size:.68rem;color:var(--text-muted);">Set weekly goals · plan starts</span></div>
+          <p style="font-size:.7rem;color:var(--text-muted);margin:.1rem 0 .65rem;line-height:1.45;">Set a weekly fresh-harvest goal and your estimated pounds per fruiting block. The planner works backward to estimate how many jars and substrate blocks to start each week, compares that cadence with starts already recorded in the last 7 days, and shows current stage inventory. These are planning estimates—not guaranteed harvest promises.</p>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;font-size:.62rem;color:var(--text-muted);margin-bottom:.55rem;"><span>🫙 Jars = spawn starts</span><span>🧱 Substrate blocks = bag starts</span><span>🍄 Fruiting = blocks entering fruiting</span></div>
+          <div id="productionRhythmPlannerList" style="display:grid;gap:.6rem;"><div style="font-size:.75rem;color:var(--text-muted);">Loading production data…</div></div>
+          <div style="font-size:.62rem;color:var(--text-muted);margin-top:.6rem;">Planner goals are saved in this browser on this device. Stage lead times use your configured targets until enough recorded transitions are available. One spawn unit per substrate block is the default assumption and can be changed per strain.</div>
+        </section>
+
+<section class="task-calendar" aria-label="Monthly task calendar">
+                    <div class="calendar-head">
+                        <div>
+                            <div style="font-size:.68rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Monthly view</div>
+                            <div class="calendar-month" id="taskCalendarMonth">Loading calendar…</div>
+                        </div>
+                        <div class="calendar-nav">
+                            <button type="button" id="calendarTodayBtn">Today</button>
+                            <button type="button" id="calendarPrevBtn" aria-label="Previous month">‹</button>
+                            <button type="button" id="calendarNextBtn" aria-label="Next month">›</button>
+                        </div>
+                    </div>
+                    <div id="taskCalendarMonthView">
+                        <div class="calendar-grid" id="taskCalendarGrid"></div>
+                        <div style="font-size:.62rem;color:var(--text-muted);margin-top:.45rem;">Tap any day to open its full task list. Green = next-stage task · Gold = shake reminder.</div>
+                    </div>
+                    <div class="calendar-day-view" id="taskCalendarDayView" hidden>
+                        <button type="button" class="calendar-back" id="calendarBackBtn">← Back to Month</button>
+                        <div class="calendar-day-title" id="taskCalendarDayTitle"></div>
+                        <div class="calendar-day-subtitle" id="taskCalendarDaySubtitle"></div>
+                        <div id="taskCalendarDayTasks"></div>
+                    </div>
+                </section>
+<!-- Last 5 Activities Feed -->
+            <div id="recentActivitiesBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; gap: 0.4rem;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Last 5 Activities</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.68rem; color: var(--text-muted);" id="recentActivitiesCount">Recent</span>
+                        <a href="activities.html" style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-decoration: underline; white-space: nowrap;">All Activities ➔</a>
+                    </div>
+                </div>
+                <div id="recentActivitiesList" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
+            </div>
+            
+            
         <!-- Pipeline Kanban -->
         <div class="card">
             <div class="card-header" style="margin-bottom: 0.5rem;">
@@ -526,61 +606,11 @@
                         <a href="upcoming.html" style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-decoration: underline; white-space: nowrap;">All Upcoming ➔</a>
                     </div>
                 </div>
-                <section class="task-calendar" aria-label="Monthly task calendar">
-                    <div class="calendar-head">
-                        <div>
-                            <div style="font-size:.68rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Monthly view</div>
-                            <div class="calendar-month" id="taskCalendarMonth">Loading calendar…</div>
-                        </div>
-                        <div class="calendar-nav">
-                            <button type="button" id="calendarTodayBtn">Today</button>
-                            <button type="button" id="calendarPrevBtn" aria-label="Previous month">‹</button>
-                            <button type="button" id="calendarNextBtn" aria-label="Next month">›</button>
-                        </div>
-                    </div>
-                    <div id="taskCalendarMonthView">
-                        <div class="calendar-grid" id="taskCalendarGrid"></div>
-                        <div style="font-size:.62rem;color:var(--text-muted);margin-top:.45rem;">Tap any day to open its full task list. Green = next-stage task · Gold = shake reminder.</div>
-                    </div>
-                    <div class="calendar-day-view" id="taskCalendarDayView" hidden>
-                        <button type="button" class="calendar-back" id="calendarBackBtn">← Back to Month</button>
-                        <div class="calendar-day-title" id="taskCalendarDayTitle"></div>
-                        <div class="calendar-day-subtitle" id="taskCalendarDaySubtitle"></div>
-                        <div id="taskCalendarDayTasks"></div>
-                    </div>
-                </section>
-                <section id="strainCalendarPanel" class="task-calendar" hidden aria-label="Selected strain calendar">
-                    <div class="calendar-head"><div><div style="font-size:.68rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Selected strain · container calendar</div><div class="calendar-month" id="strainCalendarTitle">Strain calendar</div></div><div class="calendar-nav"><button type="button" id="strainCalendarPrev">‹</button><button type="button" id="strainCalendarNext">›</button></div></div>
-                    <div id="strainCalendarGrid" class="calendar-grid"></div>
-                    <div style="font-size:.62rem;color:var(--text-muted);margin-top:.4rem;">🫙 jars · 🛍️ bags · 🍄 fruiting blocks. Tap an icon/count to open its batch.</div>
-                </section>
+                
+                
 
-            <!-- Last 5 Activities Feed -->
-            <div id="recentActivitiesBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; gap: 0.4rem;">
-                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Last 5 Activities</span>
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 0.68rem; color: var(--text-muted);" id="recentActivitiesCount">Recent</span>
-                        <a href="activities.html" style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-decoration: underline; white-space: nowrap;">All Activities ➔</a>
-                    </div>
-                </div>
-                <div id="recentActivitiesList" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
-            </div>
-            <!-- Active batches snapshot stays expanded directly above the production mix wheel. -->
-            <section id="activeBatchesSnapshot" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.55rem;">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem;">
-                    <div style="font-size:.75rem;font-weight:800;color:var(--primary);text-transform:uppercase;">Active Batches</div>
-                    <span id="activeBatchesSnapshotCount" style="font-size:.68rem;color:var(--text-muted);">0 batches</span>
-                </div>
-                <div id="activeBatchesSnapshotList" style="display:grid;gap:.3rem;"></div>
-            </section>
-            <!-- Strain Breakdown stays visible beneath the active batches snapshot. -->
-            <section id="strainBreakdownPanel" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.75rem;">
-                <div style="font-size:.75rem;font-weight:800;color:var(--primary);text-transform:uppercase;margin-bottom:.35rem;">Strain Breakdown · Current Production Mix</div>
-                <div style="position:relative;height:210px;display:flex;justify-content:center;align-items:center;">
-                    <canvas id="strainChart"></canvas>
-                </div>
-            </section>
+            
+            
                 <button type="button" id="upcomingTasksToggle" class="dashboard-collapse-toggle" aria-expanded="false" style="width:100%;text-align:left;margin-top:.35rem;">Show task cards · 0</button>
                 <div id="upcomingTasksList" class="is-collapsed" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
 
@@ -661,94 +691,7 @@
             </div>
         </div>
 
-        <!-- Batches Log -->
-        <div class="card">
-            <div class="card-header">
-                <h2>Batches Log</h2>
-            </div>
-            <div class="table-controls">
-                <input type="text" class="search-input" id="searchInput" placeholder="Search batch ID or strain… type ALL to show everything" oninput="renderTable()">
-                <div style="display: flex; gap: 0.5rem;">
-                    <select class="filter-select" id="filterStrain" onchange="renderTable()">
-                        <option value="">All Strains</option>
-                    </select>
-                    <select class="filter-select" id="filterStatus" onchange="renderTable()">
-                        <option value="">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Harvested">Harvested</option>
-                        <option value="Contaminated">Contam</option>
-                    </select>
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Batch ID</th>
-                            <th>Date</th>
-                            <th>Strain</th>
-                            <th>Stage</th>
-                            <th>Qty</th>
-                            <th>Yield</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="batchTableBody">
-                        <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Loading cloud data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Strain Summary & Inventory -->
-        <div class="card">
-            <div class="card-header">
-                <h2>Strain Summary & Inventory</h2>
-            </div>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Strain</th>
-                            <th>Stage Breakdown</th>
-                            <th>Active Batches</th>
-                            <th>Total Containers</th>
-                            <th>Total Yield</th>
-                        </tr>
-                    </thead>
-                    <tbody id="strainSummaryTableBody">
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Calculating strain totals...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Static Total Farm Yield Card -->
-        <div class="card" id="totalFarmYieldCard">
-            <div class="card-header" style="margin-bottom: 0.35rem;">
-                <h2>Total Farm Yield</h2>
-                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted);">Cumulative</span>
-            </div>
-            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem;">
-                <div>
-                    <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">All Harvested Flushes & Batches</div>
-                    <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 0.15rem;" id="totalFarmYieldMeta">0.0 lbs across all strains</div>
-                </div>
-                <div style="font-size: 1.65rem; font-weight: 700; color: var(--primary);" id="total-farm-yield-val">0.0 lbs</div>
-            </div>
-        </div>
-
-        <!-- Static Yield per Strain Card -->
-        <div class="card" id="yieldPerStrainCard">
-            <div class="card-header" style="margin-bottom: 0.5rem;">
-                <h2>Yield per Strain</h2>
-                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted);">By Species</span>
-            </div>
-            <div id="yieldPerStrainList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem;">
-                <div style="font-size: 0.78rem; color: var(--text-muted);">Calculating strain yields...</div>
-            </div>
-        </div>
+<div style="display:none" aria-hidden="true"><input id="searchInput"><select id="filterStrain"></select><select id="filterStatus"></select><div class="table-controls"></div><table><tbody id="batchTableBody"></tbody></table></div>
     </main>
 
     <script>
@@ -827,6 +770,7 @@
             }
 
             renderDashboardHarvestsForFilter();
+            renderProductionRhythmPlanner();
         }
 
         function renderDashboardHarvestsForFilter() {
@@ -935,6 +879,8 @@
             renderTable();
             renderChart();
             renderStrainSummary();
+            renderFarmForecastTimeline();
+            renderProductionRhythmPlanner();
             renderCulturesTable();
         }
 
@@ -945,7 +891,7 @@
             const totalFruiting = active.filter(b => b.stage === 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
             const totalYield = batches.reduce((sum, b) => sum + Number(b.harvestWeight || 0), 0);
 
-            document.getElementById('kpi-active').innerText = active.length;
+            document.getElementById('kpi-active').innerText = batches.length;
             document.getElementById('kpi-jars').innerText = totalJars;
             document.getElementById('kpi-bags').innerText = totalBags;
             const elFruitKpi = document.getElementById('kpi-fruiting');
@@ -2309,6 +2255,154 @@
             if(overview) overview.innerHTML=selectedPipelineStrainFilter ? `<a href="strain.html?strain=${encodeURIComponent(selectedPipelineStrainFilter)}" style="font-size:.72rem;font-weight:800;color:var(--primary);">Open ${escapeAttr(selectedPipelineStrainFilter)} strain dashboard ↗</a>` : '';
         }
 
+
+        function renderFarmForecastTimeline() {
+            const host=document.getElementById('farmForecastTimeline'); if(!host)return;
+            const active=batches.filter(b=>b.status==='Active');
+            if(!active.length){host.innerHTML='<div style="font-size:.75rem;color:var(--text-muted);">No active batches to forecast yet.</div>';return;}
+            const cfg=getAppSettings(),t=cfg.stageTargets||{};
+            const now=new Date(); now.setHours(0,0,0,0);
+            const start=new Date(now);start.setDate(start.getDate()-30);
+            const horizon=90, colors={'Grain Spawn':'#16a34a','Bulk Substrate':'#d97706','Fruiting':'#3b82f6'};
+            const stages=['Grain Spawn','Bulk Substrate','Fruiting'];
+            const groups={}; active.forEach(b=>(groups[b.strain] ||= []).push(b));
+            const isoToDate=v=>{const p=String(v||'').split('-').map(Number);return p.length===3&&p[0]?new Date(p[0],p[1]-1,p[2]):null;};
+            const dateToPct=d=>Math.max(0,Math.min(100,((d-start)/86400000)/horizon*100));
+            host.innerHTML=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0])).map(([strain,items])=>{
+              const theme=getStrainCardTheme(strain);
+              const rows=items.map(b=>{
+                const origin=isoToDate(getBatchStartDate(b));if(!origin)return '';
+                const clockMap=getStageClockMap();
+                const subNote=(String(b.notes||'').match(/\[Stage:SUB:(\d{4}-\d{2}-\d{2})\]/)||[])[1] || clockMap[`${b.dbId}::Bulk Substrate`];
+                const frtNote=(String(b.notes||'').match(/\[Stage:FRT:(\d{4}-\d{2}-\d{2})\]/)||[])[1] || clockMap[`${b.dbId}::Fruiting`];
+                const sub=subNote?isoToDate(subNote):new Date(origin.getTime()+Number(t['Grain Spawn']||14)*86400000);
+                const frt=frtNote?isoToDate(frtNote):new Date(sub.getTime()+Number(t['Bulk Substrate']||14)*86400000);
+                const end=new Date(frt.getTime()+Number(t['Fruiting']||14)*86400000);
+                const batchLabel=escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity));
+                const segments=[{name:'Spawn',a:origin,z:sub,c:colors['Grain Spawn']},{name:'Substrate',a:sub,z:frt,c:colors['Bulk Substrate']},{name:'Fruiting',a:frt,z:end,c:colors['Fruiting']}];
+                const bars=segments.map(seg=>{
+                  const left=dateToPct(seg.a),right=dateToPct(seg.z); if(right<=0||left>=100||right<=left)return '';
+                  return `<span title="${seg.name} · target ${localIsoDate(seg.a)}–${localIsoDate(seg.z)}" style="position:absolute;left:${left}%;width:${Math.max(.8,right-left)}%;top:0;height:7px;background:${seg.c};border-radius:5px;"></span>`;
+                }).join('');
+                const actual=[subNote?{d:subNote,c:'#166534',n:'Actual substrate'}:null,frtNote?{d:frtNote,c:'#1d4ed8',n:'Actual fruiting'}:null].filter(Boolean).map(m=>{const d=isoToDate(m.d),x=dateToPct(d);return x>=0&&x<=100?`<i title="${m.n}: ${m.d}" style="position:absolute;left:${x}%;top:-2px;height:11px;width:3px;background:${m.c};z-index:2;"></i>`:''}).join('');
+                return `<a href="strain.html?strain=${encodeURIComponent(b.strain)}#batch-${encodeURIComponent(String(b.id))}" style="display:grid;grid-template-columns:minmax(100px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:none;color:inherit;padding:.2rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${batchLabel}</span><span style="height:8px;background:#edf0ed;border-radius:8px;position:relative;display:block;">${bars}${actual}</span></a>`;
+              }).join('');
+              return `<section style="border:1px solid ${theme.border};border-left:4px solid ${theme.border};background:${theme.bg};border-radius:8px;padding:.45rem .55rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.75rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><div style="margin-top:.25rem;">${rows}</div></section>`;
+            }).join('');
+        }
+
+        const RHYTHM_PLANNER_KEY = 'garnish_farms_rhythm_planner_v1';
+        const RHYTHM_STRAINS = ['Blue Oyster', "Lion's Mane", 'Shiitake', 'Maitake', 'Pink Oyster', 'Chestnut', 'Golden Teacher', 'Reishi'];
+        function getRhythmPlannerSettings() {
+            try { return JSON.parse(localStorage.getItem(RHYTHM_PLANNER_KEY) || '{}') || {}; }
+            catch (e) { return {}; }
+        }
+        function saveRhythmPlannerSetting(strain, field, value) {
+            const all = getRhythmPlannerSettings();
+            all[strain] = { ...(all[strain] || {}), [field]: Math.max(0, Number(value || 0)) };
+            localStorage.setItem(RHYTHM_PLANNER_KEY, JSON.stringify(all));
+            renderProductionRhythmPlanner();
+        }
+        function rhythmStageDate(batch, stage) {
+            if (stage === 'Grain Spawn') return getBatchStartDate(batch);
+            if (stage === 'Bulk Substrate') return getStageClockFromNotes(batch.notes, 'Bulk Substrate') || (batch.stage === 'Bulk Substrate' ? getEffectiveStageDate(batch) : '');
+            if (stage === 'Fruiting') return getStageClockFromNotes(batch.notes, 'Fruiting') || (batch.stage === 'Fruiting' ? getEffectiveStageDate(batch) : '');
+            return '';
+        }
+        function getRhythmActualStageAverage(strain, stage) {
+            const durations = [];
+            batches.filter(b => b.strain === strain).forEach(b => {
+                const spawn = rhythmStageDate(b, 'Grain Spawn');
+                const sub = rhythmStageDate(b, 'Bulk Substrate');
+                const fruit = rhythmStageDate(b, 'Fruiting');
+                let a = '', z = '';
+                if (stage === 'Grain Spawn') { a = spawn; z = sub; }
+                if (stage === 'Bulk Substrate') { a = sub; z = fruit; }
+                if (stage === 'Fruiting') { a = fruit; z = firstHarvestDateByBatch[String(b.batchId || '').trim()] || ''; }
+                if (a && z && z >= a) durations.push(dateDiffDays(a, z));
+            });
+            if (!durations.length) return null;
+            return durations.reduce((sum, n) => sum + n, 0) / durations.length;
+        }
+        function renderProductionRhythmPlanner() {
+            const host = document.getElementById('productionRhythmPlannerList');
+            if (!host) return;
+            const settings = getRhythmPlannerSettings();
+            const strains = [...new Set([...RHYTHM_STRAINS, ...batches.map(b => b.strain).filter(Boolean)])].sort((a,b) => a.localeCompare(b));
+            const today = localIsoDate(new Date());
+            const weekAgo = addLocalDays(today, -7);
+            const targets = getAppSettings().stageTargets || {};
+            const stageDefs = [
+                { name:'Grain Spawn', key:'jar', icon:'🫙', stage:'Grain Spawn' },
+                { name:'Bulk Substrate', key:'bag', icon:'🧱', stage:'Bulk Substrate' },
+                { name:'Fruiting', key:'fruit', icon:'🍄', stage:'Fruiting' }
+            ];
+            host.innerHTML = strains.map(strain => {
+                const cfg = settings[strain] || {};
+                const weeklyLbs = Number(cfg.weeklyLbs || 0);
+                const lbsPerBlock = Number(cfg.lbsPerBlock || 1);
+                const spawnPerBlock = Number(cfg.spawnPerBlock || 1);
+                const blocksPerWeek = weeklyLbs > 0 && lbsPerBlock > 0 ? Math.ceil(weeklyLbs / lbsPerBlock) : 0;
+                const jarGoal = blocksPerWeek * spawnPerBlock;
+                const items = batches.filter(b => b.strain === strain);
+                const active = items.filter(b => b.status === 'Active');
+                const counts = {
+                    jar: active.filter(b => b.stage === 'Grain Spawn').reduce((n,b)=>n+Number(b.quantity||1),0),
+                    bag: active.filter(b => b.stage === 'Bulk Substrate').reduce((n,b)=>n+Number(b.quantity||1),0),
+                    fruit: active.filter(b => b.stage === 'Fruiting').reduce((n,b)=>n+Number(b.quantity||1),0)
+                };
+                const started = {};
+                stageDefs.forEach(def => {
+                    started[def.key] = items.filter(b => {
+                        const d = rhythmStageDate(b, def.stage);
+                        return d && d >= weekAgo && d <= today;
+                    }).reduce((n,b)=>n+Number(b.quantity||1),0);
+                });
+                const goals = { jar:jarGoal, bag:blocksPerWeek, fruit:blocksPerWeek };
+                const actualDates = stageDefs.map(def => [...new Set(items.map(b=>rhythmStageDate(b,def.stage)).filter(Boolean))].sort()).map(a=>a.length?a[a.length-1]:'');
+                const lastStarts = actualDates.map(d=>d || '—');
+                const gaps = stageDefs.map(def => {
+                    const ds = [...new Set(items.map(b=>rhythmStageDate(b,def.stage)).filter(Boolean))].sort();
+                    if (ds.length < 2) return 'Need more starts';
+                    const diffs=[]; for(let i=1;i<ds.length;i++) diffs.push(dateDiffDays(ds[i-1],ds[i]));
+                    return `${(diffs.reduce((a,b)=>a+b,0)/diffs.length).toFixed(1)}d avg gap`;
+                });
+                const stageDurations = stageDefs.map(def => getRhythmActualStageAverage(strain, def.stage) ?? Number(targets[def.stage] || 14));
+                const targetDays = stageDurations.reduce((sum, days) => sum + days, 0);
+                const expectedHarvest = addLocalDays(today, Math.round(targetDays));
+                const durationLabel = stageDurations.map((days, i) => `${['Spawn','Substrate','Fruiting'][i]} ${Math.round(days)}d${getRhythmActualStageAverage(strain, stageDefs[i].stage) !== null ? ' actual' : ' target'}`).join(' · ');
+                const theme = getStrainCardTheme(strain);
+                const recommendation = def => goals[def.key] > 0 ? Math.max(0, goals[def.key]-started[def.key]) : 0;
+                const rows = stageDefs.map((def,i)=>{
+                    const goal=goals[def.key],done=started[def.key],need=recommendation(def),inv=counts[def.key];
+                    return `<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.25rem .5rem;padding:.42rem .48rem;background:#fff;border:1px solid #e5e7eb;border-radius:7px;">
+                      <div style="font-size:.7rem;font-weight:800;color:#334155;">${def.icon} ${def.name}</div><div style="font-size:.67rem;color:#64748b;text-align:right;">${inv} active</div>
+                      <div style="font-size:.63rem;color:#64748b;">Goal ${goal||'—'}/wk · Started ${done} in 7d · Last ${lastStarts[i]}</div><div style="font-size:.67rem;font-weight:800;color:${need>0?'#a16207':'#2d5a27'};text-align:right;">${goal?`${need} more to start`:'Set goal'}</div>
+                      <div style="grid-column:1/-1;font-size:.6rem;color:#64748b;">${gaps[i]}</div>
+                    </div>`;
+                }).join('');
+                return `<section style="background:${theme.bg};border:1px solid ${theme.border};border-left:4px solid ${theme.border};border-radius:9px;padding:.55rem;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.45rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.78rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><span style="font-size:.62rem;color:var(--text-muted);">${active.length} active batches</span></div>
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem;margin-bottom:.45rem;">
+                    <label style="font-size:.59rem;color:#475569;">Weekly goal (lbs)<input aria-label="${escapeAttr(strain)} weekly pounds goal" type="number" min="0" step="0.5" value="${weeklyLbs||''}" placeholder="e.g. 5" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="weeklyLbs" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
+                    <label style="font-size:.59rem;color:#475569;">lbs / block<input aria-label="${escapeAttr(strain)} pounds per block estimate" type="number" min="0.1" step="0.1" value="${lbsPerBlock}" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="lbsPerBlock" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
+                    <label style="font-size:.59rem;color:#475569;">Jars / block<input aria-label="${escapeAttr(strain)} spawn units per block" type="number" min="0.1" step="0.5" value="${spawnPerBlock}" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="spawnPerBlock" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3rem;margin-bottom:.45rem;">
+                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:1rem;color:#2d5a27;">${blocksPerWeek||'—'}</strong><span style="font-size:.57rem;color:#64748b;">Blocks / week</span></div>
+                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:1rem;color:#2d5a27;">${jarGoal||'—'}</strong><span style="font-size:.57rem;color:#64748b;">Jars / week</span></div>
+                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:.76rem;color:#2d5a27;">${blocksPerWeek?expectedHarvest:'—'}</strong><span style="font-size:.57rem;color:#64748b;">If started today</span></div>
+                  </div>
+                  <div style="display:grid;gap:.3rem;">${rows}</div>
+                  <div style="font-size:.59rem;color:#475569;margin-top:.4rem;">Lead-time estimate: ${durationLabel}</div>
+                  <div style="font-size:.59rem;color:#64748b;margin-top:.25rem;">Suggested starts = weekly goal minus starts recorded in the last 7 days. This is a cadence guide; check active inventory and your available capacity before starting more.</div>
+                </section>`;
+            }).join('');
+            host.querySelectorAll('[data-rhythm-strain]').forEach(input => {
+                input.addEventListener('change', () => saveRhythmPlannerSetting(input.dataset.rhythmStrain, input.dataset.rhythmField, input.value));
+            });
+        }
+
         function renderStrainSummary() {
             const tbody = document.getElementById('strainSummaryTableBody');
             if (!tbody) return;
@@ -2328,9 +2422,9 @@
                 const theme=getStrainCardTheme(s.strain);
                 const stageText=`🫙 ${s.stages['Grain Spawn']} &nbsp; 🧱 ${s.stages['Bulk Substrate']} &nbsp; 🍄 ${s.stages['Fruiting']}`;
                 return `<tr style="background-color:${theme.bg};border-left:4px solid ${theme.border};">
-                    <td><a href="strain.html?strain=${encodeURIComponent(s.strain)}" style="font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(s.strain)} ↗</a></td>
-                    <td style="font-size:.75rem;white-space:nowrap;">${stageText}</td>
+                    <td><a href="strain.html?strain=${encodeURIComponent(s.strain)}" style="font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(s.strain)}</a></td>
                     <td><strong>${s.activeBatches}</strong></td>
+                    <td style="font-size:.75rem;white-space:nowrap;">${stageText}</td>
                     <td><strong>${s.totalContainers}</strong></td>
                     <td><strong>${s.totalYield.toFixed(1)} lbs</strong></td>
                 </tr>`;
