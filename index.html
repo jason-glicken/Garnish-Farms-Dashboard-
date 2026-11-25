@@ -548,6 +548,11 @@
                         <div id="taskCalendarDayTasks"></div>
                     </div>
                 </section>
+                <section id="strainCalendarPanel" class="task-calendar" hidden aria-label="Selected strain calendar">
+                    <div class="calendar-head"><div><div style="font-size:.68rem;color:var(--text-muted);font-weight:700;text-transform:uppercase;">Selected strain · container calendar</div><div class="calendar-month" id="strainCalendarTitle">Strain calendar</div></div><div class="calendar-nav"><button type="button" id="strainCalendarPrev">‹</button><button type="button" id="strainCalendarNext">›</button></div></div>
+                    <div id="strainCalendarGrid" class="calendar-grid"></div>
+                    <div style="font-size:.62rem;color:var(--text-muted);margin-top:.4rem;">🫙 jars · 🛍️ bags · 🍄 fruiting blocks. Tap an icon/count to open its batch.</div>
+                </section>
 
             <!-- Last 5 Activities Feed -->
             <div id="recentActivitiesBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
@@ -601,7 +606,7 @@
         <!-- Harvests & Flush History Section -->
         <div class="card">
             <div class="card-header">
-                <h2>Harvests & Flush History</h2>
+                <h2 id="harvestHistoryTitle">Harvests & Flush History</h2>
                 <a href="harvest.html" class="btn" style="padding: 0.3rem 0.65rem; font-size: 0.75rem; text-decoration: none;">+ Log Harvest</a>
             </div>
             <div class="table-responsive">
@@ -744,6 +749,7 @@
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let batches = [];
+        let dashboardHarvestRecords = [];
         let cultures = [];
         let strainChartInstance = null;
         let firstHarvestDateByBatch = {};
@@ -797,6 +803,7 @@
                 }
             }
 
+            dashboardHarvestRecords = records.slice();
             firstHarvestDateByBatch = {};
             records.forEach(r => {
                 const key = String(r.batch_id || '').trim();
@@ -810,14 +817,15 @@
                 renderTable();
             }
 
-            if (records.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No harvests logged yet. Tap "+ Log Harvest" to record a flush.</td></tr>`;
-                updateDashboardCollapseCounts();
-                return;
-            }
+            renderDashboardHarvestsForFilter();
+        }
 
+        function renderDashboardHarvestsForFilter() {
+            const tbody=document.getElementById('dashboardHarvestBody'); if(!tbody)return;
+            const records=selectedPipelineStrainFilter ? dashboardHarvestRecords.filter(r=>r.strain===selectedPipelineStrainFilter) : dashboardHarvestRecords;
+            const heading=document.getElementById('harvestHistoryTitle'); if(heading) heading.textContent=selectedPipelineStrainFilter ? `${selectedPipelineStrainFilter} · Harvest History` : 'Harvests & Flush History';
+            if(records.length===0){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">${selectedPipelineStrainFilter ? `No harvests recorded yet for ${escapeAttr(selectedPipelineStrainFilter)}.` : 'No harvests logged yet. Tap "+ Log Harvest" to record a flush.'}</td></tr>`;updateDashboardCollapseCounts();return;}
             const flushText = (n) => Number(n) === 1 ? '1st' : (Number(n) === 2 ? '2nd' : (Number(n) === 3 ? '3rd' : `${n}th+`));
-
             tbody.innerHTML = records.slice(0, 8).map(r => {
                 const theme = getStrainCardTheme(r.strain);
                 return `
@@ -1276,9 +1284,10 @@
                 const cards = document.querySelectorAll('.pipeline-strain-card');
                 for (const c of cards) {
                     if (c.getAttribute('data-stage') === stage && c.getAttribute('data-strain') === strain) {
-                        c.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        c.style.outline = '2px solid var(--accent)';
-                        setTimeout(() => { c.style.outline = ''; }, 1400);
+                        const targetRow = c.querySelector(`[data-batch-db-id="${Number(dbId)}"]`) || c;
+                        targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        targetRow.style.outline = '2px solid var(--accent)';
+                        setTimeout(() => { targetRow.style.outline = ''; }, 1600);
                         break;
                     }
                 }
@@ -1356,6 +1365,7 @@
         let taskCalendarSelectedDate = localIsoDate(new Date());
         let taskCalendarEvents = [];
         let taskCalendarView = 'month';
+        let strainCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
         function localIsoDate(date) {
             return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -1394,21 +1404,21 @@
                 if (targetDate) {
                     const dueDate = offset - elapsed <= 0 ? localIsoDate(new Date()) : targetDate;
                     taskCalendarEvents.push({
-                        date: dueDate, kind:'stage', action,
+                        date: dueDate, kind:'stage', action, stage:item.stage, batchId:item.batchId, quantity:Number(item.quantity||1), container:item.container,
                         title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · ${action}`,
                         detail:`${item.strain} · ${item.stage}`, strain:item.strain, dbId:item.dbId
                     });
                 }
                 if (item.stage === 'Grain Spawn' && !isBatchShaken(item) && elapsed >= shakeThreshold) {
                     taskCalendarEvents.push({
-                        date:localIsoDate(new Date()), kind:'shake', action:'Shake grain',
+                        date:localIsoDate(new Date()), kind:'shake', action:'Shake grain', stage:item.stage, batchId:item.batchId, quantity:Number(item.quantity||1), container:item.container,
                         title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake grain`,
                         detail:`${item.strain} · grain shake reminder`, strain:item.strain, dbId:item.dbId
                     });
                 } else if (item.stage === 'Grain Spawn' && !isBatchShaken(item)) {
                     const shakeDate = addLocalDays(start, shakeThreshold);
                     if (shakeDate) taskCalendarEvents.push({
-                        date:shakeDate, kind:'shake', action:'Shake grain',
+                        date:shakeDate, kind:'shake', action:'Shake grain', stage:item.stage, batchId:item.batchId, quantity:Number(item.quantity||1), container:item.container,
                         title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake grain`,
                         detail:`${item.strain} · grain shake reminder`, strain:item.strain, dbId:item.dbId
                     });
@@ -1441,13 +1451,60 @@
                 document.getElementById('taskCalendarDayTitle').textContent = selectedDate.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
                 document.getElementById('taskCalendarDaySubtitle').textContent = `${selected.length} ${selected.length===1?'task':'tasks'} scheduled`;
                 document.getElementById('taskCalendarDayTasks').innerHTML = selected.length
-                    ? selected.map(e=>`<div class="calendar-task-row ${e.kind==='shake'?'shake':''}"><div class="calendar-task-action">${escapeAttr(e.action)}</div><strong>${escapeAttr(e.title.split(' · ')[0])}</strong><div class="calendar-task-meta">${escapeAttr(e.strain)} · ${escapeAttr(e.detail)}</div></div>`).join('')
+                    ? selected.map(e=>`<div class="calendar-task-row ${e.kind==='shake'?'shake':''}"><a href="#pipelineContainer" class="calendar-task-link" data-calendar-open="1" data-dbid="${e.dbId}" data-strain="${escapeAttr(e.strain)}" data-stage="${escapeAttr(e.stage||'')}" style="display:block;color:inherit;text-decoration:none;"><div class="calendar-task-action">${escapeAttr(e.action)} ↗</div><strong>${escapeAttr(e.title.split(' · ')[0])}</strong><div class="calendar-task-meta">${escapeAttr(e.strain)} · ${escapeAttr(e.detail)}</div></a><button type="button" class="btn" data-calendar-complete="${e.kind}" data-dbid="${e.dbId}" style="margin-top:.45rem;padding:.28rem .55rem;font-size:.68rem;">${e.kind==='shake'?'Mark shaken ✓':'Complete · '+escapeAttr(e.action)}</button></div>`).join('')
                     : `<div class="calendar-empty">No tasks scheduled for this day.</div>`;
             } else {
                 monthView.hidden = false;
                 dayView.hidden = true;
             }
         }
+        function renderStrainCalendar(activeItems) {
+            const panel=document.getElementById('strainCalendarPanel');
+            const grid=document.getElementById('strainCalendarGrid');
+            const title=document.getElementById('strainCalendarTitle');
+            if(!panel||!grid||!title) return;
+            if(!selectedPipelineStrainFilter){panel.hidden=true;return;}
+            panel.hidden=false;
+            title.textContent=`${selectedPipelineStrainFilter} · ${strainCalendarMonth.toLocaleDateString(undefined,{month:'long',year:'numeric'})}`;
+            const cfg=getAppSettings(), targets=cfg.stageTargets||{};
+            const byDate={};
+            activeItems.forEach(item=>{
+                const origin=getBatchStartDate(item);
+                const offset=getStageTargetOffsetDays(item.stage,targets);
+                const due=addLocalDays(origin,offset); if(!due)return;
+                const key=due; (byDate[key] ||= []).push(item);
+            });
+            const first=new Date(strainCalendarMonth.getFullYear(),strainCalendarMonth.getMonth(),1);
+            const start=new Date(first); start.setDate(1-first.getDay());
+            const weekdays=['S','M','T','W','T','F','S'];
+            let html=weekdays.map(x=>`<div class="calendar-weekday">${x}</div>`).join('');
+            for(let i=0;i<42;i++){
+                const d=new Date(start);d.setDate(start.getDate()+i);const iso=localIsoDate(d);
+                const items=byDate[iso]||[];
+                const counts={jar:0,bag:0,fruit:0};
+                items.forEach(b=>{if(b.stage==='Grain Spawn')counts.jar+=Number(b.quantity||1);else if(b.stage==='Bulk Substrate')counts.bag+=Number(b.quantity||1);else counts.fruit+=Number(b.quantity||1);});
+                const icons=[['🫙',counts.jar,'jar'],['🛍️',counts.bag,'bag'],['🍄',counts.fruit,'fruit']].filter(x=>x[1]>0);
+                html+=`<div class="calendar-day ${d.getMonth()!==strainCalendarMonth.getMonth()?'outside':''}" style="min-height:54px;cursor:default;"><span class="calendar-day-num">${d.getDate()}</span><div style="display:flex;flex-wrap:wrap;gap:2px;">${icons.map(([ico,n,kind])=>`<button type="button" data-strain-cal-date="${iso}" data-strain-cal-kind="${kind}" title="${n} ${kind} · open batch" style="border:0;border-radius:4px;background:#edf4ea;padding:1px 3px;font-size:.62rem;cursor:pointer;">${ico} ${n}</button>`).join('')}</div></div>`;
+            }
+            grid.innerHTML=html;
+        }
+
+        window.completeCalendarTask = async function(dbId,kind){
+            if(kind==='shake'){await markBatchShaken(Number(dbId));return;}
+            await advanceStage(Number(dbId));
+        };
+
+        document.addEventListener('click', e => {
+            const complete=e.target.closest('[data-calendar-complete]');
+            if(complete){e.preventDefault();completeCalendarTask(complete.getAttribute('data-dbid'),complete.getAttribute('data-calendar-complete'));return;}
+            const open=e.target.closest('[data-calendar-open]');
+            if(open){e.preventDefault();jumpToUpcomingBatch(Number(open.getAttribute('data-dbid')),open.getAttribute('data-strain')||'',open.getAttribute('data-stage')||'');return;}
+            const strainDate=e.target.closest('[data-strain-cal-date]');
+            if(strainDate){const date=strainDate.getAttribute('data-strain-cal-date');const kind=strainDate.getAttribute('data-strain-cal-kind');const cfg=getAppSettings();const active=batches.filter(b=>b.status==='Active'&&b.strain===selectedPipelineStrainFilter);const matches=active.filter(b=>{const due=addLocalDays(getBatchStartDate(b),getStageTargetOffsetDays(b.stage,cfg.stageTargets||{}));const k=b.stage==='Grain Spawn'?'jar':(b.stage==='Bulk Substrate'?'bag':'fruit');return due===date&&k===kind;});if(matches[0])jumpToUpcomingBatch(matches[0].dbId,matches[0].strain,matches[0].stage);return;}
+            if(e.target.closest('#strainCalendarPrev')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()-1);renderStrainCalendar(batches.filter(b=>b.status==='Active'&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
+            if(e.target.closest('#strainCalendarNext')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()+1);renderStrainCalendar(batches.filter(b=>b.status==='Active'&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
+        });
+
         document.addEventListener('click', e => {
             const day = e.target.closest('[data-calendar-date]');
             if (day) {
@@ -1675,8 +1732,10 @@
                 : activeBatches;
             renderUpcomingTasks(filteredActive);
             renderTaskCalendar(filteredActive);
+            renderStrainCalendar(filteredActive);
 
             renderRecentActivities(filteredActive);
+            renderDashboardHarvestsForFilter();
             updateDashboardCollapseCounts();
 
             const stageMeta = [
@@ -1723,7 +1782,7 @@
                     let containerParts = [];
                     if (g.jars > 0) containerParts.push(`<span style="display:inline-flex;align-items:center;gap:0.2rem;"><svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg> <strong>${g.jars}</strong></span>`);
                     if (g.bags > 0) containerParts.push(`<span style="display:inline-flex;align-items:center;gap:0.2rem;"><svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg> <strong>${g.bags}</strong></span>`);
-                    const breakdownText = containerParts.length ? ` (${containerParts.join(' • ')})` : '';
+                    const breakdownText = containerParts.length ? ` ${containerParts.join(' • ')}` : '';
 
                     const shakeAlert = hasShakeDue
                         ? `<span style="background: #fef3c7; color: #b45309; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700; margin-left: 0.35rem;">⚠️ Shake Due</span>`
@@ -1759,7 +1818,7 @@
                             : `<button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
 
                         return `
-                            <div class="sub-batch-row" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
+                            <div class="sub-batch-row" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                     <div>
                                         <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity))} ${itemShake}</div>
@@ -1824,7 +1883,7 @@
                             const subInfo = item.substrate ? ` • ${escapeAttr(item.substrate)}` : '';
 
                             return `
-                                <div class="sub-batch-row" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
+                                <div class="sub-batch-row" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">

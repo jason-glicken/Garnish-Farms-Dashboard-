@@ -309,12 +309,12 @@
                 for (let s = 1; s <= total; s += 3) {
                     clusters.push(renderCluster(s, Math.min(total, s + 2)));
                 }
-                return `<span style="display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--text-muted);">${clusters.join('<span style="opacity:0.55;">-</span>')}</span>`;
+                return `<span style="display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--text-muted);">${clusters.join('<span style="opacity:0.2;"> </span>')}</span>`;
             }
 
             let html = renderCluster(1, Math.min(3, total));
             if (total >= 4) {
-                html += `<span style="opacity:0.55;">-</span>` + renderCluster(4, Math.min(6, total));
+                html += renderCluster(4, Math.min(6, total));
             }
             if (total > 6) {
                 html += `<span style="opacity:0.65;">…</span>`;
@@ -410,7 +410,7 @@
                         <div class="strain-card-heading">
                             <div style="min-width:0;">
                                 <div class="strain-card-name">${formatStrainWithScientific(batch.strain)}</div>
-                                <div class="strain-card-id">${escapeAttr(unitId)} <span style="font-weight:500;color:var(--text-muted);">(${formatUnitIconPatternHtml(batch.container, unitIndex, totalUnits)})</span></div>
+                                <div class="strain-card-id">${escapeAttr(unitId)} <span style="font-weight:500;color:var(--text-muted);">${formatUnitIconPatternHtml(batch.container, unitIndex, totalUnits)}</span></div>
                             </div>
                             <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
                         </div>
