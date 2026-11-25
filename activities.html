@@ -280,5 +280,25 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
  const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
 })();
 </script>
+
+<script id="gf-shared-header-data-v40">
+(async function(){
+  try {
+    if (!window.supabase || !window.supabase.createClient) return;
+    const client=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
+    const [{data:batches,error:be},{data:harvests,error:he}]=await Promise.all([client.from('batches').select('quantity,container,stage,status'),client.from('harvests').select('weight_lbs')]);
+    if(be) throw be;
+    const rows=batches||[], norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+    const active=rows.filter(b=>norm(b.status)==='active');
+    const qty=b=>Math.max(1,Number(b.quantity)||1);
+    const jars=active.filter(b=>norm(b.stage)==='grain spawn'&&(!b.container||norm(b.container).includes('jar')||norm(b.container).includes('spawn'))).reduce((n,b)=>n+qty(b),0);
+    const bags=active.filter(b=>norm(b.stage)==='bulk substrate'&&(!b.container||norm(b.container).includes('bag')||norm(b.container).includes('substrate'))).reduce((n,b)=>n+qty(b),0);
+    const fruit=active.filter(b=>norm(b.stage).includes('fruit')).reduce((n,b)=>n+qty(b),0);
+    const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+    set('kpi-active',active.reduce((n,b)=>n+qty(b),0));set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
+    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
+  } catch(e) { console.warn('Garnish Farms header totals could not load:',e&&e.message||e); }
+})();
+</script>
 </body>
 </html>

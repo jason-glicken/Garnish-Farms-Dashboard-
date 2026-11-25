@@ -518,6 +518,11 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
   align-items:center!important;
 }
 
+
+/* V40: home action row is independent from the four KPI cards. */
+header.gf-site-header > .header-production-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;justify-content:stretch!important;align-items:stretch!important;width:100%!important;box-sizing:border-box!important;gap:.35rem!important;margin-top:.05rem!important}
+header.gf-site-header > .header-production-actions > .header-action-card{display:flex!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;justify-content:center!important;align-items:center!important}
+
 </style>
 </head>
 <body>

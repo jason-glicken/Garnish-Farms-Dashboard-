@@ -418,22 +418,28 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
                 if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
             }
         }
+        function normalizeRecordValue(value) { return String(value ?? '').trim().toLowerCase().replace(/[’']/g, "'").replace(/[_-]+/g, ' ').replace(/\s+/g, ' '); }
+        function isRecordActive(value) { return normalizeRecordValue(value) === 'active'; }
+        function isJarContainer(value) { const v=normalizeRecordValue(value); return !v || v.includes('jar') || v.includes('grain spawn') || v.includes('spawn'); }
+        function isBagContainer(value) { const v=normalizeRecordValue(value); return v.includes('bag') || v.includes('bulk substrate') || v.includes('substrate'); }
+        function isFruitingStage(value) { const v=normalizeRecordValue(value); return v === 'fruiting' || v.includes('fruit'); }
+
         function renderContainerCards() {
             const listEl = document.getElementById('containerCardsList');
             const countEl = document.getElementById('containerCount');
             const cfg = getAppSettings();
             const stageTargets = cfg.stageTargets;
-            let matchingBatches = allBatches.filter(b => listType === 'all' || b.status === 'Active');
+            let matchingBatches = allBatches.filter(b => listType === 'all' || isRecordActive(b.status));
             if (listType === 'all') {
                 matchingBatches = matchingBatches.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
             } else if (listType === 'bags') {
-                matchingBatches = matchingBatches.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
+                matchingBatches = matchingBatches.filter(b => isBagContainer(b.container) && !isFruitingStage(b.stage));
             } else if (listType === 'fruiting') {
-                matchingBatches = matchingBatches.filter(b => b.stage === 'Fruiting');
+                matchingBatches = matchingBatches.filter(b => isFruitingStage(b.stage));
             } else {
-                matchingBatches = matchingBatches.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting');
+                matchingBatches = matchingBatches.filter(b => isJarContainer(b.container) && !isFruitingStage(b.stage));
             }
-            if (selectedStrain) matchingBatches = matchingBatches.filter(b => b.strain === selectedStrain);
+            if (selectedStrain) matchingBatches = matchingBatches.filter(b => normalizeRecordValue(b.strain) === normalizeRecordValue(selectedStrain));
 
             const unitCards = [];
             matchingBatches.forEach(b => {
@@ -542,7 +548,7 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
             if (error) { document.getElementById('containerCardsList').innerHTML = `<div class="empty">Could not load batches: ${escapeAttr(error.message)}</div>`; return; }
             allBatches = data || [];
             try { const childResult = await _supabase.from('batch_items').select('*'); allBatchItems = childResult.error ? [] : (childResult.data || []); } catch (e) { allBatchItems = []; }
-            const strains = [...new Set(allBatches.filter(b => b.status === 'Active').map(b => b.strain))];
+            const strains = [...new Set(allBatches.filter(b => isRecordActive(b.status)).map(b => b.strain).filter(Boolean))];
             const pillBar = document.getElementById('strainFilterPills');
             pillBar.innerHTML = `<button type="button" class="pill-btn selected" data-strain="">All Strains</button>` +
                 strains.map(s => `<button type="button" class="pill-btn" data-strain="${escapeAttr(s)}">${formatStrainWithScientific(s)}</button>`).join('');
@@ -580,6 +586,26 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
    }
  });
  const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
+})();
+</script>
+
+<script id="gf-shared-header-data-v40">
+(async function(){
+  try {
+    if (!window.supabase || !window.supabase.createClient) return;
+    const client=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
+    const [{data:batches,error:be},{data:harvests,error:he}]=await Promise.all([client.from('batches').select('quantity,container,stage,status'),client.from('harvests').select('weight_lbs')]);
+    if(be) throw be;
+    const rows=batches||[], norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+    const active=rows.filter(b=>norm(b.status)==='active');
+    const qty=b=>Math.max(1,Number(b.quantity)||1);
+    const jars=active.filter(b=>norm(b.stage)==='grain spawn'&&(!b.container||norm(b.container).includes('jar')||norm(b.container).includes('spawn'))).reduce((n,b)=>n+qty(b),0);
+    const bags=active.filter(b=>norm(b.stage)==='bulk substrate'&&(!b.container||norm(b.container).includes('bag')||norm(b.container).includes('substrate'))).reduce((n,b)=>n+qty(b),0);
+    const fruit=active.filter(b=>norm(b.stage).includes('fruit')).reduce((n,b)=>n+qty(b),0);
+    const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+    set('kpi-active',active.reduce((n,b)=>n+qty(b),0));set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
+    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
+  } catch(e) { console.warn('Garnish Farms header totals could not load:',e&&e.message||e); }
 })();
 </script>
 </body>
