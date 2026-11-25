@@ -459,20 +459,30 @@
 .header-action-card{min-height:28px;padding:.18rem .22rem!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.08rem;text-align:center;font-size:.58rem;font-weight:700;line-height:1.15;}
 .header-action-card strong{font-size:.66rem;color:var(--primary);font-weight:800;}
 @media(max-width:520px){header{padding:.45rem .55rem;gap:.3rem}.logo-area h1{font-size:1.02rem!important}.header-action-card{font-size:.54rem;min-height:26px;padding:.15rem .12rem!important}.header-action-card strong{font-size:.61rem!important}.strain-nav-scroll a{font-size:.6rem!important;padding:.16rem .32rem!important}}
+
+/* V37 shared site-wide header */
+.gf-site-header{position:sticky!important;top:0;z-index:1000;background:#fff!important;border-bottom:1px solid var(--border,#e5e7eb)!important;padding:.48rem .65rem!important;display:flex!important;flex-direction:column!important;gap:.3rem!important;width:100%;box-shadow:0 2px 5px #00000008}
+.gf-brand-row{display:flex;justify-content:space-between;align-items:center;width:100%;gap:.5rem}
+.gf-brand{text-align:left;text-decoration:none;display:block;min-width:0}.gf-brand h1{font-size:1.05rem!important;line-height:1.2;margin:0;color:var(--primary,#2d5a27);font-weight:800}.gf-brand p{display:flex;align-items:center;justify-content:flex-start;gap:.32rem;margin:.13rem 0 0;font-size:.61rem;color:var(--text-muted,#6b7280)}
+.gf-settings{padding:.3rem .55rem!important;font-size:.7rem!important;white-space:nowrap}
+.gf-site-header .stat-link-card{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;text-decoration:none;color:var(--text-main,#1f2937);box-shadow:0 1px 2px #00000008}
+.gf-site-header .stat-link-card.gf-active{background:#eaf2e7!important;border:1.5px solid var(--primary,#2d5a27)!important;box-shadow:inset 0 0 0 1px var(--primary,#2d5a27)}
+.gf-site-header .header-production-actions{display:grid;grid-template-columns:1fr 1fr 1.45fr;gap:.3rem;align-items:stretch;width:100%;margin-top:.05rem;text-align:center}
+.gf-site-header .header-action-card{min-height:25px;padding:.14rem .2rem!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.04rem;text-align:center;font-size:.57rem;font-weight:700;line-height:1.1}
+.gf-site-header .header-action-card strong{font-size:.64rem;color:var(--primary);font-weight:800}
+.gf-site-header .strain-nav-card{width:100%;min-width:0;margin-top:.02rem;padding:.26rem .35rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;overflow:hidden}
+.gf-site-header .strain-nav-scroll{display:flex;gap:.28rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.04rem 0}
+.gf-site-header .strain-nav-scroll a{flex:0 0 auto;border:1px solid color-mix(in srgb,var(--strain-color) 35%,white);border-radius:999px;padding:.16rem .34rem;font-size:.59rem;font-weight:700;text-decoration:none;color:var(--strain-color);background:var(--strain-bg);line-height:1.2}
+.gf-site-header .strain-nav-scroll a.gf-strain-active{outline:2px solid var(--strain-color);outline-offset:1px;filter:saturate(1.2);font-weight:800}
+.gf-site-header a.gf-active:not(.header-action-card){color:var(--primary)}
+@media(max-width:520px){.gf-site-header{padding:.4rem .5rem!important;gap:.26rem!important}.gf-brand h1{font-size:.96rem!important}.gf-site-header .header-production-actions{grid-template-columns:1fr 1fr 1.35fr}.gf-site-header .header-action-card{min-height:24px;font-size:.54rem}.gf-site-header .header-action-card strong{font-size:.6rem}.gf-site-header .strain-nav-scroll a{font-size:.56rem;padding:.14rem .3rem}}
+
 </style>
 </head>
 <body>
 
-    <header>
-        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <a href="index.html" class="logo-area" style="text-align: left; text-decoration: none; display: block;">
-                <h1 style="font-size: 1.15rem;">Garnish Farms - Mushrooms</h1>
-                <p style="justify-content: flex-start;"><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Connecting...</span></p>
-            </a>
-            <div class="header-actions" style="width: auto; justify-content: flex-end;">
-                <a href="settings.html" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; text-decoration: none;">Settings</a>
-            </div>
-        </div>
+    <header class="gf-site-header">
+ <div class="gf-brand-row"><a href="index.html" class="gf-brand"><h1>Garnish Farms - Mushrooms</h1><p><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Cloud Sync</span></p></a><a href="settings.html" class="btn btn-outline gf-settings">Settings</a></div>
         <!-- Compact KPI Counters in Header -->
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; width: 100%; margin-top: 0.4rem; text-align: center;">
             <a href="list.html?type=all" class="stat-link-card" style="padding:.35rem .25rem;display:flex;flex-direction:column;justify-content:center;align-items:center;">
@@ -492,13 +502,9 @@
                 <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary); display:inline-flex;align-items:center;gap:.2rem;"><span aria-label="Fruiting blocks" title="Fruiting blocks">🍄</span><span>=</span><span id="kpi-fruiting">0</span></div>
             </a>
         </div>
-
-        <div class="header-production-actions" style="display:grid;grid-template-columns:1fr 1fr 1.45fr;gap:.35rem;align-items:stretch;width:100%;margin-top:.25rem;text-align:center;">
-            <a href="new-batch.html" class="stat-link-card header-action-card"><span>+ New Batch</span></a>
-            <a href="harvest.html" class="stat-link-card header-action-card"><span>Harvest</span></a>
-            <a href="yield.html" class="stat-link-card header-action-card"><span>Total Farm Yield</span><strong id="header-total-farm-yield-val">0.0 lbs</strong></a>
-        </div>
-    <nav class="strain-nav-card" aria-label="Strain navigation"><div class="strain-nav-scroll"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#1d4ed8;text-decoration:underline;background:#eff6ff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#475569;text-decoration:underline;background:#f1f5f9;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#6d28d9;text-decoration:underline;background:#f5f3ff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#166534;text-decoration:underline;background:#f0fdf4;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#be185d;text-decoration:underline;background:#fdf2f8;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#78350f;text-decoration:underline;background:#fdf8f6;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#854d0e;text-decoration:underline;background:#fefce8;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#9a3412;text-decoration:underline;background:#fff7ed;">Reishi</a></div></nav></header>
+ <div class="header-production-actions"><a href="new-batch.html" class="stat-link-card header-action-card" data-nav="new-batch.html"><span>+ New Batch</span></a><a href="harvest.html" class="stat-link-card header-action-card" data-nav="harvest.html"><span>Harvest</span></a><a href="yield.html" class="stat-link-card header-action-card" data-nav="yield.html"><span>Total Farm Yield</span><strong id="header-total-farm-yield-val">0.0 lbs</strong></a></div>
+ <nav class="strain-nav-card" aria-label="Strain filter"><div class="strain-nav-scroll"><a data-strain="Blue Oyster" href="strain.html?strain=Blue%20Oyster" style="--strain-color:#1d4ed8;--strain-bg:#eff6ff;">Blue Oyster</a><a data-strain="Lion's Mane" href="strain.html?strain=Lion%27s%20Mane" style="--strain-color:#475569;--strain-bg:#f1f5f9;">Lion's Mane</a><a data-strain="Shiitake" href="strain.html?strain=Shiitake" style="--strain-color:#6d28d9;--strain-bg:#f5f3ff;">Shiitake</a><a data-strain="Maitake" href="strain.html?strain=Maitake" style="--strain-color:#166534;--strain-bg:#f0fdf4;">Maitake</a><a data-strain="Pink Oyster" href="strain.html?strain=Pink%20Oyster" style="--strain-color:#be185d;--strain-bg:#fdf2f8;">Pink Oyster</a><a data-strain="Chestnut" href="strain.html?strain=Chestnut" style="--strain-color:#78350f;--strain-bg:#fdf8f6;">Chestnut</a><a data-strain="Golden Teacher" href="strain.html?strain=Golden%20Teacher" style="--strain-color:#854d0e;--strain-bg:#fefce8;">Golden Teacher</a><a data-strain="Reishi" href="strain.html?strain=Reishi" style="--strain-color:#9a3412;--strain-bg:#fff7ed;">Reishi</a></div></nav>
+</header>
 
     <main>
         <section id="strainBreakdownPanel" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.75rem;">
@@ -2505,5 +2511,30 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         }
     </script>
 <script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
+<script>
+(()=>{
+ const q=new URLSearchParams(location.search); const file=location.pathname.split('/').pop()||'index.html';
+ const type=(q.get('type')||'').toLowerCase(); const strain=q.get('strain')||'';
+ const activeHref = file==='list.html' ? `list.html?type=${type||'jars'}` : file;
+ document.querySelectorAll('.gf-site-header a').forEach(a=>{
+   const href=a.getAttribute('href')||'';
+   if(href==='list.html?type=all' && (file==='batch.html'||(file==='list.html'&&type==='all'))) a.classList.add('gf-active');
+   if(href==='list.html?type=jars' && file==='list.html'&&type==='jars') a.classList.add('gf-active');
+   if(href==='list.html?type=bags' && file==='list.html'&&type==='bags') a.classList.add('gf-active');
+   if(href==='list.html?type=fruiting' && file==='list.html'&&type==='fruiting') a.classList.add('gf-active');
+   if(href==='new-batch.html'&&file==='new-batch.html') a.classList.add('gf-active');
+   if(href==='harvest.html'&&file==='harvest.html') a.classList.add('gf-active');
+   if(href==='yield.html'&&file==='yield.html') a.classList.add('gf-active');
+   if(href==='settings.html'&&file==='settings.html') a.classList.add('gf-active');
+   if(a.hasAttribute('data-strain')){
+     const name=a.getAttribute('data-strain');
+     if(file==='list.html') a.href=`list.html?type=${encodeURIComponent(type||'jars')}&strain=${encodeURIComponent(name)}`;
+     else if(file==='strain.html') a.href=`strain.html?strain=${encodeURIComponent(name)}`;
+     if(strain && strain.toLowerCase()===name.toLowerCase()) a.classList.add('gf-strain-active');
+   }
+ });
+ const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
+})();
+</script>
 </body>
 </html>
