@@ -438,10 +438,16 @@
         .calendar-event { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.58rem; line-height:1.35; border-radius:3px; padding:1px 2px; margin-top:2px; background:#e7f1e3; color:#285b22; }
         .calendar-event.shake { background:#fff2cf; color:#8a5800; }
         .calendar-more { font-size:.52rem; color:var(--text-muted); }
-        .calendar-day-detail { margin-top:.55rem; background:#fff; border:1px solid var(--border); border-radius:7px; padding:.55rem; }
-        .calendar-task-row { font-size:.7rem; padding:.35rem 0; border-bottom:1px solid #edf0ed; }
-        .calendar-task-row:last-child { border-bottom:0; }
-        @media (max-width:420px) { .calendar-day { min-height:49px; padding:2px; } .calendar-event { font-size:.48rem; } }
+        .calendar-day-view { background:#fff; border:1px solid var(--border); border-radius:9px; padding:.8rem; }
+        .calendar-back { display:flex; align-items:center; gap:.45rem; width:100%; border:1px solid var(--primary); background:#f1f7ee; color:var(--primary); border-radius:8px; padding:.65rem .75rem; font-weight:800; font-size:.82rem; text-align:left; cursor:pointer; margin-bottom:.8rem; }
+        .calendar-day-title { font-size:1rem; font-weight:800; color:var(--text-main); margin-bottom:.2rem; }
+        .calendar-day-subtitle { font-size:.7rem; color:var(--text-muted); margin-bottom:.7rem; }
+        .calendar-task-row { font-size:.78rem; padding:.65rem .55rem; border:1px solid #e7ece5; border-left:4px solid var(--accent); border-radius:7px; margin-top:.5rem; background:#fbfdf9; }
+        .calendar-task-row.shake { border-left-color:#d49a16; background:#fffaf0; }
+        .calendar-task-action { font-size:.82rem; font-weight:800; color:var(--primary); margin-bottom:.18rem; }
+        .calendar-task-meta { color:var(--text-muted); font-size:.68rem; margin-top:.2rem; }
+        .calendar-empty { color:var(--text-muted); font-size:.78rem; padding:.8rem .3rem; }
+        @media (max-width:420px) { .calendar-day { min-height:49px; padding:2px; } .calendar-event { font-size:.48rem; } .calendar-day-view { padding:.65rem; } }
 
     </style>
 </head>
@@ -525,9 +531,16 @@
                             <button type="button" id="calendarNextBtn" aria-label="Next month">›</button>
                         </div>
                     </div>
-                    <div class="calendar-grid" id="taskCalendarGrid"></div>
-                    <div style="font-size:.62rem;color:var(--text-muted);margin-top:.35rem;">Tap a day to see its tasks. Green = stage milestone · Gold = shake reminder.</div>
-                    <div class="calendar-day-detail" id="taskCalendarDetails"><span style="font-size:.7rem;color:var(--text-muted);">Select a day to see scheduled tasks.</span></div>
+                    <div id="taskCalendarMonthView">
+                        <div class="calendar-grid" id="taskCalendarGrid"></div>
+                        <div style="font-size:.62rem;color:var(--text-muted);margin-top:.45rem;">Tap any day to open its full task list. Green = next-stage task · Gold = shake reminder.</div>
+                    </div>
+                    <div class="calendar-day-view" id="taskCalendarDayView" hidden>
+                        <button type="button" class="calendar-back" id="calendarBackBtn">← Back to Month</button>
+                        <div class="calendar-day-title" id="taskCalendarDayTitle"></div>
+                        <div class="calendar-day-subtitle" id="taskCalendarDaySubtitle"></div>
+                        <div id="taskCalendarDayTasks"></div>
+                    </div>
                 </section>
 
                 <div id="upcomingTasksList" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
@@ -1251,42 +1264,66 @@
             }, 80);
         }
 
-        function renderContinuousStageBar(days, targetOffsetDays, stageTargetDays, stageName) {
+        function dateDiffDays(startDate, endDate) {
+            if (!startDate || !endDate) return 0;
+            const a = String(startDate).split('-').map(Number);
+            const b = String(endDate).split('-').map(Number);
+            if (a.length !== 3 || b.length !== 3 || !a[0] || !b[0]) return 0;
+            return Math.max(0, Math.round((Date.UTC(b[0], b[1]-1, b[2]) - Date.UTC(a[0], a[1]-1, a[2])) / 86400000));
+        }
+
+        function getBatchStageTimeline(item) {
+            const origin = getBatchStartDate(item);
+            const sub = getStageClockFromNotes(item.notes, 'Bulk Substrate');
+            const fruit = getStageClockFromNotes(item.notes, 'Fruiting');
+            const currentStage = item.stage;
+            const today = localIsoDate(new Date());
+            const starts = { 'Grain Spawn': origin, 'Bulk Substrate': sub, 'Fruiting': fruit };
+            if (currentStage && currentStage !== 'Grain Spawn' && !starts[currentStage]) starts[currentStage] = getEffectiveStageDate(item);
+            const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
+            const currentIndex = Math.max(0, order.indexOf(currentStage));
+            const actual = [];
+            order.forEach((stage, i) => {
+                if (i > currentIndex || !starts[stage]) return;
+                const nextStageStart = i < currentIndex ? starts[order[i+1]] : today;
+                if (!nextStageStart) return;
+                actual.push({ stage, days: dateDiffDays(starts[stage], nextStageStart) });
+            });
+            return actual;
+        }
+
+        function renderContinuousStageBar(days, targetOffsetDays, stageTargetDays, stageName, item) {
             const cfg = getAppSettings();
-            const safeDays = Math.max(0, Number(days || 0));
-            const cumulativeTarget = Math.max(1, Number(targetOffsetDays || 14));
-            const stageTarget = Math.max(1, Number(stageTargetDays || 14));
-            const horizon = Math.max(cumulativeTarget + 4, Number(cfg.timelineHorizon || 42));
-            const targetPct = Math.min(100, Math.round((cumulativeTarget / horizon) * 100));
-            const currentPct = Math.min(100, Math.round((safeDays / horizon) * 100));
-            const pastTarget = safeDays > cumulativeTarget;
-
-            const greenWidth = pastTarget ? targetPct : currentPct;
-            const yellowWidth = pastTarget ? Math.max(0, currentPct - targetPct) : 0;
-            const stageLabel = stageName ? `${escapeAttr(stageName)} ` : '';
-            const statusText = pastTarget
-                ? `Day ${safeDays} total (+${safeDays - cumulativeTarget}d past ${stageLabel}target ${stageTarget}d)`
-                : `Day ${safeDays} total (${cumulativeTarget - safeDays}d left to ${stageLabel}target • ${stageTarget}d/stage)`;
-
+            const targets = cfg.stageTargets || {};
+            const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
+            const colors = { 'Grain Spawn': '#16a34a', 'Bulk Substrate': '#d97706', 'Fruiting': '#3b82f6' };
+            const targetSegments = order.map(stage => ({ stage, days: Math.max(1, Number(targets[stage] || 14)) }));
+            const actualSegments = item ? getBatchStageTimeline(item) : [];
+            const targetTotal = targetSegments.reduce((sum, x) => sum + x.days, 0);
+            const actualTotal = actualSegments.reduce((sum, x) => sum + x.days, 0);
+            const horizon = Math.max(targetTotal + 4, Number(cfg.timelineHorizon || 42), actualTotal || 0);
+            const makeSegments = (segments) => segments.map(seg => {
+                const width = Math.max(0, Math.min(100, (seg.days / horizon) * 100));
+                return `<div title="${escapeAttr(seg.stage)}: ${seg.days} days" style="width:${width}%;height:100%;background:${colors[seg.stage]};flex:0 0 auto;"></div>`;
+            }).join('');
+            const actualText = actualSegments.length
+                ? actualSegments.map(x => `${x.stage === 'Grain Spawn' ? 'Grain' : x.stage === 'Bulk Substrate' ? 'Substrate' : 'Fruiting'} ${x.days}d`).join(' · ')
+                : 'Actual stage dates will appear as stages are recorded';
             return `
-                <div class="day-bar-wrap" style="margin-top: 0.28rem;">
-                    <div class="day-bar-meta" style="font-size: 0.6rem; margin-bottom: 0.14rem;">
-                        <span>${statusText}</span>
-                        <span>${horizon}d jar→harvest</span>
-                    </div>
-                    <div style="position: relative; width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; display: flex;">
-                        <div style="width: ${greenWidth}%; height: 100%; background-color: #16a34a; transition: width 0.25s ease;"></div>
-                        <div style="width: ${yellowWidth}%; height: 100%; background-color: #eab308; transition: width 0.25s ease;"></div>
-                        <div title="Stage Target Day ${cumulativeTarget}" style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.65;"></div>
-                    </div>
+                <div style="margin-top:.35rem;display:grid;gap:.28rem;">
+                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">TARGET</strong><span>${targetTotal}d planned · ${horizon}d scale</span></div>
+                    <div style="height:7px;background:#e5e7eb;border-radius:999px;overflow:hidden;display:flex;">${makeSegments(targetSegments)}</div>
+                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">ACTUAL</strong><span>${actualTotal}d elapsed</span></div>
+                    <div style="height:9px;background:#e5e7eb;border-radius:999px;overflow:hidden;display:flex;">${makeSegments(actualSegments)}</div>
+                    <div style="font-size:.58rem;color:var(--text-muted);line-height:1.35;">${escapeAttr(actualText)}</div>
                 </div>
             `;
         }
 
-
         let taskCalendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
         let taskCalendarSelectedDate = localIsoDate(new Date());
         let taskCalendarEvents = [];
+        let taskCalendarView = 'month';
 
         function localIsoDate(date) {
             return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
@@ -1298,42 +1335,50 @@
             d.setDate(d.getDate() + Number(days || 0));
             return localIsoDate(d);
         }
+        function getCalendarAction(stage) {
+            const actions = {
+                'Grain Spawn': 'Move to Substrate',
+                'Bulk Substrate': 'Move to Fruiting',
+                'Fruiting': 'Harvest'
+            };
+            return actions[stage] || 'Review next stage';
+        }
         function renderTaskCalendar(activeItems) {
             const grid = document.getElementById('taskCalendarGrid');
             const monthLabel = document.getElementById('taskCalendarMonth');
-            const detail = document.getElementById('taskCalendarDetails');
-            if (!grid || !monthLabel || !detail) return;
+            const monthView = document.getElementById('taskCalendarMonthView');
+            const dayView = document.getElementById('taskCalendarDayView');
+            if (!grid || !monthLabel || !monthView || !dayView) return;
             const cfg = getAppSettings();
             const shakeThreshold = Number(cfg.shakeDay || 14);
             const stageTargets = cfg.stageTargets || {};
-            const nextStage = { 'Grain Spawn':'Bulk Substrate', 'Bulk Substrate':'Fruiting', 'Fruiting':'Harvest' };
             taskCalendarEvents = [];
             activeItems.forEach(item => {
                 const start = getBatchStartDate(item);
                 const elapsed = Math.max(0, getDaysActive(start));
                 const offset = getStageTargetOffsetDays(item.stage, stageTargets);
                 const targetDate = addLocalDays(start, offset);
+                const action = getCalendarAction(item.stage);
                 if (targetDate) {
                     const dueDate = offset - elapsed <= 0 ? localIsoDate(new Date()) : targetDate;
                     taskCalendarEvents.push({
-                        date: dueDate, kind:'stage',
-                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · ${nextStage[item.stage] || 'Next stage'}`,
-                        detail:`${item.strain} — ${item.stage} to ${nextStage[item.stage] || 'next stage'}`,
-                        strain:item.strain, dbId:item.dbId
+                        date: dueDate, kind:'stage', action,
+                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · ${action}`,
+                        detail:`${item.strain} · ${item.stage}`, strain:item.strain, dbId:item.dbId
                     });
                 }
                 if (item.stage === 'Grain Spawn' && !isBatchShaken(item) && elapsed >= shakeThreshold) {
                     taskCalendarEvents.push({
-                        date:localIsoDate(new Date()), kind:'shake',
-                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake`,
-                        detail:`${item.strain} — grain shake reminder`, strain:item.strain, dbId:item.dbId
+                        date:localIsoDate(new Date()), kind:'shake', action:'Shake grain',
+                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake grain`,
+                        detail:`${item.strain} · grain shake reminder`, strain:item.strain, dbId:item.dbId
                     });
                 } else if (item.stage === 'Grain Spawn' && !isBatchShaken(item)) {
                     const shakeDate = addLocalDays(start, shakeThreshold);
                     if (shakeDate) taskCalendarEvents.push({
-                        date:shakeDate, kind:'shake',
-                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake`,
-                        detail:`${item.strain} — grain shake reminder`, strain:item.strain, dbId:item.dbId
+                        date:shakeDate, kind:'shake', action:'Shake grain',
+                        title:`${formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity)} · Shake grain`,
+                        detail:`${item.strain} · grain shake reminder`, strain:item.strain, dbId:item.dbId
                     });
                 }
             });
@@ -1356,10 +1401,20 @@
                 </button>`;
             }
             grid.innerHTML = html;
-            const selected = taskCalendarEvents.filter(e=>e.date===taskCalendarSelectedDate);
-            const selectedDate = new Date(taskCalendarSelectedDate+'T12:00:00');
-            detail.innerHTML = `<div style="font-size:.72rem;font-weight:800;color:var(--primary);margin-bottom:.25rem;">${selectedDate.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>` +
-                (selected.length ? selected.map(e=>`<div class="calendar-task-row"><strong>${escapeAttr(e.kind==='shake'?'Shake reminder':'Stage milestone')}</strong><br>${escapeAttr(e.title)}<div style="color:var(--text-muted);font-size:.64rem;">${escapeAttr(e.detail)}</div></div>`).join('') : `<div style="font-size:.68rem;color:var(--text-muted);">No tasks scheduled for this day.</div>`);
+            if (taskCalendarView === 'day') {
+                monthView.hidden = true;
+                dayView.hidden = false;
+                const selected = taskCalendarEvents.filter(e=>e.date===taskCalendarSelectedDate);
+                const selectedDate = new Date(taskCalendarSelectedDate+'T12:00:00');
+                document.getElementById('taskCalendarDayTitle').textContent = selectedDate.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+                document.getElementById('taskCalendarDaySubtitle').textContent = `${selected.length} ${selected.length===1?'task':'tasks'} scheduled`;
+                document.getElementById('taskCalendarDayTasks').innerHTML = selected.length
+                    ? selected.map(e=>`<div class="calendar-task-row ${e.kind==='shake'?'shake':''}"><div class="calendar-task-action">${escapeAttr(e.action)}</div><strong>${escapeAttr(e.title.split(' · ')[0])}</strong><div class="calendar-task-meta">${escapeAttr(e.strain)} · ${escapeAttr(e.detail)}</div></div>`).join('')
+                    : `<div class="calendar-empty">No tasks scheduled for this day.</div>`;
+            } else {
+                monthView.hidden = false;
+                dayView.hidden = true;
+            }
         }
         document.addEventListener('click', e => {
             const day = e.target.closest('[data-calendar-date]');
@@ -1367,13 +1422,18 @@
                 taskCalendarSelectedDate = day.getAttribute('data-calendar-date');
                 const p = taskCalendarSelectedDate.split('-').map(Number);
                 taskCalendarMonth = new Date(p[0],p[1]-1,1);
+                taskCalendarView = 'day';
                 renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
             }
         });
         document.addEventListener('click', e => {
-            if (e.target.closest('#calendarPrevBtn')) { taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()-1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
-            if (e.target.closest('#calendarNextBtn')) { taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()+1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
-            if (e.target.closest('#calendarTodayBtn')) { const now=new Date(); taskCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1); taskCalendarSelectedDate=localIsoDate(now); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarBackBtn')) {
+                taskCalendarView = 'month';
+                renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
+            }
+            if (e.target.closest('#calendarPrevBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()-1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarNextBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()+1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarTodayBtn')) { const now=new Date(); taskCalendarView='month'; taskCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1); taskCalendarSelectedDate=localIsoDate(now); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
         });
 
         function renderUpcomingTasks(filteredActive) {
@@ -1457,7 +1517,7 @@
                                 </a>
                                 ${stageActionLink}
                             </div>
-                            ${renderContinuousStageBar(t.days, t.targetDays, t.stageTargetDays, t.item.stage)}
+                            ${renderContinuousStageBar(t.days, t.targetDays, t.stageTargetDays, t.item.stage, t.item)}
                         </div>
                     `;
                 }).join('');
@@ -1747,7 +1807,7 @@
                                             <button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.2rem 0.45rem; font-size: 0.62rem; background-color: var(--accent);">Advance ➔</button>
                                         </div>
                                     </div>
-                                    ${renderContinuousStageBar(days, targetDays, stageTargetDays, 'Grain Spawn')}
+                                    ${renderContinuousStageBar(days, targetDays, stageTargetDays, 'Grain Spawn', item)}
                                 </div>
                             `;
                         }).join('');
