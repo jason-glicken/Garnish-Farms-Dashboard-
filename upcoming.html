@@ -27,7 +27,11 @@
         .btn-outline { background-color: transparent; color: var(--primary); border: 1px solid var(--primary); }
         main { flex: 1; padding: 0.85rem; max-width: 780px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; }
         .card { background: var(--card-bg); border-radius: var(--radius); padding: 0.95rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .task-card { border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.75rem; background: #ffffff; display: flex; flex-direction: column; gap: 0.35rem; }
+        .task-card { border: 1px solid var(--border); border-radius: 10px; padding: 0.72rem 0.78rem; background: #ffffff; display: flex; flex-direction: column; gap: 0.42rem; box-shadow: 0 1px 3px rgba(0,0,0,0.045); }
+        .strain-card-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem; }
+        .strain-card-name { font-size:.88rem; font-weight:700; color:var(--primary); line-height:1.35; }
+        .strain-card-id { font-size:.76rem; font-weight:700; color:var(--text-main); }
+        .strain-card-stage { display:inline-flex; align-items:center; border-radius:999px; padding:.16rem .48rem; background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08); font-size:.64rem; font-weight:700; color:var(--text-main); white-space:nowrap; }
         .badge { padding: 0.14rem 0.45rem; border-radius: 999px; font-size: 0.66rem; font-weight: 700; }
         .badge-green { background: #dcfce7; color: #166534; }
         .badge-yellow { background: #fef9c3; color: #854d0e; }
@@ -283,16 +287,19 @@
                     const badgeClass = pastTarget ? 'badge-yellow' : 'badge-green';
                     const badgeText = pastTarget ? `Past Day ${targetDays}` : `Target ${targetDate}`;
                     return `
-                        <div class="task-card" style="background-color: ${getStrainCardTheme(b.strain).bg}; border-left: 4px solid ${getStrainCardTheme(b.strain).border};">
-                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
-                                <div>
-                                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--primary);">${escapeAttr(targetDate)}</span>
-                                    <span style="font-size: 0.82rem; font-weight: 700; margin-left: 0.35rem;">${escapeAttr(formatDisplayBatchId(b.batch_id, b.strain, b.date, b.quantity))}</span>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);">• ${formatStrainWithScientific(b.strain)} (${escapeAttr(b.stage)} ➔ ${escapeAttr(nextAction)})</span>
+                        <div class="task-card strain-record-card" style="background-color: ${getStrainCardTheme(b.strain).bg}; border-left: 4px solid ${getStrainCardTheme(b.strain).border};">
+                            <div class="strain-card-heading">
+                                <div style="min-width:0;">
+                                    <div class="strain-card-name">${formatStrainWithScientific(b.strain)}</div>
+                                    <div class="strain-card-id">${escapeAttr(formatDisplayBatchId(b.batch_id, b.strain, b.date, b.quantity))}</div>
                                 </div>
                                 <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
                             </div>
-                            <div style="font-size: 0.72rem; color: var(--text-muted);">${b.quantity} ${escapeAttr(b.container || '')} • Started stage ${escapeAttr(entry.stageDate)}</div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;">
+                                <span class="strain-card-stage">${escapeAttr(b.stage)} → ${escapeAttr(nextAction)}</span>
+                                <span style="font-size:.7rem;font-weight:700;color:var(--primary);">Due ${escapeAttr(targetDate)}</span>
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted);">${b.quantity} ${escapeAttr(b.container || '')} • Stage started ${escapeAttr(entry.stageDate)}</div>
                             ${renderContinuousStageBar(days, targetDays, stageTargetDays)}
                         </div>
                     `;

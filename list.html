@@ -33,7 +33,11 @@
         .pill-row { display: flex; gap: 0.35rem; overflow-x: auto; padding-bottom: 0.25rem; margin-bottom: 0.65rem; }
         .pill-btn { background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border); border-radius: 999px; padding: 0.3rem 0.65rem; font-size: 0.72rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
         .pill-btn.selected { background: var(--primary); color: #ffffff; border-color: var(--primary); }
-        .container-card { background: #ffffff; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 9px; padding: 0.65rem 0.75rem; display: flex; flex-direction: column; gap: 0.35rem; }
+        .container-card { background: #ffffff; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 0.72rem 0.78rem; display: flex; flex-direction: column; gap: 0.42rem; box-shadow: 0 1px 3px rgba(0,0,0,0.045); }
+        .strain-card-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:.5rem; }
+        .strain-card-name { font-size:.88rem; font-weight:700; color:var(--primary); line-height:1.35; }
+        .strain-card-id { font-size:.76rem; font-weight:700; color:var(--text-main); }
+        .strain-card-stage { display:inline-flex; align-items:center; border-radius:999px; padding:.16rem .48rem; background:rgba(255,255,255,.78); border:1px solid rgba(0,0,0,.08); font-size:.64rem; font-weight:700; color:var(--text-main); white-space:nowrap; }
         .badge { padding: 0.14rem 0.45rem; border-radius: 999px; font-size: 0.66rem; font-weight: 700; }
         .badge-green { background: #dcfce7; color: #166534; }
         .badge-yellow { background: #fef9c3; color: #854d0e; }
@@ -208,34 +212,60 @@
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             return Math.floor((today - initiated) / (1000 * 60 * 60 * 24));
         }
-        function renderContinuousStageBar(days, targetOffsetDays, stageTargetDays, stageName) {
+        function dateDiffDays(startDate, endDate) {
+            if (!startDate || !endDate) return 0;
+            const a = String(startDate).split('-').map(Number);
+            const b = String(endDate).split('-').map(Number);
+            if (a.length !== 3 || b.length !== 3 || !a[0] || !b[0]) return 0;
+            return Math.max(0, Math.round((Date.UTC(b[0], b[1]-1, b[2]) - Date.UTC(a[0], a[1]-1, a[2])) / 86400000));
+        }
+        function getBatchStageTimeline(item) {
+            const origin = getBatchStartDate(item);
+            const sub = getStageClockFromNotes(item.notes, 'Bulk Substrate');
+            const fruit = getStageClockFromNotes(item.notes, 'Fruiting');
+            const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
+            const starts = { 'Grain Spawn': origin, 'Bulk Substrate': sub, 'Fruiting': fruit };
+            const currentStage = item.stage || 'Grain Spawn';
+            if (currentStage !== 'Grain Spawn' && currentStage !== 'Harvested' && !starts[currentStage]) {
+                starts[currentStage] = getEffectiveStageDate(item);
+            }
+            const currentIndex = currentStage === 'Harvested' ? 2 : Math.max(0, order.indexOf(currentStage));
+            const today = localIsoDate(new Date());
+            const actual = [];
+            order.forEach((stage, i) => {
+                if (i > currentIndex || !starts[stage]) return;
+                const nextStart = i < currentIndex ? starts[order[i+1]] : today;
+                if (nextStart) actual.push({ stage, days: dateDiffDays(starts[stage], nextStart) });
+            });
+            return actual;
+        }
+        function renderContinuousStageBar(item) {
             const cfg = getAppSettings();
-            const safeDays = Math.max(0, Number(days || 0));
-            const stageTarget = Math.max(1, Number(stageTargetDays || 14));
-            const cumulativeTarget = Math.max(1, Number(targetOffsetDays || stageTarget));
-            const horizon = Math.max(cumulativeTarget + 4, Number(cfg.timelineHorizon || 42));
-            const targetPct = Math.min(100, Math.round((cumulativeTarget / horizon) * 100));
-            const currentPct = Math.min(100, Math.round((safeDays / horizon) * 100));
-            const pastTarget = safeDays > cumulativeTarget;
-            const greenWidth = pastTarget ? targetPct : currentPct;
-            const yellowWidth = pastTarget ? Math.max(0, currentPct - targetPct) : 0;
-            const remaining = cumulativeTarget - safeDays;
-            const statusText = pastTarget
-                ? `Day ${safeDays} total • +${safeDays - cumulativeTarget}d past ${escapeAttr(stageName)} (${stageTarget}d stage target)`
-                : `Day ${safeDays} total • ${remaining}d left to ${escapeAttr(stageName)} target (${stageTarget}d/stage)`;
+            const targets = cfg.stageTargets || {};
+            const order = ['Grain Spawn', 'Bulk Substrate', 'Fruiting'];
+            const colors = { 'Grain Spawn': '#16a34a', 'Bulk Substrate': '#d97706', 'Fruiting': '#3b82f6' };
+            const targetSegments = order.map(stage => ({ stage, days: Math.max(1, Number(targets[stage] || 14)) }));
+            const actualSegments = getBatchStageTimeline(item);
+            const targetTotal = targetSegments.reduce((sum, x) => sum + x.days, 0);
+            const actualTotal = actualSegments.reduce((sum, x) => sum + x.days, 0);
+            const horizon = Math.max(targetTotal, Number(cfg.timelineHorizon || 42), actualTotal + 2, 1);
+            const segmentHtml = segments => segments.map(seg => {
+                const width = Math.max(0, Math.min(100, (seg.days / horizon) * 100));
+                return `<div title="${escapeAttr(seg.stage)}: ${seg.days} days" style="width:${width}%;height:100%;background:${colors[seg.stage]};flex:0 0 auto;"></div>`;
+            }).join('');
+            const markerPct = Math.max(0, Math.min(100, (actualTotal / horizon) * 100));
+            const track = (segments, height, marker=false) => `<div style="position:relative;height:${height}px;background:#e8ebee;border-radius:999px;overflow:hidden;display:flex;">${segmentHtml(segments)}${marker ? `<div title="Current lifecycle position: day ${actualTotal}" style="position:absolute;left:${markerPct}%;top:-2px;bottom:-2px;width:3px;background:#172b1c;border:1px solid #fff;z-index:2;transform:translateX(-50%);"></div>` : ''}</div>`;
+            const names = { 'Grain Spawn':'Spawn', 'Bulk Substrate':'Substrate', 'Fruiting':'Fruiting' };
+            const detail = actualSegments.length ? actualSegments.map(x => `${names[x.stage]} ${x.days}d`).join(' · ') : 'Actual stage dates will appear as stages are recorded';
             return `
-                <div style="margin-top: 0.25rem;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.14rem;">
-                        <span>${statusText}</span>
-                        <span>${horizon}d jar→harvest</span>
-                    </div>
-                    <div style="position: relative; width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; display: flex;">
-                        <div style="width: ${greenWidth}%; height: 100%; background-color: #16a34a;"></div>
-                        <div style="width: ${yellowWidth}%; height: 100%; background-color: #eab308;"></div>
-                        <div title="Stage Target Day ${cumulativeTarget}" style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.75;"></div>
-                    </div>
-                </div>
-            `;
+                <div class="batch-lifecycle-timeline" style="margin-top:.42rem;display:grid;gap:.28rem;">
+                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">TARGET · FULL LIFECYCLE</strong><span>${targetTotal}d planned</span></div>
+                    ${track(targetSegments,7)}
+                    <div style="display:flex;justify-content:space-between;gap:.5rem;font-size:.59rem;color:var(--text-muted);"><strong style="color:var(--text-main);">ACTUAL · RUNNING LIFECYCLE</strong><span>${actualTotal}d elapsed</span></div>
+                    ${track(actualSegments,10,true)}
+                    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;font-size:.54rem;font-weight:700;color:var(--text-muted);text-align:center;"><span style="text-align:left;">SPAWN</span><span>SUBSTRATE</span><span>FRUITING</span><span style="text-align:right;">HARVEST</span></div>
+                    <div style="font-size:.57rem;color:var(--text-muted);line-height:1.35;">${escapeAttr(detail)} · Marker shows current lifecycle position</div>
+                </div>`;
         }
 
         function getVesselMiniIconHtml(containerName) {
@@ -365,20 +395,20 @@
                        </div>`
                     : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.68rem;">Edit Batch</a>`;
                 return `
-                    <div class="container-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
-                            <div>
-                                <strong style="font-size: 0.88rem; color: var(--text-main);">${escapeAttr(unitId)}</strong>
-                                <span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.35rem;">(${formatUnitIconPatternHtml(batch.container, unitIndex, totalUnits)})</span>
+                    <div class="container-card strain-record-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
+                        <div class="strain-card-heading">
+                            <div style="min-width:0;">
+                                <div class="strain-card-name">${formatStrainWithScientific(batch.strain)}</div>
+                                <div class="strain-card-id">${escapeAttr(unitId)} <span style="font-weight:500;color:var(--text-muted);">(${formatUnitIconPatternHtml(batch.container, unitIndex, totalUnits)})</span></div>
                             </div>
                             <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
                         </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.74rem; color: var(--text-muted);">
-                            <span><strong style="color: var(--primary);">${formatStrainWithScientific(batch.strain)}</strong> • ${escapeAttr(batch.stage)}${subInfo}</span>
+                        <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;">
+                            <span class="strain-card-stage">${escapeAttr(batch.stage)}${subInfo}</span>
                             ${actionLink}
                         </div>
                         <div style="font-size: 0.68rem; color: var(--text-muted);">Batch Date: ${escapeAttr(batch.date)} • Stage Start: ${escapeAttr(stageDate)}</div>
-                        ${renderContinuousStageBar(days, targetDays, stageTargetDays, batch.stage)}
+                        ${renderContinuousStageBar(batch)}
                     </div>
                 `;
             }).join('');
