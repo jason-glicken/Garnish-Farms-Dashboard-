@@ -1,415 +1,657 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Container List - Garnish Farms</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #2d5a27;
-            --primary-hover: #1e3d1a;
-            --accent: #4c9a2a;
-            --bg-light: #f4f7f2;
-            --card-bg: #ffffff;
-            --text-main: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-light); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
-        header { background-color: var(--card-bg); border-bottom: 1px solid var(--border); padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        header h1 { font-size: 1.1rem; color: var(--primary); font-weight: 700; }
-        .btn { background-color: var(--primary); color: white; border: none; padding: 0.42rem 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.76rem; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; }
-        .btn-outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
-        main { flex: 1; padding: 0.85rem; max-width: 780px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 0.75rem; }
-        .card { background: var(--card-bg); border-radius: var(--radius); padding: 0.9rem; box-shadow: var(--shadow); border: 1px solid var(--border); }
-        .tab-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-bottom: 0.7rem; }
-        .tab-link { text-align: center; padding: 0.45rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-light); color: var(--text-main); font-size: 0.78rem; font-weight: 700; text-decoration: none; }
-        .tab-link.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
-        .pill-row { display: flex; gap: 0.35rem; overflow-x: auto; padding-bottom: 0.25rem; margin-bottom: 0.65rem; }
-        .pill-btn { background: var(--bg-light); color: var(--text-main); border: 1px solid var(--border); border-radius: 999px; padding: 0.3rem 0.65rem; font-size: 0.72rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        .pill-btn.selected { background: var(--primary); color: #ffffff; border-color: var(--primary); }
-        .container-card { background: #ffffff; border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 9px; padding: 0.65rem 0.75rem; display: flex; flex-direction: column; gap: 0.35rem; }
-        .badge { padding: 0.14rem 0.45rem; border-radius: 999px; font-size: 0.66rem; font-weight: 700; }
-        .badge-green { background: #dcfce7; color: #166534; }
-        .badge-yellow { background: #fef9c3; color: #854d0e; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Batches &amp; Strain Baselines — Garnish Farms (v19)</title>
+  <style>
+:root {
+  --bg: #f6f4ef;
+  --surface: #ffffff;
+  --surface-alt: #efece4;
+  --primary: #3b5239;
+  --primary-dark: #2a3b28;
+  --accent: #8c5a32;
+  --text: #242320;
+  --text-muted: #666159;
+  --border: #dcd6ca;
+  --target-color: #2f5d62;
+  --actual-color: #b85d19;
+  --fast-bg: #e2f1e8;
+  --fast-text: #1f633b;
+  --slow-bg: #fbe9e2;
+  --slow-text: #9c3818;
+  --on-bg: #e8eef5;
+  --on-text: #274c77;
+  --pending-bg: #eceae4;
+  --pending-text: #6e695f;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+header {
+  background: var(--primary);
+  color: #fff;
+  padding: 16px 20px;
+  border-bottom: 3px solid var(--accent);
+}
+
+.header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.45rem;
+  letter-spacing: 0.4px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  opacity: 0.88;
+  margin-top: 4px;
+}
+
+nav {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.12);
+  transition: background 0.15s;
+}
+
+nav a:hover, nav a.active {
+  background: var(--accent);
+}
+
+main {
+  max-width: 1120px;
+  margin: 20px auto;
+  padding: 0 16px 40px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.12rem;
+  color: var(--primary-dark);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.legend-bar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--surface-alt);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+
+.marker-target {
+  color: var(--target-color);
+  font-weight: 700;
+}
+
+.marker-actual {
+  color: var(--actual-color);
+  font-weight: 700;
+}
+
+.var-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.var-fast { background: var(--fast-bg); color: var(--fast-text); }
+.var-slow { background: var(--slow-bg); color: var(--slow-text); }
+.var-on { background: var(--on-bg); color: var(--on-text); }
+.var-pending { background: var(--pending-bg); color: var(--pending-text); }
+
+.grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.92rem;
+  background: #fff;
+  color: var(--text);
+}
+
+button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { background: var(--primary-dark); }
+button.secondary { background: var(--accent); }
+button.small { padding: 5px 10px; font-size: 0.8rem; }
+button.outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+th, td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+th {
+  background: var(--surface-alt);
+  color: var(--primary-dark);
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.timeline-track {
+  position: relative;
+  height: 28px;
+  background: #ece8df;
+  border-radius: 6px;
+  margin: 6px 0;
+  overflow: visible;
+}
+
+.timeline-fill {
+  height: 100%;
+  background: rgba(59, 82, 57, 0.22);
+  border-radius: 6px 0 0 6px;
+}
+
+.pin {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.pin-target {
+  color: var(--target-color);
+  top: 26%;
+}
+
+.pin-actual {
+  color: var(--actual-color);
+  top: 76%;
+}
+
+.batch-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 14px;
+  background: #fcfbf9;
+}
+
+.batch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.batch-id {
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--primary-dark);
+}
+
+.stage-pill {
+  background: var(--primary);
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.metric-box {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 0.84rem;
+}
+
+.metric-box strong {
+  display: block;
+  color: var(--primary-dark);
+  margin-bottom: 4px;
+}
+
+.promo-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  align-items: center;
+}
+</style>
 </head>
 <body>
-    <header>
-        <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <h1 id="pageHeading">Active Jars</h1>
-            <span id="topVesselQtyBadge" style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 999px; padding: 0.22rem 0.55rem; font-size: 0.78rem; font-weight: 700; color: var(--primary);">
-                <svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>
-            </span>
+  <header>
+    <div class="header-inner">
+      <h1>Garnish Farms - Mushrooms</h1>
+      <div class="subtitle">Complete Batch Ledger, Variance Audit &amp; Editable Strain Defaults &bull; v19</div>
+      <nav>
+        <a href="index.html">Dashboard &amp; Active Batches</a>
+        <a href="list.html" class="active">All Batches &amp; Strain Baselines</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="legend-bar">
+      <span><span class="marker-target">&#9679; Static Target:</span> Original stage target day</span>
+      <span><span class="marker-actual">&#9650; Actual Promotion:</span> Logged promotion day</span>
+      <span><strong>Variance Readout:</strong> Compares each actual stage milestone against its static target</span>
+    </div>
+
+    <!-- Full Batch List -->
+    <section class="card">
+      <h2>
+        <span>Master Batch History &amp; Variance Ledger</span>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="filterStrain" style="width:auto; padding:5px 8px; font-size:0.85rem;">
+            <option value="ALL">All Strains</option>
+          </select>
+          <select id="filterStage" style="width:auto; padding:5px 8px; font-size:0.85rem;">
+            <option value="ALL">All Stages</option>
+            <option value="Grain Spawn">Grain Spawn</option>
+            <option value="Bulk Substrate">Bulk Substrate</option>
+            <option value="Fruiting">Fruiting</option>
+            <option value="Harvested">Harvested</option>
+          </select>
         </div>
-        <div style="display:flex;gap:0.35rem;"><a href="settings.html" class="btn btn-outline">Settings</a><a href="index.html" class="btn btn-outline">← Dashboard</a></div>
-    </header>
-    <main>
-        <div class="card">
-            <div class="tab-bar">
-                <a href="list.html?type=jars" class="tab-link" id="tab-jars">Jars</a>
-                <a href="list.html?type=bags" class="tab-link" id="tab-bags">Bags</a>
-                <a href="list.html?type=fruiting" class="tab-link" id="tab-fruiting">Fruiting</a>
-            </div>
-            <div class="pill-row" id="strainFilterPills">
-                <button type="button" class="pill-btn selected" data-strain="">All Strains</button>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.55rem;">
-                <span style="font-size: 0.76rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Individual Containers</span>
-                <span style="font-size: 0.72rem; color: var(--text-muted);" id="containerCount">Loading...</span>
-            </div>
-            <div id="containerCardsList" style="display: flex; flex-direction: column; gap: 0.55rem;"></div>
-        </div>
-    </main>
-    <script>
-        const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const STAGE_CLOCK_KEY = 'garnish_farms_stage_clock_v1';
+      </h2>
+      <div style="overflow-x: auto;">
+        <table id="batchListTable">
+          <thead>
+            <tr>
+              <th>Batch ID</th>
+              <th>Strain</th>
+              <th>Inoc Date</th>
+              <th>Stage</th>
+              <th>Grain Spawn<br><span class="marker-target">&#9679; Tgt</span> vs <span class="marker-actual">&#9650; Act</span></th>
+              <th>Bulk Substrate<br><span class="marker-target">&#9679; Tgt</span> vs <span class="marker-actual">&#9650; Act</span></th>
+              <th>Fruiting / 1st Harvest<br><span class="marker-target">&#9679; Tgt</span> vs <span class="marker-actual">&#9650; Act</span></th>
+              <th>Yield</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
 
-        const SETTINGS_KEY = 'garnish_farms_settings_v1';
-        const DEFAULT_SETTINGS = {
-            stageTargets: { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 14 },
-            timelineHorizon: 42,
-            dueSoonDays: 4,
-            shakeDay: 14,
-            defaultStrain: 'Blue Oyster',
-            defaultContainer: 'Jar',
-            defaultQuantity: 1,
-            defaultSubstrate: ''
-        };
-        function getAppSettings() {
-            try {
-                const raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-                return {
-                    ...DEFAULT_SETTINGS,
-                    ...raw,
-                    stageTargets: { ...DEFAULT_SETTINGS.stageTargets, ...(raw.stageTargets || {}) }
-                };
-            } catch (e) {
-                return { ...DEFAULT_SETTINGS, stageTargets: { ...DEFAULT_SETTINGS.stageTargets } };
-            }
-        }
-        function getBatchStartDate(item) {
-            const notesStr = String(item.notes || '');
-            const originMatch = notesStr.match(/\[Origin:(\d{4}-\d{2}-\d{2})\]/);
-            return (originMatch && originMatch[1]) || item.date;
-        }
-        function getStageTargetOffsetDays(stageName, targetsMap) {
-            const t1 = Number(targetsMap['Grain Spawn'] || 14);
-            const t2 = Number(targetsMap['Bulk Substrate'] || 14);
-            const t3 = Number(targetsMap['Fruiting'] || 14);
-            if (stageName === 'Bulk Substrate') return t1 + t2;
-            if (stageName === 'Fruiting') return t1 + t2 + t3;
-            return t1;
-        }
+    <!-- Editable Strain Baselines -->
+    <section class="card" id="baselines">
+      <h2>
+        <span>Editable Strain Default Stage Durations (Baseline Calibration)</span>
+        <button class="small outline" onclick="resetDefaults()">Reset to Factory Defaults</button>
+      </h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0;">
+        Update default stage durations as you gather empirical data across runs. <strong>Maitake (<em>Grifola frondosa</em>)</strong> starts at the 14-day stage default (Grain Spawn Day 14, Bulk Substrate Day 28 cumulative, Fruiting Day 42 cumulative).
+      </p>
+      <div style="overflow-x: auto;">
+        <table id="baselinesTable">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Strain Name</th>
+              <th>Grain Spawn (Days)</th>
+              <th>Bulk Substrate (Days)</th>
+              <th>Fruiting (Days)</th>
+              <th>Cumulative Schedule</th>
+              <th>Save</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
-        const params = new URLSearchParams(window.location.search);
-        const listType = (params.get('type') || 'jars').toLowerCase();
-        let allBatches = [];
-        let selectedStrain = '';
+  <script>
+    
+const DEFAULT_STRAINS = [
+  { code: 'LM', name: "Lion's Mane", scientific: "Hericium erinaceus", grainDays: 14, bulkDays: 14, fruitDays: 14 },
+  { code: 'PLM', name: "Pink Lion's Mane", scientific: "Hericium erinaceus (Pink)", grainDays: 14, bulkDays: 14, fruitDays: 14 },
+  { code: 'BO', name: "Blue Oyster", scientific: "Pleurotus ostreatus", grainDays: 12, bulkDays: 12, fruitDays: 10 },
+  { code: 'GO', name: "Golden Oyster", scientific: "Pleurotus citrinopileatus", grainDays: 10, bulkDays: 10, fruitDays: 8 },
+  { code: 'SH', name: "Shiitake 75", scientific: "Lentinula edodes", grainDays: 21, bulkDays: 35, fruitDays: 14 },
+  { code: 'PI', name: "Pioppino", scientific: "Cyclocybe aegerita", grainDays: 14, bulkDays: 18, fruitDays: 14 },
+  { code: 'CH', name: "Chestnut", scientific: "Pholiota adiposa", grainDays: 16, bulkDays: 21, fruitDays: 14 },
+  { code: 'MA', name: "Maitake", scientific: "Grifola frondosa", grainDays: 14, bulkDays: 14, fruitDays: 14 },
+  { code: 'RE', name: "Red Reishi", scientific: "Ganoderma lucidum", grainDays: 14, bulkDays: 21, fruitDays: 30 }
+];
 
-        function escapeAttr(str) {
-            return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        }
-        function formatStrainCode(strain) {
-            const cleaned = String(strain || '').trim();
-            if (!cleaned) return 'BATCH';
-            const lower = cleaned.toLowerCase();
-            if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
-            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LM';
-            if (lower.includes('golden teacher') || lower === 'gt') return 'GT';
-            if (lower.includes('reishi') || lower === 're') return 'RE';
-            if (lower.includes('chestnut') || lower === 'ch') return 'CH';
-            if (lower.includes('shiitake') || lower === 'sh') return 'SH';
-            if (lower.includes('pink oyster') || lower === 'po') return 'PO';
-            if (lower.includes('pearl oyster') || lower === 'oy') return 'OY';
-            const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
-            if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
-            return words[0].slice(0, 2).toUpperCase();
-        }
-        function formatMMDDYY(dateStr) {
-            const iso = String(dateStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
-            return iso ? `${iso[2]}${iso[3]}${iso[1].slice(2)}` : '';
-        }
-        function getBaseBatchId(batchId, strain, dateStr) {
-            const code = formatStrainCode(strain);
-            const stamp = formatMMDDYY(dateStr);
-            if (stamp) return `${code}-${stamp}`;
-            const raw = String(batchId || '').trim().replace(/^GF[-_]?/i, '');
-            const embedded = raw.match(/(\d{6})/);
-            if (embedded) return `${code}-${embedded[1]}`;
-            return raw ? `${code}-${raw}` : code;
-        }
-        function formatContainerUnitId(batchId, strain, dateStr, index) {
-            return `${getBaseBatchId(batchId, strain, dateStr)}-${index}`;
-        }
-        function getStrainCardTheme(strain) {
-            const code = formatStrainCode(strain);
-            const themes = {
-                'LM': { bg: '#f8fafc', border: '#64748b' },
-                'BO': { bg: '#eff6ff', border: '#3b82f6' },
-                'RE': { bg: '#fff5f0', border: '#c2410c' },
-                'GT': { bg: '#fefce8', border: '#ca8a04' },
-                'CH': { bg: '#fdf8f6', border: '#92400e' },
-                'SH': { bg: '#f5f3ff', border: '#6d28d9' },
-                'PO': { bg: '#fdf2f8', border: '#db2777' },
-                'PI': { bg: '#f0fdf4', border: '#15803d' }
-            };
-            return themes[code] || { bg: '#f8fafc', border: '#4c9a2a' };
-        }
-        function getStageClockFromNotes(notesStr, stageName) {
-            if (!notesStr || !stageName) return null;
-            const stageCode = stageName === 'Bulk Substrate' ? 'SUB' : (stageName === 'Fruiting' ? 'FRT' : 'GRN');
-            const match = String(notesStr).match(new RegExp(`\\[Stage:${stageCode}:(\\d{4}-\\d{2}-\\d{2})\\]`));
-            return match ? match[1] : null;
-        }
-        function getEffectiveStageDate(item) {
-            try {
-                const map = JSON.parse(localStorage.getItem(STAGE_CLOCK_KEY) || '{}');
-                const key = `${item.id}::${item.stage}`;
-                const noteDate = getStageClockFromNotes(item.notes, item.stage);
-                return noteDate || map[key] || item.date;
-            } catch (e) {
-                return item.date;
-            }
-        }
-        function getDaysActive(dateString) {
-            if (!dateString) return 0;
-            const parts = String(dateString).split('-');
-            const initiated = parts.length === 3 ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])) : new Date(dateString);
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            return Math.floor((today - initiated) / (1000 * 60 * 60 * 24));
-        }
-        function renderContinuousStageBar(days, targetOffsetDays, stageTargetDays, stageName) {
-            const cfg = getAppSettings();
-            const safeDays = Math.max(0, Number(days || 0));
-            const stageTarget = Math.max(1, Number(stageTargetDays || 14));
-            const cumulativeTarget = Math.max(1, Number(targetOffsetDays || stageTarget));
-            const horizon = Math.max(cumulativeTarget + 4, Number(cfg.timelineHorizon || 42));
-            const targetPct = Math.min(100, Math.round((cumulativeTarget / horizon) * 100));
-            const currentPct = Math.min(100, Math.round((safeDays / horizon) * 100));
-            const pastTarget = safeDays > cumulativeTarget;
-            const greenWidth = pastTarget ? targetPct : currentPct;
-            const yellowWidth = pastTarget ? Math.max(0, currentPct - targetPct) : 0;
-            const remaining = cumulativeTarget - safeDays;
-            const statusText = pastTarget
-                ? `Day ${safeDays} total • +${safeDays - cumulativeTarget}d past ${escapeAttr(stageName)} (${stageTarget}d stage target)`
-                : `Day ${safeDays} total • ${remaining}d left to ${escapeAttr(stageName)} target (${stageTarget}d/stage)`;
-            return `
-                <div style="margin-top: 0.25rem;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.14rem;">
-                        <span>${statusText}</span>
-                        <span>${horizon}d jar→harvest</span>
-                    </div>
-                    <div style="position: relative; width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; display: flex;">
-                        <div style="width: ${greenWidth}%; height: 100%; background-color: #16a34a;"></div>
-                        <div style="width: ${yellowWidth}%; height: 100%; background-color: #eab308;"></div>
-                        <div title="Stage Target Day ${cumulativeTarget}" style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.75;"></div>
-                    </div>
-                </div>
-            `;
-        }
+const STORAGE_KEY_STRAINS = 'gf_mushrooms_strains_v19';
+const STORAGE_KEY_BATCHES = 'gf_mushrooms_batches_v19';
 
-        function getVesselMiniIconHtml(containerName) {
-            const c = String(containerName || '').toLowerCase();
-            if (c.includes('bag')) {
-                return '<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.6" stroke-linejoin="round"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/></svg>';
-            }
-            return '<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.6" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.3"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.5"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/></svg>';
-        }
+function loadStrains() {
+  const saved = localStorage.getItem(STORAGE_KEY_STRAINS);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      // Ensure Maitake is present if upgrading from an older version
+      if (!parsed.find(s => s.code === 'MA')) {
+        parsed.push({ code: 'MA', name: "Maitake", scientific: "Grifola frondosa", grainDays: 14, bulkDays: 14, fruitDays: 14 });
+        localStorage.setItem(STORAGE_KEY_STRAINS, JSON.stringify(parsed));
+      }
+      return parsed;
+    } catch (e) {}
+  }
+  localStorage.setItem(STORAGE_KEY_STRAINS, JSON.stringify(DEFAULT_STRAINS));
+  return JSON.parse(JSON.stringify(DEFAULT_STRAINS));
+}
 
-        function formatUnitIconPatternHtml(containerName, unitIndex, totalUnits) {
-            const total = Math.max(1, Number(totalUnits || 1));
-            const cur = Math.max(1, Math.min(total, Number(unitIndex || 1)));
-            const ico = getVesselMiniIconHtml(containerName);
-            const activeIco = `<span style="display:inline-flex;align-items:center;padding:1px;border-radius:3px;background:#fef08a;outline:1.5px solid #ca8a04;">${ico}</span>`;
-            const plainIco = `<span style="display:inline-flex;align-items:center;opacity:0.75;">${ico}</span>`;
+function saveStrains(strains) {
+  localStorage.setItem(STORAGE_KEY_STRAINS, JSON.stringify(strains));
+}
 
-            if (total === 1) return activeIco;
+function formatDateMMDDYY(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  return `${m}${d}${y.slice(2)}`;
+}
 
-            const renderCluster = (startIdx, endIdx) => {
-                const parts = [];
-                for (let k = startIdx; k <= endIdx; k++) {
-                    parts.push(k === cur ? activeIco : plainIco);
-                }
-                return `<span style="display:inline-flex;align-items:center;gap:1px;">${parts.join('')}</span>`;
-            };
+function addDays(dateStr, days) {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() + Number(days));
+  return d.toISOString().split('T')[0];
+}
 
-            if (total <= 6) {
-                const clusters = [];
-                for (let s = 1; s <= total; s += 3) {
-                    clusters.push(renderCluster(s, Math.min(total, s + 2)));
-                }
-                return `<span style="display:inline-flex;align-items:center;gap:3px;font-weight:700;color:var(--text-muted);">${clusters.join('<span style="opacity:0.55;">-</span>')}</span>`;
-            }
+function diffDays(startStr, endStr) {
+  if (!startStr || !endStr) return null;
+  const s = new Date(startStr + 'T12:00:00');
+  const e = new Date(endStr + 'T12:00:00');
+  return Math.round((e - s) / (1000 * 60 * 60 * 24));
+}
 
-            let html = renderCluster(1, Math.min(3, total));
-            if (total >= 4) {
-                html += `<span style="opacity:0.55;">-</span>` + renderCluster(4, Math.min(6, total));
-            }
-            if (total > 6) {
-                html += `<span style="opacity:0.65;">…</span>`;
-            }
-            return `<span style="display:inline-flex;align-items:center;gap:2px;">${html}</span>`;
-        }
+function formatShortDate(dateStr) {
+  if (!dateStr) return '—';
+  const [y, m, d] = dateStr.split('-');
+  return `${m}/${d}/${y.slice(2)}`;
+}
 
-        function getVesselSvgForType(containerName) {
-            const c = String(containerName || '').toLowerCase();
-            if (c.includes('bag')) return '<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg>';
-            return '<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg>';
-        }
+function formatVariance(actualDay, targetDay) {
+  if (actualDay === null || actualDay === undefined) return '<span class="var-badge var-pending">Pending</span>';
+  const diff = actualDay - targetDay;
+  if (diff === 0) return '<span class="var-badge var-on">0d (On Target)</span>';
+  if (diff < 0) return `<span class="var-badge var-fast">${diff}d (${Math.abs(diff)}d early)</span>`;
+  return `<span class="var-badge var-slow">+${diff}d (${diff}d late)</span>`;
+}
 
-        function setupHeader() {
-            const heading = document.getElementById('pageHeading');
-            const badge = document.getElementById('topVesselQtyBadge');
-            document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
-            if (listType === 'bags') {
-                heading.innerText = 'Active Bags';
-                document.getElementById('tab-bags').classList.add('active');
-                if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
-            } else if (listType === 'fruiting') {
-                heading.innerText = 'Fruiting Blocks';
-                document.getElementById('tab-fruiting').classList.add('active');
-                if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
-            } else {
-                heading.innerText = 'Active Jars';
-                document.getElementById('tab-jars').classList.add('active');
-                if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
-            }
-        }
-        function renderContainerCards() {
-            const listEl = document.getElementById('containerCardsList');
-            const countEl = document.getElementById('containerCount');
-            const cfg = getAppSettings();
-            const stageTargets = cfg.stageTargets;
-            let matchingBatches = allBatches.filter(b => b.status === 'Active');
-            if (listType === 'bags') {
-                matchingBatches = matchingBatches.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
-            } else if (listType === 'fruiting') {
-                matchingBatches = matchingBatches.filter(b => b.stage === 'Fruiting');
-            } else {
-                matchingBatches = matchingBatches.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting');
-            }
-            if (selectedStrain) matchingBatches = matchingBatches.filter(b => b.strain === selectedStrain);
+function seedInitialBatches() {
+  const existing = localStorage.getItem(STORAGE_KEY_BATCHES);
+  if (existing) {
+    try { return JSON.parse(existing); } catch (e) {}
+  }
+  const sample = [
+    {
+      id: 'MA-112426-01',
+      strainCode: 'MA',
+      containerCount: 4,
+      containerType: 'Unicorn 3T Bag (50/50 HW/Soy + Gypsum)',
+      inocDate: '2026-11-24',
+      stage: 'Grain Spawn',
+      targetGrainDays: 14,
+      targetBulkDays: 14,
+      targetFruitDays: 14,
+      actualGrainPromotedDate: null,
+      actualBulkPromotedDate: null,
+      actualFirstHarvestDate: null,
+      harvestYieldGrams: 0,
+      notes: 'Initial Maitake baseline run — tracking empirical colonization & pinning intervals.'
+    },
+    {
+      id: 'LM-102826-01',
+      strainCode: 'LM',
+      containerCount: 6,
+      containerType: '800ml Whole Oat Jar -> 5lb Block',
+      inocDate: '2026-10-28',
+      stage: 'Fruiting',
+      targetGrainDays: 14,
+      targetBulkDays: 14,
+      targetFruitDays: 14,
+      actualGrainPromotedDate: '2026-11-10', // Day 13 (-1d)
+      actualBulkPromotedDate: '2026-11-24',  // Day 27 (-1d)
+      actualFirstHarvestDate: null,
+      harvestYieldGrams: 0,
+      notes: 'Moved to 4x4 fruiting tent at 90% RH.'
+    },
+    {
+      id: 'CH-101226-01',
+      strainCode: 'CH',
+      containerCount: 4,
+      containerType: '5lb HW/Soy + Gypsum Block',
+      inocDate: '2026-10-12',
+      stage: 'Harvested',
+      targetGrainDays: 16,
+      targetBulkDays: 21,
+      targetFruitDays: 14,
+      actualGrainPromotedDate: '2026-10-29', // Day 17 (+1d)
+      actualBulkPromotedDate: '2026-11-18',  // Day 37 (0d cumulative)
+      actualFirstHarvestDate: '2026-12-01',  // Day 50 (-1d)
+      harvestYieldGrams: 1420,
+      notes: 'Strong first flush; dehydrated at 130F.'
+    }
+  ];
+  localStorage.setItem(STORAGE_KEY_BATCHES, JSON.stringify(sample));
+  return sample;
+}
 
-            const unitCards = [];
-            matchingBatches.forEach(b => {
-                const qty = Math.max(1, Number(b.quantity || 1));
-                const stageDate = getEffectiveStageDate(b);
-                const startDate = getBatchStartDate(b);
-                const days = Math.max(0, getDaysActive(startDate));
-                const stageTargetDays = Number(stageTargets[b.stage] || 14);
-                const targetDays = getStageTargetOffsetDays(b.stage, stageTargets);
-                for (let idx = 1; idx <= qty; idx++) {
-                    unitCards.push({
-                        batch: b,
-                        unitIndex: idx,
-                        totalUnits: qty,
-                        unitId: formatContainerUnitId(b.batch_id, b.strain, b.date, idx),
-                        stageDate,
-                        days,
-                        stageTargetDays,
-                        targetDays
-                    });
-                }
-            });
+function saveBatches(batches) {
+  localStorage.setItem(STORAGE_KEY_BATCHES, JSON.stringify(batches));
+}
 
-            const unitNoun = listType === 'bags' ? 'bag' : (listType === 'fruiting' ? 'block' : 'jar');
-            countEl.innerText = `${unitCards.length} ${unitNoun}${unitCards.length === 1 ? '' : 's'}`;
-            const topQtyEl = document.getElementById('topVesselQtyVal');
-            if (topQtyEl) topQtyEl.innerText = String(unitCards.length);
-            if (unitCards.length === 0) {
-                listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1.2rem;">No active ${unitNoun}s found.</div>`;
-                return;
-            }
-            listEl.innerHTML = unitCards.map(u => {
-                const { batch, unitIndex, totalUnits, unitId, stageDate, days, stageTargetDays, targetDays } = u;
-                const theme = getStrainCardTheme(batch.strain);
-                const pastTarget = days > targetDays;
-                const badgeClass = pastTarget ? 'badge-yellow' : 'badge-green';
-                const badgeText = pastTarget ? `Past Day ${targetDays}` : `Day ${days} / ${targetDays}d`;
-                const subInfo = batch.substrate ? ` • ${escapeAttr(batch.substrate)}` : '';
-                const actionLink = batch.stage === 'Fruiting'
-                    ? `<div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-outline revert-fruiting-btn" data-id="${batch.id}" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">↩ Bulk Sub</button>
-                        <a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">Edit</a>
-                        <a href="harvest.html?id=${batch.id}" class="btn" style="padding: 0.25rem 0.55rem; font-size: 0.68rem; background-color: #d97706;">Harvest ➔</a>
-                       </div>`
-                    : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.68rem;">Edit Batch</a>`;
-                return `
-                    <div class="container-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
-                            <div>
-                                <strong style="font-size: 0.88rem; color: var(--text-main);">${escapeAttr(unitId)}</strong>
-                                <span style="font-size: 0.7rem; color: var(--text-muted); margin-left: 0.35rem;">(${formatUnitIconPatternHtml(batch.container, unitIndex, totalUnits)})</span>
-                            </div>
-                            <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.74rem; color: var(--text-muted);">
-                            <span><strong style="color: var(--primary);">${escapeAttr(batch.strain)}</strong> • ${escapeAttr(batch.stage)}${subInfo}</span>
-                            ${actionLink}
-                        </div>
-                        <div style="font-size: 0.68rem; color: var(--text-muted);">Batch Date: ${escapeAttr(batch.date)} • Stage Start: ${escapeAttr(stageDate)}</div>
-                        ${renderContinuousStageBar(days, targetDays, stageTargetDays, batch.stage)}
-                    </div>
-                `;
-            }).join('');
-        }
 
-        async function revertFruitingToBulk(dbId) {
-            const batch = allBatches.find(b => Number(b.id) === Number(dbId));
-            if (!batch) return;
-            const cleanedNotes = String(batch.notes || '').replace(/\s*\[Stage:FRT:\d{4}-\d{2}-\d{2}\]/g, '').trim();
-            const { error } = await _supabase
-                .from('batches')
-                .update({ stage: 'Bulk Substrate', notes: cleanedNotes })
-                .eq('id', dbId);
-            if (error) {
-                alert('Could not revert batch: ' + error.message);
-                return;
-            }
-            try {
-                const map = JSON.parse(localStorage.getItem(STAGE_CLOCK_KEY) || '{}');
-                delete map[`${dbId}::Fruiting`];
-                localStorage.setItem(STAGE_CLOCK_KEY, JSON.stringify(map));
-            } catch (e) {}
-            const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
-            allBatches = data || [];
-            renderContainerCards();
-        }
+    let strains = loadStrains();
+    let batches = seedInitialBatches();
 
-        document.addEventListener('click', (e) => {
-            const revBtn = e.target.closest('.revert-fruiting-btn');
-            if (revBtn) {
-                revertFruitingToBulk(revBtn.getAttribute('data-id'));
-            }
-        });
+    const filterStrain = document.getElementById('filterStrain');
+    const filterStage = document.getElementById('filterStage');
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            setupHeader();
-            const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
-            allBatches = data || [];
-            const strains = [...new Set(allBatches.filter(b => b.status === 'Active').map(b => b.strain))];
-            const pillBar = document.getElementById('strainFilterPills');
-            pillBar.innerHTML = `<button type="button" class="pill-btn selected" data-strain="">All Strains</button>` +
-                strains.map(s => `<button type="button" class="pill-btn" data-strain="${escapeAttr(s)}">${escapeAttr(s)}</button>`).join('');
-            pillBar.addEventListener('click', (e) => {
-                const btn = e.target.closest('.pill-btn');
-                if (!btn) return;
-                selectedStrain = btn.getAttribute('data-strain') || '';
-                pillBar.querySelectorAll('.pill-btn').forEach(b => b.classList.toggle('selected', b === btn));
-                renderContainerCards();
-            });
-            renderContainerCards();
-        });
-    </script>
+    function populateFilters() {
+      filterStrain.innerHTML = '<option value="ALL">All Strains</option>' +
+        strains.map(s => `<option value="${s.code}">${s.name} (${s.code})</option>`).join('');
+    }
+
+    filterStrain.addEventListener('change', renderBatchTable);
+    filterStage.addEventListener('change', renderBatchTable);
+
+    function renderBatchTable() {
+      const sVal = filterStrain.value;
+      const stVal = filterStage.value;
+      const filtered = batches.filter(b =>
+        (sVal === 'ALL' || b.strainCode === sVal) &&
+        (stVal === 'ALL' || b.stage === stVal)
+      );
+
+      const tbody = document.querySelector('#batchListTable tbody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted);">No matching batches found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(b => {
+        const strain = strains.find(s => s.code === b.strainCode) || { name: b.strainCode };
+        const t1 = b.targetGrainDays;
+        const t2 = t1 + b.targetBulkDays;
+        const t3 = t2 + b.targetFruitDays;
+
+        const a1 = diffDays(b.inocDate, b.actualGrainPromotedDate);
+        const a2 = diffDays(b.inocDate, b.actualBulkPromotedDate);
+        const a3 = diffDays(b.inocDate, b.actualFirstHarvestDate);
+
+        return `
+          <tr>
+            <td><strong>${b.id}</strong><br><span style="font-size:0.76rem; color:var(--text-muted);">${b.containerCount} units</span></td>
+            <td>${strain.name}</td>
+            <td>${formatShortDate(b.inocDate)}</td>
+            <td><span class="stage-pill">${b.stage}</span></td>
+            <td>
+              <span class="marker-target">&#9679; D${t1}</span> /
+              <span class="marker-actual">&#9650; ${a1 !== null ? 'D' + a1 : '—'}</span><br>
+              ${formatVariance(a1, t1)}
+            </td>
+            <td>
+              <span class="marker-target">&#9679; D${t2}</span> /
+              <span class="marker-actual">&#9650; ${a2 !== null ? 'D' + a2 : '—'}</span><br>
+              ${formatVariance(a2, t2)}
+            </td>
+            <td>
+              <span class="marker-target">&#9679; D${t3}</span> /
+              <span class="marker-actual">&#9650; ${a3 !== null ? 'D' + a3 : '—'}</span><br>
+              ${formatVariance(a3, t3)}
+            </td>
+            <td>${b.harvestYieldGrams ? b.harvestYieldGrams + 'g' : '—'}</td>
+            <td>
+              <button class="small outline" onclick="deleteBatch('${b.id}')">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function deleteBatch(id) {
+      if (!confirm(`Delete batch ${id}?`)) return;
+      batches = batches.filter(b => b.id !== id);
+      saveBatches(batches);
+      renderBatchTable();
+    }
+
+    function renderBaselinesTable() {
+      const tbody = document.querySelector('#baselinesTable tbody');
+      tbody.innerHTML = strains.map((s, idx) => {
+        const cumBulk = Number(s.grainDays) + Number(s.bulkDays);
+        const cumFruit = cumBulk + Number(s.fruitDays);
+        return `
+          <tr>
+            <td><strong>${s.code}</strong></td>
+            <td><strong>${s.name}</strong><br><span style="font-size:0.78rem; color:var(--text-muted);"><em>${s.scientific}</em></span></td>
+            <td><input type="number" id="g_${idx}" value="${s.grainDays}" min="1" style="width:74px;" onchange="updateCumPreview(${idx})" /></td>
+            <td><input type="number" id="b_${idx}" value="${s.bulkDays}" min="1" style="width:74px;" onchange="updateCumPreview(${idx})" /></td>
+            <td><input type="number" id="f_${idx}" value="${s.fruitDays}" min="1" style="width:74px;" onchange="updateCumPreview(${idx})" /></td>
+            <td id="cum_${idx}" style="font-size:0.84rem;">
+              <span class="marker-target">&#9679;</span> Grain D${s.grainDays} &rarr; Bulk D${cumBulk} &rarr; Fruit D${cumFruit}
+            </td>
+            <td><button class="small" onclick="saveSingleStrain(${idx})">Save</button></td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateCumPreview(idx) {
+      const g = Number(document.getElementById(`g_${idx}`).value) || 0;
+      const b = Number(document.getElementById(`b_${idx}`).value) || 0;
+      const f = Number(document.getElementById(`f_${idx}`).value) || 0;
+      document.getElementById(`cum_${idx}`).innerHTML =
+        `<span class="marker-target">&#9679;</span> Grain D${g} &rarr; Bulk D${g + b} &rarr; Fruit D${g + b + f}`;
+    }
+
+    function saveSingleStrain(idx) {
+      strains[idx].grainDays = Number(document.getElementById(`g_${idx}`).value);
+      strains[idx].bulkDays = Number(document.getElementById(`b_${idx}`).value);
+      strains[idx].fruitDays = Number(document.getElementById(`f_${idx}`).value);
+      saveStrains(strains);
+      alert(`Saved updated baseline defaults for ${strains[idx].name}.`);
+    }
+
+    function resetDefaults() {
+      if (!confirm('Reset all strain stage defaults (including Maitake 14/14/14)?')) return;
+      strains = JSON.parse(JSON.stringify(DEFAULT_STRAINS));
+      saveStrains(strains);
+      renderBaselinesTable();
+    }
+
+    populateFilters();
+    renderBatchTable();
+    renderBaselinesTable();
+  </script>
 </body>
 </html>
