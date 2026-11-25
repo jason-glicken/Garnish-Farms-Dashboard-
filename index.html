@@ -515,6 +515,7 @@
                 <div class="btn-select-group" id="pipelineFilterBar" style="overflow-x: auto; padding-bottom: 0.2rem; flex-wrap: nowrap; justify-content: flex-start; display: flex; gap: 0.35rem;">
                     <button type="button" class="option-btn pipeline-filter-btn selected" data-strain="" style="font-size: 0.72rem; padding: 0.3rem 0.65rem; flex: none;">All</button>
                 </div>
+                <div id="selectedStrainOverviewLink" style="margin-top:.35rem;"></div>
             </div>
             <!-- Visual of Upcoming Tasks (close to next stage / ready to advance / shake due) -->
             <div id="upcomingTasksBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
@@ -565,7 +566,15 @@
                 </div>
                 <div id="recentActivitiesList" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
             </div>
-            <!-- Strain Breakdown stays visible beneath the calendar and recent activity feed. -->
+            <!-- Active batches snapshot stays expanded directly above the production mix wheel. -->
+            <section id="activeBatchesSnapshot" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.55rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.4rem;">
+                    <div style="font-size:.75rem;font-weight:800;color:var(--primary);text-transform:uppercase;">Active Batches</div>
+                    <span id="activeBatchesSnapshotCount" style="font-size:.68rem;color:var(--text-muted);">0 batches</span>
+                </div>
+                <div id="activeBatchesSnapshotList" style="display:grid;gap:.3rem;"></div>
+            </section>
+            <!-- Strain Breakdown stays visible beneath the active batches snapshot. -->
             <section id="strainBreakdownPanel" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.75rem;">
                 <div style="font-size:.75rem;font-weight:800;color:var(--primary);text-transform:uppercase;margin-bottom:.35rem;">Strain Breakdown · Current Production Mix</div>
                 <div style="position:relative;height:210px;display:flex;justify-content:center;align-items:center;">
@@ -702,9 +711,9 @@
                     <thead>
                         <tr>
                             <th>Strain</th>
+                            <th>Stage Breakdown</th>
                             <th>Active Batches</th>
                             <th>Total Containers</th>
-                            <th>Stage Breakdown</th>
                             <th>Total Yield</th>
                         </tr>
                     </thead>
@@ -1735,6 +1744,7 @@
             renderStrainCalendar(filteredActive);
 
             renderRecentActivities(filteredActive);
+            renderActiveBatchesSnapshot(filteredActive);
             renderDashboardHarvestsForFilter();
             updateDashboardCollapseCounts();
 
@@ -2295,58 +2305,50 @@
                 }).join('');
                 filterBar.innerHTML = html;
             }
+            const overview=document.getElementById('selectedStrainOverviewLink');
+            if(overview) overview.innerHTML=selectedPipelineStrainFilter ? `<a href="strain.html?strain=${encodeURIComponent(selectedPipelineStrainFilter)}" style="font-size:.72rem;font-weight:800;color:var(--primary);">Open ${escapeAttr(selectedPipelineStrainFilter)} strain dashboard ↗</a>` : '';
         }
 
         function renderStrainSummary() {
             const tbody = document.getElementById('strainSummaryTableBody');
             if (!tbody) return;
-
             const strainMap = {};
-
             batches.forEach(b => {
-                if (!strainMap[b.strain]) {
-                    strainMap[b.strain] = {
-                        strain: b.strain,
-                        activeBatches: 0,
-                        totalContainers: 0,
-                        stages: { 'Grain Spawn': 0, 'Bulk Substrate': 0, 'Fruiting': 0 },
-                        totalYield: 0
-                    };
-                }
-
+                if (!strainMap[b.strain]) strainMap[b.strain] = { strain:b.strain, activeBatches:0, totalContainers:0, stages:{'Grain Spawn':0,'Bulk Substrate':0,'Fruiting':0}, totalYield:0 };
                 if (b.status === 'Active') {
-                    strainMap[b.strain].activeBatches += 1;
+                    strainMap[b.strain].activeBatches++;
                     strainMap[b.strain].totalContainers += Number(b.quantity || 0);
-                    if (strainMap[b.strain].stages[b.stage] !== undefined) {
-                        strainMap[b.strain].stages[b.stage] += Number(b.quantity || 0);
-                    }
+                    if (strainMap[b.strain].stages[b.stage] !== undefined) strainMap[b.strain].stages[b.stage] += Number(b.quantity || 0);
                 }
-                
                 strainMap[b.strain].totalYield += Number(b.harvestWeight || 0);
             });
-
             const strains = Object.values(strainMap);
-
-            if (strains.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No strain data available.</td></tr>`;
-                return;
-            }
-
+            if (!strains.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No strain data available.</td></tr>'; return; }
             tbody.innerHTML = strains.map(s => {
-                const theme = getStrainCardTheme(s.strain);
-                return `
-                <tr style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
-                    <td><strong>${s.strain}</strong></td>
-                    <td>${s.activeBatches}</td>
+                const theme=getStrainCardTheme(s.strain);
+                const stageText=`🫙 ${s.stages['Grain Spawn']} &nbsp; 🧱 ${s.stages['Bulk Substrate']} &nbsp; 🍄 ${s.stages['Fruiting']}`;
+                return `<tr style="background-color:${theme.bg};border-left:4px solid ${theme.border};">
+                    <td><a href="strain.html?strain=${encodeURIComponent(s.strain)}" style="font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(s.strain)} ↗</a></td>
+                    <td style="font-size:.75rem;white-space:nowrap;">${stageText}</td>
+                    <td><strong>${s.activeBatches}</strong></td>
                     <td><strong>${s.totalContainers}</strong></td>
-                    <td style="font-size: 0.75rem; color: var(--text-main);">
-                        <span style="display: inline-flex; align-items: center; gap: 0.25rem; margin-right: 0.55rem;" title="Grain Spawn (Mason Jars)"><svg class="vessel-icon" viewBox="0 0 24 24" width="16" height="16" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg> <strong>${s.stages['Grain Spawn']}</strong></span>
-                        <span style="display: inline-flex; align-items: center; gap: 0.25rem; margin-right: 0.55rem;" title="Bulk Substrate (Square Bags)"><svg class="vessel-icon" viewBox="0 0 24 24" width="16" height="16" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg> <strong>${s.stages['Bulk Substrate']}</strong></span>
-                        <span style="font-size: 0.7rem; color: var(--text-muted);">Fruit: ${s.stages['Fruiting']}</span>
-                    </td>
                     <td><strong>${s.totalYield.toFixed(1)} lbs</strong></td>
-                </tr>
-            `}).join('');
+                </tr>`;
+            }).join('');
+        }
+
+        function renderActiveBatchesSnapshot(activeItems) {
+            const list=document.getElementById('activeBatchesSnapshotList');
+            const count=document.getElementById('activeBatchesSnapshotCount');
+            if(!list) return;
+            const items=(activeItems||[]).slice().sort((a,b)=>String(a.strain).localeCompare(String(b.strain))||String(a.date).localeCompare(String(b.date)));
+            if(count) count.textContent=`${items.length} active batch${items.length===1?'':'es'}`;
+            if(!items.length){list.innerHTML='<div style="font-size:.72rem;color:var(--text-muted);">No active batches for this selection.</div>';return;}
+            list.innerHTML=items.map(b=>{
+                const theme=getStrainCardTheme(b.strain);
+                const icon=b.stage==='Grain Spawn'?'🫙':(b.stage==='Bulk Substrate'?'🧱':'🍄');
+                return `<a href="strain.html?strain=${encodeURIComponent(b.strain)}#batch-${encodeURIComponent(String(b.dbId))}" style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.38rem .48rem;border-radius:6px;background:${theme.bg};border-left:4px solid ${theme.border};color:var(--text-main);text-decoration:none;font-size:.72rem;"><span><strong>${escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity))}</strong> · ${formatStrainWithScientific(b.strain)}</span><span style="white-space:nowrap;font-weight:700;color:var(--primary);">${icon} ${escapeAttr(b.stage)}</span></a>`;
+            }).join('');
         }
 
         function renderChart() {
