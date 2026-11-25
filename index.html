@@ -423,19 +423,19 @@
 
 
         .strain-scientific { font-size: 0.88em; color: var(--text-muted); font-style: italic; font-weight: 500; }
-        .task-calendar { margin-top: .7rem; padding-top: .65rem; border-top: 1px solid var(--border); }
+        .task-calendar { margin: .25rem 0 .8rem; padding: .65rem; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
         .calendar-head { display:flex; align-items:center; justify-content:space-between; gap:.4rem; margin-bottom:.55rem; }
         .calendar-month { font-size:.88rem; font-weight:800; color:var(--text-main); }
         .calendar-nav { display:flex; align-items:center; gap:.3rem; }
         .calendar-nav button { border:1px solid var(--border); background:#fff; color:var(--primary); border-radius:7px; padding:.28rem .5rem; font-weight:700; font-size:.72rem; cursor:pointer; }
         .calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:3px; }
         .calendar-weekday { text-align:center; color:var(--text-muted); font-size:.62rem; font-weight:800; padding:.25rem 0; }
-        .calendar-day { min-height:58px; border:1px solid var(--border); background:#fff; border-radius:6px; padding:3px; text-align:left; cursor:pointer; min-width:0; }
+        .calendar-day { min-height:62px; border:1px solid var(--border); background:#fff; border-radius:6px; padding:3px; text-align:left; cursor:pointer; min-width:0; }
         .calendar-day.outside { opacity:.38; background:var(--bg-light); }
         .calendar-day.today { border:2px solid var(--accent); }
         .calendar-day.selected { background:#edf6e9; border:2px solid var(--primary); }
         .calendar-day-num { display:block; font-size:.67rem; font-weight:800; color:var(--text-main); margin-bottom:2px; }
-        .calendar-event { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.54rem; line-height:1.35; border-radius:3px; padding:1px 2px; margin-top:2px; background:#e7f1e3; color:#285b22; }
+        .calendar-event { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.58rem; line-height:1.35; border-radius:3px; padding:1px 2px; margin-top:2px; background:#e7f1e3; color:#285b22; }
         .calendar-event.shake { background:#fff2cf; color:#8a5800; }
         .calendar-more { font-size:.52rem; color:var(--text-muted); }
         .calendar-day-detail { margin-top:.55rem; background:#fff; border:1px solid var(--border); border-radius:7px; padding:.55rem; }
@@ -513,8 +513,6 @@
                         <a href="upcoming.html" style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-decoration: underline; white-space: nowrap;">All Upcoming ➔</a>
                     </div>
                 </div>
-                <div id="upcomingTasksList" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
-
                 <section class="task-calendar" aria-label="Monthly task calendar">
                     <div class="calendar-head">
                         <div>
@@ -531,6 +529,10 @@
                     <div style="font-size:.62rem;color:var(--text-muted);margin-top:.35rem;">Tap a day to see its tasks. Green = stage milestone · Gold = shake reminder.</div>
                     <div class="calendar-day-detail" id="taskCalendarDetails"><span style="font-size:.7rem;color:var(--text-muted);">Select a day to see scheduled tasks.</span></div>
                 </section>
+
+                <div id="upcomingTasksList" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+
+
 
             </div>
             <!-- Last 5 Activities Feed -->
