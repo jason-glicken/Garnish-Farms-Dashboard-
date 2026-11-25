@@ -2582,5 +2582,49 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
  const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
 })();
 </script>
+<script id="gf-shared-header-data-v41">
+(async function(){
+  try {
+    if (!window.supabase || !window.supabase.createClient) return;
+    const client=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
+    const [{data:parents,error:pe},{data:children,error:ce},{data:harvests,error:he}]=await Promise.all([
+      client.from('batches').select('id,quantity,container,stage,status'),
+      client.from('batch_items').select('id,batch_id,container_id,container,stage,status'),
+      client.from('harvests').select('weight_lbs')
+    ]);
+    if(pe) throw pe;
+    const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+    const active=v=>norm(v||'Active')==='active';
+    const p=parents||[], c=children||[], childParentIds=new Set(c.map(x=>String(x.batch_id)));
+    const units=[];
+    c.forEach(x=>{if(active(x.status)) units.push(x);});
+    p.filter(b=>!childParentIds.has(String(b.id))&&active(b.status)).forEach(b=>{
+      const n=Math.max(1,Number(b.quantity)||1);
+      for(let i=0;i<n;i++) units.push({batch_id:b.id,stage:b.stage,status:b.status,container:b.container});
+    });
+    const jars=units.filter(x=>norm(x.stage)==='grain spawn').length;
+    const bags=units.filter(x=>norm(x.stage)==='bulk substrate').length;
+    const fruit=units.filter(x=>norm(x.stage)==='fruiting').length;
+    const activeParents=new Set(units.map(x=>String(x.batch_id))).size;
+    const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+    set('kpi-active',activeParents);set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
+    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);
+    set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
+  } catch(e) { console.warn('Garnish Farms V41 header totals could not load:',e&&e.message||e); }
+})();
+</script>
+<script id="gf-v41-home-kpis">
+(async function(){
+ try{
+  const c=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
+  const [{data:p,error:pe},{data:ch,error:ce}]=await Promise.all([c.from('batches').select('id,quantity,status'),c.from('batch_items').select('batch_id,stage,status')]);
+  if(pe)throw pe;const parents=p||[],children=ce?[]:(ch||[]),has=new Set(children.map(x=>String(x.batch_id))),units=children.filter(x=>String(x.status||'Active').toLowerCase()==='active');
+  parents.filter(x=>!has.has(String(x.id))&&String(x.status||'Active').toLowerCase()==='active').forEach(x=>{for(let i=0;i<Math.max(1,Number(x.quantity)||1);i++)units.push({batch_id:x.id,stage:x.stage,container:x.container});});
+  const count=s=>units.filter(x=>String(x.stage||'').toLowerCase()===s).length;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('kpi-active',new Set(units.map(x=>String(x.batch_id))).size);set('kpi-jars',count('grain spawn'));set('kpi-bags',count('bulk substrate'));set('kpi-fruiting',count('fruiting'));
+ }catch(e){console.warn('V41 home inventory totals unavailable:',e.message||e);}
+})();
+</script>
 </body>
 </html>

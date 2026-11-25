@@ -99,7 +99,7 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
 <script>
 const SUPABASE_URL='https://odtalucpwmxcydxbypke.supabase.co',SUPABASE_ANON_KEY='sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const strain=new URLSearchParams(location.search).get('strain')||'';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const iso=d=>{const x=new Date(d);return isNaN(x)?'':`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};const parseTag=(notes,code)=>{const m=String(notes||'').match(new RegExp('\\[Stage:'+code+':(\\d{4}-\\d{2}-\\d{2})\\]'));return m?m[1]:''};const days=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
-function dateOfStage(b,stage){if(stage==='Grain Spawn')return (String(b.notes||'').match(/\[Origin:(\d{4}-\d{2}-\d{2})\]/)||[])[1]||b.date;if(stage==='Bulk Substrate')return parseTag(b.notes,'SUB')||((b.stage==='Bulk Substrate'||b.stage==='Fruiting')?b.date:'');if(stage==='Fruiting')return parseTag(b.notes,'FRT')||(b.stage==='Fruiting'?b.date:'');return '';}
+function dateOfStage(b,stage){if(stage==='Grain Spawn')return b.grain_started_on||(String(b.notes||'').match(/\[Origin:(\d{4}-\d{2}-\d{2})\]/)||[])[1]||(b.stage==='Grain Spawn'?b.date:'');if(stage==='Bulk Substrate')return b.bulk_started_on||parseTag(b.notes,'SUB')||((b.stage==='Bulk Substrate'||b.stage==='Fruiting')?b.date:'');if(stage==='Fruiting')return b.fruiting_started_on||parseTag(b.notes,'FRT')||(b.stage==='Fruiting'?b.date:'');return '';}
 function avgGap(ds){const a=ds.filter(Boolean).sort();if(a.length<2)return '—';const gaps=[];for(let i=1;i<a.length;i++)gaps.push(days(a[i-1],a[i]));return `${(gaps.reduce((x,y)=>x+y,0)/gaps.length).toFixed(1)} days`;}
 function themeForStrain(name){const c=String(name||'').toLowerCase();if(c.includes('blue oyster'))return ['#eff6ff','#3b82f6'];if(c.includes('golden'))return ['#fefce8','#ca8a04'];if(c.includes('chestnut'))return ['#fdf8f6','#92400e'];if(c.includes('maitake'))return ['#f0fdf4','#4c9a2a'];if(c.includes('shiitake'))return ['#f5f3ff','#6d28d9'];if(c.includes('pink'))return ['#fdf2f8','#db2777'];if(c.includes('reishi'))return ['#fff5f0','#c2410c'];return ['#f8fafc','#64748b'];}
 function batchCard(b){const st=b.stage||'Grain Spawn',th=themeForStrain(strain),id=String(b.container_id||b.batch_id||'').replace(/^BL(?=-)/i,'BO');const unit=b.container_id?`<span class="pill">${esc(b.unitIndex||1)} of ${esc(b.unitTotal||1)} ↗</span>`:`<span class="pill">${esc(b.quantity||1)} units ↗</span>`;return `<a class="batch" href="${b.container_id?`batch.html?id=${encodeURIComponent(b.parentId)}`:'index.html#pipelineContainer'}" style="--strain-bg:${th[0]};--strain-border:${th[1]};color:inherit;text-decoration:none"><span><strong>${esc(id)}</strong><br><span class="muted">${esc(st)} · ${esc(formatDateDisplay(b.date||''))}</span></span>${unit}</a>`;}
@@ -193,24 +193,35 @@ init();
  const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
 })();
 </script>
-
-<script id="gf-shared-header-data-v40">
+<script id="gf-shared-header-data-v41">
 (async function(){
   try {
     if (!window.supabase || !window.supabase.createClient) return;
     const client=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
-    const [{data:batches,error:be},{data:harvests,error:he}]=await Promise.all([client.from('batches').select('quantity,container,stage,status'),client.from('harvests').select('weight_lbs')]);
-    if(be) throw be;
-    const rows=batches||[], norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
-    const active=rows.filter(b=>norm(b.status)==='active');
-    const qty=b=>Math.max(1,Number(b.quantity)||1);
-    const jars=active.filter(b=>norm(b.stage)==='grain spawn'&&(!b.container||norm(b.container).includes('jar')||norm(b.container).includes('spawn'))).reduce((n,b)=>n+qty(b),0);
-    const bags=active.filter(b=>norm(b.stage)==='bulk substrate'&&(!b.container||norm(b.container).includes('bag')||norm(b.container).includes('substrate'))).reduce((n,b)=>n+qty(b),0);
-    const fruit=active.filter(b=>norm(b.stage).includes('fruit')).reduce((n,b)=>n+qty(b),0);
+    const [{data:parents,error:pe},{data:children,error:ce},{data:harvests,error:he}]=await Promise.all([
+      client.from('batches').select('id,quantity,container,stage,status'),
+      client.from('batch_items').select('id,batch_id,container_id,container,stage,status'),
+      client.from('harvests').select('weight_lbs')
+    ]);
+    if(pe) throw pe;
+    const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+    const active=v=>norm(v||'Active')==='active';
+    const p=parents||[], c=children||[], childParentIds=new Set(c.map(x=>String(x.batch_id)));
+    const units=[];
+    c.forEach(x=>{if(active(x.status)) units.push(x);});
+    p.filter(b=>!childParentIds.has(String(b.id))&&active(b.status)).forEach(b=>{
+      const n=Math.max(1,Number(b.quantity)||1);
+      for(let i=0;i<n;i++) units.push({batch_id:b.id,stage:b.stage,status:b.status,container:b.container});
+    });
+    const jars=units.filter(x=>norm(x.stage)==='grain spawn').length;
+    const bags=units.filter(x=>norm(x.stage)==='bulk substrate').length;
+    const fruit=units.filter(x=>norm(x.stage)==='fruiting').length;
+    const activeParents=new Set(units.map(x=>String(x.batch_id))).size;
     const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
-    set('kpi-active',active.reduce((n,b)=>n+qty(b),0));set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
-    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
-  } catch(e) { console.warn('Garnish Farms header totals could not load:',e&&e.message||e); }
+    set('kpi-active',activeParents);set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
+    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);
+    set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
+  } catch(e) { console.warn('Garnish Farms V41 header totals could not load:',e&&e.message||e); }
 })();
 </script>
 </body></html>

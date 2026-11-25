@@ -588,24 +588,80 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
  const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
 })();
 </script>
-
-<script id="gf-shared-header-data-v40">
+<script id="gf-shared-header-data-v41">
 (async function(){
   try {
     if (!window.supabase || !window.supabase.createClient) return;
     const client=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
-    const [{data:batches,error:be},{data:harvests,error:he}]=await Promise.all([client.from('batches').select('quantity,container,stage,status'),client.from('harvests').select('weight_lbs')]);
-    if(be) throw be;
-    const rows=batches||[], norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
-    const active=rows.filter(b=>norm(b.status)==='active');
-    const qty=b=>Math.max(1,Number(b.quantity)||1);
-    const jars=active.filter(b=>norm(b.stage)==='grain spawn'&&(!b.container||norm(b.container).includes('jar')||norm(b.container).includes('spawn'))).reduce((n,b)=>n+qty(b),0);
-    const bags=active.filter(b=>norm(b.stage)==='bulk substrate'&&(!b.container||norm(b.container).includes('bag')||norm(b.container).includes('substrate'))).reduce((n,b)=>n+qty(b),0);
-    const fruit=active.filter(b=>norm(b.stage).includes('fruit')).reduce((n,b)=>n+qty(b),0);
+    const [{data:parents,error:pe},{data:children,error:ce},{data:harvests,error:he}]=await Promise.all([
+      client.from('batches').select('id,quantity,container,stage,status'),
+      client.from('batch_items').select('id,batch_id,container_id,container,stage,status'),
+      client.from('harvests').select('weight_lbs')
+    ]);
+    if(pe) throw pe;
+    const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+    const active=v=>norm(v||'Active')==='active';
+    const p=parents||[], c=children||[], childParentIds=new Set(c.map(x=>String(x.batch_id)));
+    const units=[];
+    c.forEach(x=>{if(active(x.status)) units.push(x);});
+    p.filter(b=>!childParentIds.has(String(b.id))&&active(b.status)).forEach(b=>{
+      const n=Math.max(1,Number(b.quantity)||1);
+      for(let i=0;i<n;i++) units.push({batch_id:b.id,stage:b.stage,status:b.status,container:b.container});
+    });
+    const jars=units.filter(x=>norm(x.stage)==='grain spawn').length;
+    const bags=units.filter(x=>norm(x.stage)==='bulk substrate').length;
+    const fruit=units.filter(x=>norm(x.stage)==='fruiting').length;
+    const activeParents=new Set(units.map(x=>String(x.batch_id))).size;
     const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
-    set('kpi-active',active.reduce((n,b)=>n+qty(b),0));set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
-    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
-  } catch(e) { console.warn('Garnish Farms header totals could not load:',e&&e.message||e); }
+    set('kpi-active',activeParents);set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
+    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);
+    set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
+  } catch(e) { console.warn('Garnish Farms V41 header totals could not load:',e&&e.message||e); }
+})();
+</script>
+<script id="gf-v41-container-list">
+(function(){
+ const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const isActive=x=>norm(x.status||'Active')==='active';
+ const stageType=x=>{const s=norm(x.stage);if(s.includes('fruit'))return 'fruiting';if(s.includes('bulk')||s==='substrate')return 'bags';return 'jars';};
+ window.gfV41RenderContainerCards=async function(){
+   const listEl=document.getElementById('containerCardsList'),countEl=document.getElementById('containerCount');
+   if(!listEl||!window.supabase)return;
+   listEl.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text-muted)">Loading individual production records…</div>';
+   const client=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
+   const [{data:parents,error:pe},{data:children,error:ce}]=await Promise.all([client.from('batches').select('*').order('created_at',{ascending:false}),client.from('batch_items').select('*').order('container_id')]);
+   if(pe){listEl.innerHTML='<div class="empty">Could not load batches: '+esc(pe.message)+'</div>';return;}
+   const ps=parents||[],cs=ce?[]:(children||[]),parentMap=new Map(ps.map(p=>[String(p.id),p]));
+   const childParents=new Set(cs.map(x=>String(x.batch_id)));
+   let units=cs.map(x=>{const p=parentMap.get(String(x.batch_id))||{};return {...p,...x,parentId:x.batch_id,parentBatchId:p.batch_id||x.container_id,container_id:x.container_id||x.item_id||'',strain:x.strain||p.strain,stage:x.stage||p.stage,status:x.status||p.status,date:x.date||p.date,container:x.container||p.container,substrate:x.substrate||p.substrate,notes:x.notes||p.notes,quantity:1};});
+   ps.filter(p=>!childParents.has(String(p.id))).forEach(p=>{const q=Math.max(1,Number(p.quantity)||1);for(let i=1;i<=q;i++)units.push({...p,parentId:p.id,parentBatchId:p.batch_id,container_id:q>1?`${p.batch_id}-${i}`:p.batch_id,quantity:1,unitIndex:i,unitTotal:q});});
+   const siblingGroups=new Map();units.forEach(x=>{const k=String(x.parentId);if(!siblingGroups.has(k))siblingGroups.set(k,[]);siblingGroups.get(k).push(x);});siblingGroups.forEach(g=>g.forEach((x,i)=>{x.unitIndex=x.unitIndex||i+1;x.unitTotal=x.unitTotal||g.length;}));
+   const all=listType==='all';
+   if(!all) units=units.filter(isActive).filter(x=>stageType(x)===listType);
+   if(selectedStrain) units=units.filter(x=>norm(x.strain)===norm(selectedStrain));
+   units.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(a.container_id).localeCompare(String(b.container_id)));
+   if(countEl)countEl.textContent=units.length+' container'+(units.length===1?'':'s');
+   const top=document.getElementById('topVesselQtyVal');if(top)top.textContent=String(units.length);
+   if(!units.length){listEl.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1.2rem">No '+(all?'production containers':'active '+listType)+' found.</div>';return;}
+   const targetsDefault={'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14};
+   function stageDate(x){return x.current_stage_started_on||({ 'Grain Spawn':x.grain_started_on,'Bulk Substrate':x.bulk_started_on,'Fruiting':x.fruiting_started_on }[x.stage])||x.date||'';}
+   function card(x,i,total){
+     const stage=x.stage||'Grain Spawn',date=stageDate(x),targetMap={...targetsDefault,...(x.target_days||{})},target=Number(targetMap[stage]||14);
+     const elapsed=date?Math.max(0,Math.floor((Date.now()-new Date(date+'T00:00:00').getTime())/86400000)):0;
+     const id=x.container_id||x.parentBatchId||'Container';
+     const method=x.fruiting_method?(' · '+x.fruiting_method):'';
+     const label=Number(x.unitTotal||1)>1?'<span class="badge badge-green">'+Number(x.unitIndex||i+1)+' of '+Number(x.unitTotal)+'</span>':'';
+     const targetText=date?('Day '+elapsed+' / '+target+'d'):'Stage date not entered';
+     return `<article class="container-card strain-record-card" style="background:#f8faf7;border-left:4px solid #6b8f5e;padding:.65rem .75rem;margin:.3rem 0"><div class="strain-card-heading"><div style="min-width:0"><div class="strain-card-name">${esc(x.strain||'Unknown strain')}</div><div class="strain-card-id">${esc(id)} ${label}</div></div><span class="badge ${elapsed>target?'badge-yellow':'badge-green'}">${esc(targetText)}</span></div><div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap"><span class="strain-card-stage">${esc(stage)}${method?' · '+esc(method):''}</span><a href="batch.html?id=${encodeURIComponent(x.parentId)}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .55rem">Manage container</a></div><div style="font-size:.68rem;color:var(--text-muted)">Stage start: ${esc(date||'Not recorded')} · Batch: ${esc(x.parentBatchId||'')}</div></article>`;
+   }
+   if(all){
+     const groups=new Map();units.forEach(x=>{const k=String(x.parentId);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x);});
+     listEl.innerHTML=[...groups.values()].map(group=>{const p=group[0],n=group.length,items=group.map((x,i)=>card(x,i,n)).join('');return `<details class="container-card all-batch-group" style="background:#fff;border-left:4px solid #6b8f5e;padding:.7rem .8rem"><summary style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;cursor:pointer;list-style:none"><span><strong style="display:block;color:var(--primary);font-size:.86rem">${esc(p.parentBatchId||p.batch_id||'Batch')}</strong><span style="font-size:.72rem;color:var(--text-muted)">${esc(p.strain||'')} · ${esc(p.date||'')}</span></span><span class="badge badge-green">${n} container${n===1?'':'s'} ▾</span></summary><div style="margin-top:.5rem;border-top:1px solid var(--border);padding-top:.35rem">${items}<div style="text-align:right;margin-top:.4rem"><a href="batch.html?id=${encodeURIComponent(p.parentId)}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .55rem">Manage batch</a></div></div></details>`;}).join('');
+   } else listEl.innerHTML=units.map((x,i)=>card(x,i,units.length)).join('');
+ };
+ const run=()=>window.gfV41RenderContainerCards().catch(e=>{const el=document.getElementById('containerCardsList');if(el)el.textContent='Could not load production records: '+(e.message||e);});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
 </script>
 </body>

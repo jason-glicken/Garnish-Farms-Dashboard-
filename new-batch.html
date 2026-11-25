@@ -331,7 +331,8 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
                 container: document.getElementById('containerInput').value,
                 substrate: document.getElementById('substrateInput').value.trim(),
                 status: document.getElementById('statusInput').value,
-                notes: document.getElementById('notesInput').value.trim()
+                notes: document.getElementById('notesInput').value.trim(),
+                target_days: (() => { try { const cfg=JSON.parse(localStorage.getItem('garnish_farms_settings_v1')||'{}'); return {...{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},...(cfg.stageTargets||{})}; } catch(e) { return {'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14}; } })()
             };
 
             const saveBtn = document.getElementById('saveBtn');
@@ -348,10 +349,15 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
                     res = await _supabase.from('batches').insert([payload]).select('*').single();
                     if (res.error) throw res.error;
                     const parent = res.data;
+                    const targetDays = (() => { try { const cfg=JSON.parse(localStorage.getItem('garnish_farms_settings_v1')||'{}'); return {...{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},...(cfg.stageTargets||{})}; } catch(e) { return {'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14}; } })();
                     const items = Array.from({length:qty}, (_,i) => ({
                         batch_id: parent.id, container_id: `${batchBaseId}-${i+1}`, strain, date: dateVal,
                         stage: payload.stage, status: payload.status, container: payload.container,
-                        substrate: payload.substrate, notes: payload.notes, stage_history: [{stage:payload.stage, date:dateVal}]
+                        substrate: payload.substrate, notes: payload.notes, stage_history: [{stage:payload.stage, date:dateVal, recorded_at:new Date().toISOString()}],
+                        grain_started_on: payload.stage==='Grain Spawn'?dateVal:null,
+                        bulk_started_on: payload.stage==='Bulk Substrate'?dateVal:null,
+                        fruiting_started_on: payload.stage==='Fruiting'?dateVal:null,
+                        current_stage_started_on: dateVal, target_days: targetDays, target_overrides: {}
                     }));
                     const childRes = await _supabase.from('batch_items').insert(items);
                     if (childRes.error) {
@@ -393,24 +399,35 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
  const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
 })();
 </script>
-
-<script id="gf-shared-header-data-v40">
+<script id="gf-shared-header-data-v41">
 (async function(){
   try {
     if (!window.supabase || !window.supabase.createClient) return;
     const client=window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co','sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
-    const [{data:batches,error:be},{data:harvests,error:he}]=await Promise.all([client.from('batches').select('quantity,container,stage,status'),client.from('harvests').select('weight_lbs')]);
-    if(be) throw be;
-    const rows=batches||[], norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
-    const active=rows.filter(b=>norm(b.status)==='active');
-    const qty=b=>Math.max(1,Number(b.quantity)||1);
-    const jars=active.filter(b=>norm(b.stage)==='grain spawn'&&(!b.container||norm(b.container).includes('jar')||norm(b.container).includes('spawn'))).reduce((n,b)=>n+qty(b),0);
-    const bags=active.filter(b=>norm(b.stage)==='bulk substrate'&&(!b.container||norm(b.container).includes('bag')||norm(b.container).includes('substrate'))).reduce((n,b)=>n+qty(b),0);
-    const fruit=active.filter(b=>norm(b.stage).includes('fruit')).reduce((n,b)=>n+qty(b),0);
+    const [{data:parents,error:pe},{data:children,error:ce},{data:harvests,error:he}]=await Promise.all([
+      client.from('batches').select('id,quantity,container,stage,status'),
+      client.from('batch_items').select('id,batch_id,container_id,container,stage,status'),
+      client.from('harvests').select('weight_lbs')
+    ]);
+    if(pe) throw pe;
+    const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+    const active=v=>norm(v||'Active')==='active';
+    const p=parents||[], c=children||[], childParentIds=new Set(c.map(x=>String(x.batch_id)));
+    const units=[];
+    c.forEach(x=>{if(active(x.status)) units.push(x);});
+    p.filter(b=>!childParentIds.has(String(b.id))&&active(b.status)).forEach(b=>{
+      const n=Math.max(1,Number(b.quantity)||1);
+      for(let i=0;i<n;i++) units.push({batch_id:b.id,stage:b.stage,status:b.status,container:b.container});
+    });
+    const jars=units.filter(x=>norm(x.stage)==='grain spawn').length;
+    const bags=units.filter(x=>norm(x.stage)==='bulk substrate').length;
+    const fruit=units.filter(x=>norm(x.stage)==='fruiting').length;
+    const activeParents=new Set(units.map(x=>String(x.batch_id))).size;
     const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
-    set('kpi-active',active.reduce((n,b)=>n+qty(b),0));set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
-    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
-  } catch(e) { console.warn('Garnish Farms header totals could not load:',e&&e.message||e); }
+    set('kpi-active',activeParents);set('kpi-jars',jars);set('kpi-bags',bags);set('kpi-fruiting',fruit);
+    const total=(harvests||[]).reduce((n,h)=>n+(Number(h.weight_lbs)||0),0);
+    set('header-total-farm-yield-val',total.toFixed(2)+' lbs');
+  } catch(e) { console.warn('Garnish Farms V41 header totals could not load:',e&&e.message||e); }
 })();
 </script>
 </body>
