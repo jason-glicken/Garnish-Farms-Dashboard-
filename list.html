@@ -27,11 +27,9 @@
   --pending-text: #6e695f;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body {
+* { box-sizing: border-box; }
+body {
   margin: 0;
-  padding: 0;
-  overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
@@ -100,7 +98,6 @@ main {
   padding: 18px;
   margin-bottom: 18px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  overflow: hidden;
 }
 
 .card h2 {
@@ -157,10 +154,6 @@ main {
   gap: 12px;
 }
 
-.grid-form > div {
-  min-width: 0;
-}
-
 label {
   display: block;
   font-size: 0.82rem;
@@ -170,34 +163,13 @@ label {
 }
 
 input, select, textarea {
-  display: block;
   width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  height: 40px;
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 0.92rem;
   background: #fff;
   color: var(--text);
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-input[type="date"] {
-  display: flex;
-  align-items: center;
-  text-align: left;
-  padding-right: 8px;
-}
-
-select {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23242320' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-  padding-right: 32px;
 }
 
 button {
@@ -243,11 +215,11 @@ th {
 
 .timeline-track {
   position: relative;
-  height: 30px;
+  height: 28px;
   background: #ece8df;
   border-radius: 6px;
   margin: 6px 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .timeline-fill {
@@ -260,7 +232,7 @@ th {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
   pointer-events: none;
@@ -363,11 +335,11 @@ th {
     <section class="card">
       <h2>
         <span>Master Batch History &amp; Variance Ledger</span>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <select id="filterStrain" style="width:auto; height:34px; padding:4px 28px 4px 8px; font-size:0.85rem;">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="filterStrain" style="width:auto; padding:5px 8px; font-size:0.85rem;">
             <option value="ALL">All Strains</option>
           </select>
-          <select id="filterStage" style="width:auto; height:34px; padding:4px 28px 4px 8px; font-size:0.85rem;">
+          <select id="filterStage" style="width:auto; padding:5px 8px; font-size:0.85rem;">
             <option value="ALL">All Stages</option>
             <option value="Grain Spawn">Grain Spawn</option>
             <option value="Bulk Substrate">Bulk Substrate</option>
@@ -441,18 +413,12 @@ const DEFAULT_STRAINS = [
 const STORAGE_KEY_STRAINS = 'gf_mushrooms_strains_v19';
 const STORAGE_KEY_BATCHES = 'gf_mushrooms_batches_v19';
 
-function getLocalYYYYMMDD(dateObj = new Date()) {
-  const y = dateObj.getFullYear();
-  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const d = String(dateObj.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 function loadStrains() {
   const saved = localStorage.getItem(STORAGE_KEY_STRAINS);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
+      // Ensure Maitake is present if upgrading from an older version
       if (!parsed.find(s => s.code === 'MA')) {
         parsed.push({ code: 'MA', name: "Maitake", scientific: "Grifola frondosa", grainDays: 14, bulkDays: 14, fruitDays: 14 });
         localStorage.setItem(STORAGE_KEY_STRAINS, JSON.stringify(parsed));
@@ -476,7 +442,7 @@ function formatDateMMDDYY(dateStr) {
 function addDays(dateStr, days) {
   const d = new Date(dateStr + 'T12:00:00');
   d.setDate(d.getDate() + Number(days));
-  return getLocalYYYYMMDD(d);
+  return d.toISOString().split('T')[0];
 }
 
 function diffDays(startStr, endStr) {
@@ -505,15 +471,13 @@ function seedInitialBatches() {
   if (existing) {
     try { return JSON.parse(existing); } catch (e) {}
   }
-  const todayStr = getLocalYYYYMMDD();
-  const todayCode = formatDateMMDDYY(todayStr);
   const sample = [
     {
-      id: `MA-${todayCode}-01`,
+      id: 'MA-112426-01',
       strainCode: 'MA',
       containerCount: 4,
       containerType: 'Unicorn 3T Bag (50/50 HW/Soy + Gypsum)',
-      inocDate: todayStr,
+      inocDate: '2026-11-24',
       stage: 'Grain Spawn',
       targetGrainDays: 14,
       targetBulkDays: 14,
@@ -534,8 +498,8 @@ function seedInitialBatches() {
       targetGrainDays: 14,
       targetBulkDays: 14,
       targetFruitDays: 14,
-      actualGrainPromotedDate: '2026-11-10',
-      actualBulkPromotedDate: '2026-11-24',
+      actualGrainPromotedDate: '2026-11-10', // Day 13 (-1d)
+      actualBulkPromotedDate: '2026-11-24',  // Day 27 (-1d)
       actualFirstHarvestDate: null,
       harvestYieldGrams: 0,
       notes: 'Moved to 4x4 fruiting tent at 90% RH.'
@@ -550,9 +514,9 @@ function seedInitialBatches() {
       targetGrainDays: 16,
       targetBulkDays: 21,
       targetFruitDays: 14,
-      actualGrainPromotedDate: '2026-10-29',
-      actualBulkPromotedDate: '2026-11-18',
-      actualFirstHarvestDate: '2026-12-01',
+      actualGrainPromotedDate: '2026-10-29', // Day 17 (+1d)
+      actualBulkPromotedDate: '2026-11-18',  // Day 37 (0d cumulative)
+      actualFirstHarvestDate: '2026-12-01',  // Day 50 (-1d)
       harvestYieldGrams: 1420,
       notes: 'Strong first flush; dehydrated at 130F.'
     }
@@ -650,9 +614,9 @@ function saveBatches(batches) {
           <tr>
             <td><strong>${s.code}</strong></td>
             <td><strong>${s.name}</strong><br><span style="font-size:0.78rem; color:var(--text-muted);"><em>${s.scientific}</em></span></td>
-            <td><input type="number" id="g_${idx}" value="${s.grainDays}" min="1" style="width:74px; height:34px;" onchange="updateCumPreview(${idx})" /></td>
-            <td><input type="number" id="b_${idx}" value="${s.bulkDays}" min="1" style="width:74px; height:34px;" onchange="updateCumPreview(${idx})" /></td>
-            <td><input type="number" id="f_${idx}" value="${s.fruitDays}" min="1" style="width:74px; height:34px;" onchange="updateCumPreview(${idx})" /></td>
+            <td><input type="number" id="g_${idx}" value="${s.grainDays}" min="1" style="width:74px;" onchange="updateCumPreview(${idx})" /></td>
+            <td><input type="number" id="b_${idx}" value="${s.bulkDays}" min="1" style="width:74px;" onchange="updateCumPreview(${idx})" /></td>
+            <td><input type="number" id="f_${idx}" value="${s.fruitDays}" min="1" style="width:74px;" onchange="updateCumPreview(${idx})" /></td>
             <td id="cum_${idx}" style="font-size:0.84rem;">
               <span class="marker-target">&#9679;</span> Grain D${s.grainDays} &rarr; Bulk D${cumBulk} &rarr; Fruit D${cumFruit}
             </td>

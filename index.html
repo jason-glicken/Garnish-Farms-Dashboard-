@@ -27,11 +27,9 @@
   --pending-text: #6e695f;
 }
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body {
+* { box-sizing: border-box; }
+body {
   margin: 0;
-  padding: 0;
-  overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--bg);
   color: var(--text);
@@ -100,7 +98,6 @@ main {
   padding: 18px;
   margin-bottom: 18px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  overflow: hidden;
 }
 
 .card h2 {
@@ -157,10 +154,6 @@ main {
   gap: 12px;
 }
 
-.grid-form > div {
-  min-width: 0;
-}
-
 label {
   display: block;
   font-size: 0.82rem;
@@ -170,34 +163,13 @@ label {
 }
 
 input, select, textarea {
-  display: block;
   width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  height: 40px;
   padding: 8px 10px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 0.92rem;
   background: #fff;
   color: var(--text);
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-input[type="date"] {
-  display: flex;
-  align-items: center;
-  text-align: left;
-  padding-right: 8px;
-}
-
-select {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23242320' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 16px;
-  padding-right: 32px;
 }
 
 button {
@@ -243,11 +215,11 @@ th {
 
 .timeline-track {
   position: relative;
-  height: 30px;
+  height: 28px;
   background: #ece8df;
   border-radius: 6px;
   margin: 6px 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .timeline-fill {
@@ -260,7 +232,7 @@ th {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
   pointer-events: none;
@@ -455,18 +427,12 @@ const DEFAULT_STRAINS = [
 const STORAGE_KEY_STRAINS = 'gf_mushrooms_strains_v19';
 const STORAGE_KEY_BATCHES = 'gf_mushrooms_batches_v19';
 
-function getLocalYYYYMMDD(dateObj = new Date()) {
-  const y = dateObj.getFullYear();
-  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const d = String(dateObj.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
 function loadStrains() {
   const saved = localStorage.getItem(STORAGE_KEY_STRAINS);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
+      // Ensure Maitake is present if upgrading from an older version
       if (!parsed.find(s => s.code === 'MA')) {
         parsed.push({ code: 'MA', name: "Maitake", scientific: "Grifola frondosa", grainDays: 14, bulkDays: 14, fruitDays: 14 });
         localStorage.setItem(STORAGE_KEY_STRAINS, JSON.stringify(parsed));
@@ -490,7 +456,7 @@ function formatDateMMDDYY(dateStr) {
 function addDays(dateStr, days) {
   const d = new Date(dateStr + 'T12:00:00');
   d.setDate(d.getDate() + Number(days));
-  return getLocalYYYYMMDD(d);
+  return d.toISOString().split('T')[0];
 }
 
 function diffDays(startStr, endStr) {
@@ -519,15 +485,13 @@ function seedInitialBatches() {
   if (existing) {
     try { return JSON.parse(existing); } catch (e) {}
   }
-  const todayStr = getLocalYYYYMMDD();
-  const todayCode = formatDateMMDDYY(todayStr);
   const sample = [
     {
-      id: `MA-${todayCode}-01`,
+      id: 'MA-112426-01',
       strainCode: 'MA',
       containerCount: 4,
       containerType: 'Unicorn 3T Bag (50/50 HW/Soy + Gypsum)',
-      inocDate: todayStr,
+      inocDate: '2026-11-24',
       stage: 'Grain Spawn',
       targetGrainDays: 14,
       targetBulkDays: 14,
@@ -548,8 +512,8 @@ function seedInitialBatches() {
       targetGrainDays: 14,
       targetBulkDays: 14,
       targetFruitDays: 14,
-      actualGrainPromotedDate: '2026-11-10',
-      actualBulkPromotedDate: '2026-11-24',
+      actualGrainPromotedDate: '2026-11-10', // Day 13 (-1d)
+      actualBulkPromotedDate: '2026-11-24',  // Day 27 (-1d)
       actualFirstHarvestDate: null,
       harvestYieldGrams: 0,
       notes: 'Moved to 4x4 fruiting tent at 90% RH.'
@@ -564,9 +528,9 @@ function seedInitialBatches() {
       targetGrainDays: 16,
       targetBulkDays: 21,
       targetFruitDays: 14,
-      actualGrainPromotedDate: '2026-10-29',
-      actualBulkPromotedDate: '2026-11-18',
-      actualFirstHarvestDate: '2026-12-01',
+      actualGrainPromotedDate: '2026-10-29', // Day 17 (+1d)
+      actualBulkPromotedDate: '2026-11-18',  // Day 37 (0d cumulative)
+      actualFirstHarvestDate: '2026-12-01',  // Day 50 (-1d)
       harvestYieldGrams: 1420,
       notes: 'Strong first flush; dehydrated at 130F.'
     }
@@ -590,8 +554,8 @@ function saveBatches(batches) {
     const targetFruitInput = document.getElementById('targetFruit');
     const idPreview = document.getElementById('idPreview');
 
-    // Use local device date instead of UTC toISOString()
-    inocDateInput.value = getLocalYYYYMMDD();
+    // Set default date to today (2026-11-24 or browser date)
+    inocDateInput.value = new Date().toISOString().split('T')[0];
 
     function populateStrainDropdown() {
       strainSelect.innerHTML = strains.map(s =>
@@ -610,7 +574,7 @@ function saveBatches(batches) {
 
     function updateIdPreview() {
       const code = strainSelect.value;
-      const datePart = formatDateMMDDYY(inocDateInput.value || getLocalYYYYMMDD());
+      const datePart = formatDateMMDDYY(inocDateInput.value || '2026-11-24');
       const prefix = `${code}-${datePart}`;
       const sameDayCount = batches.filter(b => b.id.startsWith(prefix)).length + 1;
       const seq = String(sameDayCount).padStart(2, '0');
@@ -654,7 +618,7 @@ function saveBatches(batches) {
     function promoteBatch(batchId, targetStage) {
       const b = batches.find(x => x.id === batchId);
       if (!b) return;
-      const defaultDate = getLocalYYYYMMDD();
+      const defaultDate = new Date().toISOString().split('T')[0];
       const entered = prompt(`Enter actual promotion date for ${batchId} → ${targetStage} (YYYY-MM-DD):`, defaultDate);
       if (!entered) return;
 
@@ -696,14 +660,14 @@ function saveBatches(batches) {
         const a2 = diffDays(b.inocDate, b.actualBulkPromotedDate);
         const a3 = diffDays(b.inocDate, b.actualFirstHarvestDate);
 
-        const maxScale = Math.max(t3, a1 || 0, a2 || 0, a3 || 0, 42) + 6;
-        const todayStr = getLocalYYYYMMDD();
+        const maxScale = Math.max(t3, a1 || 0, a2 || 0, a3 || 0, 42) + 4;
+        const todayStr = new Date().toISOString().split('T')[0];
         const elapsed = Math.max(0, diffDays(b.inocDate, todayStr) || 0);
         const fillPct = Math.min(100, (elapsed / maxScale) * 100);
 
         const pT1 = (t1 / maxScale) * 100;
         const pT2 = (t2 / maxScale) * 100;
-        const pT3 = Math.min(93, (t3 / maxScale) * 100);
+        const pT3 = (t3 / maxScale) * 100;
 
         return `
           <div class="batch-card">
@@ -718,16 +682,18 @@ function saveBatches(batches) {
               </div>
             </div>
 
+            <!-- Visual Static Target vs Actual Promotion Track -->
             <div class="timeline-track" title="Top ● = Static Target | Bottom ▲ = Actual Promotion">
               <div class="timeline-fill" style="width:${fillPct}%;"></div>
               <div class="pin pin-target" style="left:${pT1}%;">&#9679; D${t1}</div>
               <div class="pin pin-target" style="left:${pT2}%;">&#9679; D${t2}</div>
               <div class="pin pin-target" style="left:${pT3}%;">&#9679; D${t3}</div>
-              ${a1 !== null ? `<div class="pin pin-actual" style="left:${Math.min(93, (a1 / maxScale) * 100)}%;">&#9650; D${a1}</div>` : ''}
-              ${a2 !== null ? `<div class="pin pin-actual" style="left:${Math.min(93, (a2 / maxScale) * 100)}%;">&#9650; D${a2}</div>` : ''}
-              ${a3 !== null ? `<div class="pin pin-actual" style="left:${Math.min(93, (a3 / maxScale) * 100)}%;">&#9650; D${a3}</div>` : ''}
+              ${a1 !== null ? `<div class="pin pin-actual" style="left:${Math.min(98, (a1 / maxScale) * 100)}%;">&#9650; D${a1}</div>` : ''}
+              ${a2 !== null ? `<div class="pin pin-actual" style="left:${Math.min(98, (a2 / maxScale) * 100)}%;">&#9650; D${a2}</div>` : ''}
+              ${a3 !== null ? `<div class="pin pin-actual" style="left:${Math.min(98, (a3 / maxScale) * 100)}%;">&#9650; D${a3}</div>` : ''}
             </div>
 
+            <!-- Stage-by-Stage Target vs Actual Readout -->
             <div class="metrics-grid">
               <div class="metric-box">
                 <strong>1. Grain Spawn &rarr; Bulk</strong>
