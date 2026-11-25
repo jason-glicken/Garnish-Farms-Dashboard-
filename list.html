@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Container List - Garnish Farms</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+        function getLocalYYYYMMDD(dateObj = new Date()) {
+            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
+            if (isNaN(d.getTime())) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+</script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -129,6 +138,7 @@
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
             if (lower.includes('pink oyster') || lower === 'po') return 'PO';
+            if (lower.includes('maitake') || lower === 'ma' || lower.includes('grifola')) return 'MA';
             if (lower.includes('pearl oyster') || lower === 'oy') return 'OY';
             const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
             if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
@@ -160,7 +170,8 @@
                 'CH': { bg: '#fdf8f6', border: '#92400e' },
                 'SH': { bg: '#f5f3ff', border: '#6d28d9' },
                 'PO': { bg: '#fdf2f8', border: '#db2777' },
-                'PI': { bg: '#f0fdf4', border: '#15803d' }
+                'PI': { bg: '#f0fdf4', border: '#15803d' },
+                'MA': { bg: '#f0fdf9', border: '#0f766e' }
             };
             return themes[code] || { bg: '#f8fafc', border: '#4c9a2a' };
         }

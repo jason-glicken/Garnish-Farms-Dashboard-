@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Garnish Farms - Mushrooms</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+        function getLocalYYYYMMDD(dateObj = new Date()) {
+            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
+            if (isNaN(d.getTime())) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+</script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -925,7 +934,7 @@
             if (!batch) return;
 
             const map = getShakenMap();
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getLocalYYYYMMDD();
             map[String(dbId)] = {
                 batchDate: batch.date,
                 shakenDate: todayStr
@@ -1101,6 +1110,7 @@
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
             if (lower.includes('pink oyster') || lower === 'po') return 'PO';
+            if (lower.includes('maitake') || lower === 'ma' || lower.includes('grifola')) return 'MA';
             if (lower.includes('pearl oyster') || lower === 'oy') return 'OY';
 
             const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);

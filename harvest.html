@@ -4,7 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Harvest Log - Garnish Farms</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+        function getLocalYYYYMMDD(dateObj = new Date()) {
+            const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
+            if (isNaN(d.getTime())) return '';
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+</script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -137,6 +146,7 @@
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
             if (lower.includes('pink oyster') || lower === 'po') return 'PO';
+            if (lower.includes('maitake') || lower === 'ma' || lower.includes('grifola')) return 'MA';
             const words = lower.replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
             if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
             return (words[0] || 'BA').slice(0, 2).toUpperCase();
