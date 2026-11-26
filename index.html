@@ -886,6 +886,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 setSyncState('connected', 'Cloud Synced');
                 populateStrainFilter();
                 renderAll();
+                focusDashboardBatchFromUrl();
             } catch (err) {
                 let usedCache = false;
                 try {
@@ -900,6 +901,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 setSyncState('error', usedCache ? `Cached (${msg})` : `Sync Error: ${msg}`);
                 populateStrainFilter();
                 renderAll();
+                focusDashboardBatchFromUrl();
             }
         }
 
@@ -1275,6 +1277,18 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 'PI': { bg: '#f0fdf4', border: '#15803d', badgeBg: '#dcfce7', badgeText: '#166534' }
             };
             return themes[code] || { bg: '#f8fafc', border: '#4c9a2a', badgeBg: '#e6f4ea', badgeText: '#137333' };
+        }
+
+        function focusDashboardBatchFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const rawId = params.get('focusBatch');
+            if (!rawId) return;
+            const item = batches.find(b => String(b.dbId || b.id) === String(rawId));
+            if (!item) return;
+            const stage = item.stage || 'Grain Spawn';
+            const strain = item.strain || '';
+            // Allow the dashboard to finish rendering before expanding and locating the live card.
+            setTimeout(() => jumpToUpcomingBatch(Number(rawId), strain, stage), 120);
         }
 
         function jumpToUpcomingBatch(dbId, strain, stage) {
@@ -2337,7 +2351,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                     const overdue = today >= targetEnd;
                     const label = escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity));
                     const dbId = encodeURIComponent(String(b.dbId || b.id || ''));
-                    const href = `index.html#pipeline-${dbId}`;
+                    const href = `index.html?focusBatch=${dbId}`;
                     return `<a href="${href}" title="${label} · ${stageNames[stage]} · started ${escapeAttr(startValue)} · target ${localIsoDate(targetEnd)}" style="display:grid;grid-template-columns:minmax(105px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:underline;text-decoration-color:#9ab39a;color:inherit;padding:.18rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><span style="height:10px;background:#edf0ed;border-radius:8px;position:relative;display:block;overflow:visible;">${actualBar}${projectedBar}<i aria-hidden="true" style="position:absolute;left:${todayPct}%;top:-3px;height:16px;width:2px;background:#172b1c;z-index:3;transform:translateX(-50%);"></i></span><span style="grid-column:2;font-size:.54rem;color:var(--text-muted);margin-top:-.12rem;">${stageNames[stage]} · ${overdue ? `${Math.floor((today-targetEnd)/86400000)}d past target` : `${Math.max(0,Math.ceil((targetEnd-today)/86400000))}d to target`}</span></a>`;
                 }).join('');
                 return `<section style="border:1px solid ${theme.border};border-left:4px solid ${theme.border};background:${theme.bg};border-radius:8px;padding:.45rem .55rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.75rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><div style="margin-top:.25rem;">${rows}</div></section>`;
