@@ -23,6 +23,24 @@
     try{return await promise}catch(e){cache.delete(key);throw e;}
   }
   const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+  // Database rows have historically used a mix of display names, short strain
+  // codes, and scientific names. Resolve all of them to one canonical key.
+  const STRAINS={
+    BO:['blue oyster','pearl oyster','pleurotus ostreatus','bo'],
+    LM:["lion's mane",'lions mane','hericium erinaceus','lm','li'],
+    SH:['shiitake','lentinula edodes','sh'],
+    MA:['maitake','hen of the woods','grifola frondosa','ma'],
+    PO:['pink oyster','pleurotus djamor','po'],
+    CH:['chestnut','pholiota adiposa','ch'],
+    GT:['golden teacher','psilocybe cubensis','gt'],
+    RE:['reishi','ganoderma lingzhi','re']
+  };
+  function strainKey(value){
+    const v=norm(value); if(!v)return '';
+    for(const [code,aliases] of Object.entries(STRAINS)) if(aliases.some(a=>v===norm(a)||v.includes(norm(a)))) return code;
+    const idCode=String(value).trim().match(/^(BO|LM|LI|SH|MA|PO|CH|GT|RE)(?:[-_ ]|$)/i);
+    return idCode?(idCode[1].toUpperCase()==='LI'?'LM':idCode[1].toUpperCase()):v;
+  }
   function isActive(row){return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(row.status));}
   function stage(row){const s=norm(row.stage),c=norm(row.container);if(s.includes('fruit')||c.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'Bulk Substrate';return 'Grain Spawn';}
   async function inventory(strainName, options={}){
@@ -30,10 +48,11 @@
       read('batches',q=>q.order('created_at',{ascending:false}),options),
       read('batch_items',null,options).catch(e=>{if(options.allowMissingChildren)return [];throw e;})
     ]);
-    const wanted=norm(strainName);
-    const parentRows=strainName?parents.filter(x=>norm(x.strain)===wanted):parents;
+    const wanted=strainKey(strainName);
+    const belongsToStrain=row=>[row.strain,row.batch_id,row.container_id,row.item_id].some(v=>strainKey(v)===wanted || (wanted && String(v??'').toUpperCase().startsWith(wanted+'-')));
+    const parentRows=strainName?parents.filter(belongsToStrain):parents;
     const parentById=new Map(parentRows.map(x=>[String(x.id),x]));
-    const childRows=children.filter(x=>(strainName&&norm(x.strain)===wanted)||parentById.has(String(x.batch_id)));
+    const childRows=children.filter(x=>(strainName&&belongsToStrain(x))||parentById.has(String(x.batch_id)));
     const grouped=new Map();for(const row of childRows){const k=String(row.batch_id||'');if(!k)continue;if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(row);}
     const expanded=childRows.map(row=>{const parent=parentById.get(String(row.batch_id))||{};const siblings=grouped.get(String(row.batch_id))||[];const idx=siblings.findIndex(x=>String(x.id)===String(row.id))+1;return {...parent,...row,id:row.id,parentId:row.batch_id||parent.id,quantity:1,unitIndex:idx||1,unitTotal:siblings.length||1,container_id:row.container_id||row.item_id||null,strain:row.strain||parent.strain,stage:row.stage||parent.stage,status:row.status||parent.status,container:row.container||parent.container,date:row.date||parent.date,notes:row.notes||parent.notes};});
     const expandedParentIds=new Set(grouped.keys());

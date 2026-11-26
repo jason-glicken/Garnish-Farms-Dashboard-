@@ -16,7 +16,7 @@
 <section class="card"><div class="section-title"><h2>Fruiting Blocks</h2><span class="pill" id="fruitListCount">0</span></div><div class="batch-list" id="fruitList"></div></section>
 <section class="card"><div class="section-title"><h2>Harvest history</h2><span class="pill" id="harvestCount">0</span></div><div class="batch-list" id="harvestList"></div></section>
 </main>
-<script src="gf-data.js?v=2"></script>
+<script src="gf-data.js?v=3"></script>
 <script>
 const strain=new URLSearchParams(location.search).get('strain')||'';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const iso=d=>{const x=new Date(d);return isNaN(x)?'':`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};const parseTag=(notes,code)=>{const m=String(notes||'').match(new RegExp('\\[Stage:'+code+':(\\d{4}-\\d{2}-\\d{2})\\]'));return m?m[1]:''};const days=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
