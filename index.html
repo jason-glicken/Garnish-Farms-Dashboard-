@@ -854,6 +854,20 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
 
         const CACHE_BATCHES_KEY = 'garnish_farms_batches_cache_v1';
 
+        // Canonicalize database and cached status values before Home-page filters run.
+        function normalizeBatchStatus(value) {
+            const raw = String(value ?? '').trim();
+            const key = raw.toLowerCase().replace(/[\s_-]+/g, ' ');
+            if (key === 'active' || key === 'in progress') return 'Active';
+            if (key === 'harvested' || key === 'complete' || key === 'completed') return 'Harvested';
+            if (key === 'contaminated') return 'Contaminated';
+            return raw;
+        }
+
+        function isActiveBatch(batch) {
+            return normalizeBatchStatus(batch && batch.status) === 'Active';
+        }
+
         function mapBatchRows(rows) {
             return (rows || []).map(b => ({
                 dbId: b.id,
@@ -865,7 +879,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 container: b.container,
                 substrate: b.substrate,
                 harvestWeight: b.harvest_weight,
-                status: b.status,
+                status: normalizeBatchStatus(b.status),
                 notes: b.notes
             }));
         }
@@ -888,7 +902,11 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                     localStorage.setItem(CACHE_BATCHES_KEY, JSON.stringify(batches));
                 } catch (e) {}
 
-                setSyncState('connected', 'Cloud Synced');
+                // A successful query with zero rows is not proof that production data loaded.
+                setSyncState(
+                    batches.length > 0 ? 'connected' : '',
+                    batches.length > 0 ? `Cloud Synced · ${batches.length} batches` : 'Connected · No batch records returned'
+                );
                 populateStrainFilter();
                 renderAll();
                 focusDashboardBatchFromUrl();
@@ -897,7 +915,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 try {
                     const cached = JSON.parse(localStorage.getItem(CACHE_BATCHES_KEY) || 'null');
                     if (Array.isArray(cached) && cached.length > 0) {
-                        batches = cached;
+                        batches = cached.map(b => ({ ...b, status: normalizeBatchStatus(b.status) }));
                         usedCache = true;
                     }
                 } catch (e) {}
@@ -945,7 +963,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         }
 
         function renderKPIs() {
-            const active = batches.filter(b => b.status === 'Active');
+            const active = batches.filter(b => isActiveBatch(b));
             const totalJars = active.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
             const totalBags = active.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
             const totalFruiting = active.filter(b => b.stage === 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
@@ -1549,9 +1567,9 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             const open=e.target.closest('[data-calendar-open]');
             if(open){e.preventDefault();jumpToUpcomingBatch(open.getAttribute('data-dbid'),open.getAttribute('data-strain')||'',open.getAttribute('data-stage')||'');return;}
             const strainDate=e.target.closest('[data-strain-cal-date]');
-            if(strainDate){const date=strainDate.getAttribute('data-strain-cal-date');const kind=strainDate.getAttribute('data-strain-cal-kind');const cfg=getAppSettings();const active=batches.filter(b=>b.status==='Active'&&b.strain===selectedPipelineStrainFilter);const matches=active.filter(b=>{const due=addLocalDays(getBatchStartDate(b),getStageTargetOffsetDays(b.stage,cfg.stageTargets||{}));const k=b.stage==='Grain Spawn'?'jar':(b.stage==='Bulk Substrate'?'bag':'fruit');return due===date&&k===kind;});if(matches[0])jumpToUpcomingBatch(matches[0].dbId,matches[0].strain,matches[0].stage);return;}
-            if(e.target.closest('#strainCalendarPrev')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()-1);renderStrainCalendar(batches.filter(b=>b.status==='Active'&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
-            if(e.target.closest('#strainCalendarNext')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()+1);renderStrainCalendar(batches.filter(b=>b.status==='Active'&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
+            if(strainDate){const date=strainDate.getAttribute('data-strain-cal-date');const kind=strainDate.getAttribute('data-strain-cal-kind');const cfg=getAppSettings();const active=batches.filter(b=>isActiveBatch(b)&&b.strain===selectedPipelineStrainFilter);const matches=active.filter(b=>{const due=addLocalDays(getBatchStartDate(b),getStageTargetOffsetDays(b.stage,cfg.stageTargets||{}));const k=b.stage==='Grain Spawn'?'jar':(b.stage==='Bulk Substrate'?'bag':'fruit');return due===date&&k===kind;});if(matches[0])jumpToUpcomingBatch(matches[0].dbId,matches[0].strain,matches[0].stage);return;}
+            if(e.target.closest('#strainCalendarPrev')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()-1);renderStrainCalendar(batches.filter(b=>isActiveBatch(b)&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
+            if(e.target.closest('#strainCalendarNext')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()+1);renderStrainCalendar(batches.filter(b=>isActiveBatch(b)&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
         });
 
         document.addEventListener('click', e => {
@@ -1561,17 +1579,17 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 const p = taskCalendarSelectedDate.split('-').map(Number);
                 taskCalendarMonth = new Date(p[0],p[1]-1,1);
                 taskCalendarView = 'day';
-                renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
+                renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
             }
         });
         document.addEventListener('click', e => {
             if (e.target.closest('#calendarBackBtn')) {
                 taskCalendarView = 'month';
-                renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
+                renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
             }
-            if (e.target.closest('#calendarPrevBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()-1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
-            if (e.target.closest('#calendarNextBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()+1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
-            if (e.target.closest('#calendarTodayBtn')) { const now=new Date(); taskCalendarView='month'; taskCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1); taskCalendarSelectedDate=localIsoDate(now); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarPrevBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()-1); renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarNextBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()+1); renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarTodayBtn')) { const now=new Date(); taskCalendarView='month'; taskCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1); taskCalendarSelectedDate=localIsoDate(now); renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
         });
 
         function renderUpcomingTasks(filteredActive) {
@@ -1775,7 +1793,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         }
 
         function renderPipeline() {
-            const activeBatches = batches.filter(b => b.status === 'Active');
+            const activeBatches = batches.filter(b => isActiveBatch(b));
             const filteredActive = selectedPipelineStrainFilter
                 ? activeBatches.filter(b => b.strain === selectedPipelineStrainFilter)
                 : activeBatches;
@@ -2162,7 +2180,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
 
         function dashboardCardCount(card) {
             const title = card.querySelector('.card-header h2')?.textContent.trim() || '';
-            if (title === 'Production Pipeline') return batches.filter(b => b.status === 'Active').length;
+            if (title === 'Production Pipeline') return batches.filter(b => isActiveBatch(b)).length;
             if (title === 'Harvests & Flush History') {
                 const rows = [...(card.querySelectorAll('#dashboardHarvestBody tr') || [])];
                 return rows.filter(r => !/loading|no harvest/i.test(r.textContent)).length;
@@ -2279,7 +2297,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
 
             tbody.innerHTML = filtered.map(b => {
                 const theme = getStrainCardTheme(b.strain);
-                const badgeClass = b.status === 'Active' ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
+                const badgeClass = isActiveBatch(b) ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
                 return `
                     <tr style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
                         <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date, b.quantity))}</strong><div style="min-width:180px;max-width:260px;">${renderContinuousStageBar(0, 0, 0, b.stage, b)}</div></td>
@@ -2353,7 +2371,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         function renderFarmForecastTimeline() {
             const host = document.getElementById('farmForecastTimeline');
             if (!host) return;
-            const active = batches.filter(b => b.status === 'Active');
+            const active = batches.filter(b => isActiveBatch(b));
             if (!active.length) {
                 host.innerHTML = '<div style="font-size:.75rem;color:var(--text-muted);">No active batches to forecast yet.</div>';
                 return;
@@ -2458,7 +2476,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 const blocksPerWeek = weeklyLbs > 0 && lbsPerBlock > 0 ? Math.ceil(weeklyLbs / lbsPerBlock) : 0;
                 const jarGoal = blocksPerWeek * spawnPerBlock;
                 const items = batches.filter(b => b.strain === strain);
-                const active = items.filter(b => b.status === 'Active');
+                const active = items.filter(b => isActiveBatch(b));
                 const counts = {
                     jar: active.filter(b => b.stage === 'Grain Spawn').reduce((n,b)=>n+Number(b.quantity||1),0),
                     bag: active.filter(b => b.stage === 'Bulk Substrate').reduce((n,b)=>n+Number(b.quantity||1),0),
@@ -2522,7 +2540,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             const strainMap = {};
             batches.forEach(b => {
                 if (!strainMap[b.strain]) strainMap[b.strain] = { strain:b.strain, activeBatches:0, totalContainers:0, stages:{'Grain Spawn':0,'Bulk Substrate':0,'Fruiting':0}, totalYield:0 };
-                if (b.status === 'Active') {
+                if (isActiveBatch(b)) {
                     strainMap[b.strain].activeBatches++;
                     strainMap[b.strain].totalContainers += Number(b.quantity || 0);
                     if (strainMap[b.strain].stages[b.stage] !== undefined) strainMap[b.strain].stages[b.stage] += Number(b.quantity || 0);
@@ -2561,7 +2579,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         function renderChart() {
             const ctx = document.getElementById('strainChart').getContext('2d');
             const strainCounts = {};
-            batches.filter(b => b.status === 'Active').forEach(b => {
+            batches.filter(b => isActiveBatch(b)).forEach(b => {
                 strainCounts[b.strain] = (strainCounts[b.strain] || 0) + Number(b.quantity);
             });
 
