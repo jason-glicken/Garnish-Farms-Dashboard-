@@ -523,8 +523,9 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
 header.gf-site-header > .header-production-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;justify-content:stretch!important;align-items:stretch!important;width:100%!important;box-sizing:border-box!important;gap:.35rem!important;margin-top:.05rem!important}
 header.gf-site-header > .header-production-actions > .header-action-card{display:flex!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;justify-content:center!important;align-items:center!important}
 
+html{scroll-behavior:smooth}.sub-batch-row:target{outline:2px solid var(--accent);outline-offset:3px;border-radius:8px}
 </style>
-</head>
+<style>.gf-record-link{cursor:pointer;text-decoration:underline;text-decoration-color:#9ab39a;text-underline-offset:2px}.gf-record-link:focus-visible{outline:2px solid #6b8f5e;outline-offset:2px}</style></head>
 <body>
 
     <header class="gf-site-header">
@@ -1583,7 +1584,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                         : '';
 
                     const stageActionLink = t.item.stage === 'Fruiting'
-                        ? `<a href="harvest.html?id=${t.item.dbId}" style="font-weight: 700; font-size: 0.68rem; color: #b45309; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`
+                        ? `<a href="harvest.html?id=${t.item.dbId}&return=index.html%23pipeline-${t.item.dbId}" style="font-weight: 700; font-size: 0.68rem; color: #b45309; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`
                         : `<a href="#stage-${t.item.stage === 'Grain Spawn' ? 'bulk' : 'fruiting'}" class="upcoming-jump-link" data-dbid="${t.item.dbId}" data-strain="${escapeAttr(t.item.strain)}" data-stage="${escapeAttr(t.item.stage)}" style="font-weight: 700; font-size: 0.68rem; color: ${t.remaining <= 0 ? '#b45309' : 'var(--primary)'}; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`;
 
                     const rowTheme = getStrainCardTheme(t.item.strain);
@@ -1807,7 +1808,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                             : `<button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
 
                         return `
-                            <div class="sub-batch-row" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
+                            <div class="sub-batch-row" id="pipeline-${item.dbId}" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                     <div>
                                         <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity))} ${itemShake}</div>
@@ -1872,7 +1873,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                             const subInfo = item.substrate ? ` • ${escapeAttr(item.substrate)}` : '';
 
                             return `
-                                <div class="sub-batch-row" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
+                                <div class="sub-batch-row" id="pipeline-${item.dbId}" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">
@@ -2336,8 +2337,8 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                     const overdue = today >= targetEnd;
                     const label = escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity));
                     const dbId = encodeURIComponent(String(b.dbId || b.id || ''));
-                    const href = `index.html#pipelineContainer`;
-                    return `<a href="${href}" title="${label} · ${stageNames[stage]} · started ${escapeAttr(startValue)} · target ${localIsoDate(targetEnd)}" style="display:grid;grid-template-columns:minmax(105px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:none;color:inherit;padding:.18rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><span style="height:10px;background:#edf0ed;border-radius:8px;position:relative;display:block;overflow:visible;">${actualBar}${projectedBar}<i aria-hidden="true" style="position:absolute;left:${todayPct}%;top:-3px;height:16px;width:2px;background:#172b1c;z-index:3;transform:translateX(-50%);"></i></span><span style="grid-column:2;font-size:.54rem;color:var(--text-muted);margin-top:-.12rem;">${stageNames[stage]} · ${overdue ? `${Math.floor((today-targetEnd)/86400000)}d past target` : `${Math.max(0,Math.ceil((targetEnd-today)/86400000))}d to target`}</span></a>`;
+                    const href = `index.html#pipeline-${dbId}`;
+                    return `<a href="${href}" title="${label} · ${stageNames[stage]} · started ${escapeAttr(startValue)} · target ${localIsoDate(targetEnd)}" style="display:grid;grid-template-columns:minmax(105px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:underline;text-decoration-color:#9ab39a;color:inherit;padding:.18rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><span style="height:10px;background:#edf0ed;border-radius:8px;position:relative;display:block;overflow:visible;">${actualBar}${projectedBar}<i aria-hidden="true" style="position:absolute;left:${todayPct}%;top:-3px;height:16px;width:2px;background:#172b1c;z-index:3;transform:translateX(-50%);"></i></span><span style="grid-column:2;font-size:.54rem;color:var(--text-muted);margin-top:-.12rem;">${stageNames[stage]} · ${overdue ? `${Math.floor((today-targetEnd)/86400000)}d past target` : `${Math.max(0,Math.ceil((targetEnd-today)/86400000))}d to target`}</span></a>`;
                 }).join('');
                 return `<section style="border:1px solid ${theme.border};border-left:4px solid ${theme.border};background:${theme.bg};border-radius:8px;padding:.45rem .55rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.75rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><div style="margin-top:.25rem;">${rows}</div></section>`;
             }).join('');
