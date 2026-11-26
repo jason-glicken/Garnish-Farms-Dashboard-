@@ -6,6 +6,9 @@
   const LOGIN = 'login.html';
   const OWNER_EMAIL = 'jason.glicken@gmail.com';
   const isLogin = /(^|\/)login\.html$/.test(location.pathname);
+  const recoveryParams = new URLSearchParams(location.hash.replace(/^#/, ''));
+  const recoveryQuery = new URLSearchParams(location.search);
+  let recoveryMode = recoveryParams.get('type') === 'recovery' || recoveryQuery.get('type') === 'recovery' || recoveryQuery.has('code');
   document.documentElement.classList.add('gf-auth-pending');
   const style = document.createElement('style');
   style.textContent = 'html.gf-auth-pending body{visibility:hidden!important}';
@@ -21,6 +24,7 @@
   window.__GF_SUPABASE__ = db;
   window.GFAuth = {
     client: db,
+    get recoveryMode() { return recoveryMode; },
     async signOut() { await db.auth.signOut(); location.replace(LOGIN); }
   };
   const reveal = () => document.documentElement.classList.remove('gf-auth-pending');
@@ -37,6 +41,7 @@
     if (error) console.warn('Session check:', error.message);
     const session = data?.session;
     if (isLogin) {
+      if (recoveryMode) { reveal(); return; }
       if (session?.user?.email?.toLowerCase() === OWNER_EMAIL) {
         const next = safeNext(new URLSearchParams(location.search).get('next'));
         location.replace(next);
@@ -55,8 +60,13 @@
     if (!isLogin) goLogin(); else reveal();
   });
   db.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      recoveryMode = true;
+      window.dispatchEvent(new CustomEvent('gf-password-recovery'));
+      reveal();
+    }
     if (event === 'SIGNED_OUT' && !isLogin) goLogin();
-    if (event === 'SIGNED_IN' && isLogin && session?.user?.email?.toLowerCase() === OWNER_EMAIL) {
+    if (event === 'SIGNED_IN' && isLogin && !recoveryMode && session?.user?.email?.toLowerCase() === OWNER_EMAIL) {
       const next = safeNext(new URLSearchParams(location.search).get('next'));
       location.replace(next);
     }
