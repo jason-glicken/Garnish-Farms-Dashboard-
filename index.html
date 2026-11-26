@@ -1247,13 +1247,13 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             if (embeddedDate) {
                 return `${strainCode}-${embeddedDate[1]}`;
             }
-            return raw ? `${strainCode}-${raw}` : strainCode;
+            return strainCode;
         }
 
         function formatDisplayBatchId(batchId, strain, dateStr, quantity) {
             const base = getBaseBatchId(batchId, strain, dateStr);
             const qty = Math.max(1, Number(quantity || 1));
-            return base;
+            return `${base} (1-${qty})`;
         }
 
         function formatContainerUnitId(batchId, strain, dateStr, index) {

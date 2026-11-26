@@ -98,24 +98,28 @@ const id=new URLSearchParams(location.search).get('id');
 const stages=['Grain Spawn','Bulk Substrate','Fruiting','Harvested'];
 const statuses=['Active','Harvested','Contaminated','Archived'];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function strainCode(v){const s=String(v||'').toLowerCase();if(s.includes('blue oyster'))return 'BO';if(s.includes('lion'))return 'LM';if(s.includes('shiitake'))return 'SH';if(s.includes('maitake'))return 'MA';if(s.includes('pink oyster'))return 'PO';if(s.includes('chestnut'))return 'CH';if(s.includes('golden teacher'))return 'GT';if(s.includes('reishi'))return 'RE';const w=s.replace(/[^a-z0-9 ]/g,' ').trim().split(/\s+/);return (w.length>1?w[0][0]+w[1][0]:(w[0]||'BA').slice(0,2)).toUpperCase();}
+function baseBatchId(b){const d=String(b?.date||'').match(/(\d{4})-(\d{2})-(\d{2})/);if(d)return `${strainCode(b.strain)}-${d[2]}${d[3]}${d[1].slice(2)}`;const raw=String(b?.batch_id||'').replace(/^GF[-_]?/i,'');const m=raw.match(/(\d{6})/);return m ? `${strainCode(b?.strain)}-${m[1]}` : strainCode(b?.strain);}
+function parentBatchLabel(){return `${baseBatchId(parent)} (1-${Math.max(1,items.length)})`;}
+
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
 let parent=null,items=[];
 function stageDate(x,k){return x[k+'_started_on']||'';}
 function targetDays(x){return {...{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},...(parent?.target_days||{}),...(x.target_days||{}),...(x.target_overrides||{})};}
 function dateInput(label,key,x){return `<label>${label}<input type="date" data-field="${key}" value="${esc(stageDate(x,key.replace('_started_on','')))}"></label>`;}
 function render(){
- document.getElementById('batchTitle').innerHTML='<strong>'+esc(parent.batch_id)+' · '+esc(parent.strain)+'</strong>';
+ document.getElementById('batchTitle').innerHTML='<strong>'+esc(parentBatchLabel())+' · '+esc(parent.strain)+'</strong>';
  document.getElementById('batchMeta').textContent=(parent.date||'')+' · '+items.length+' individual containers · Shared substrate: '+(parent.substrate||'Not specified');
  document.getElementById('parentStrain').value=parent.strain||'';document.getElementById('parentDate').value=parent.date||'';document.getElementById('parentSubstrate').value=parent.substrate||'';const pt={...{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},...(parent.target_days||{})};document.getElementById('parentTargetGrain').value=pt['Grain Spawn'];document.getElementById('parentTargetBulk').value=pt['Bulk Substrate'];document.getElementById('parentTargetFruit').value=pt.Fruiting;
  const counts={};items.forEach(x=>counts[x.stage]=(counts[x.stage]||0)+1);
  document.getElementById('stageCounts').textContent=stages.slice(0,3).map(k=>k+': '+(counts[k]||0)).join('  ·  ');
- document.getElementById('items').innerHTML=items.map(x=>{
+ document.getElementById('items').innerHTML=items.map((x,index)=>{
    const t=targetDays(x),hist=Array.isArray(x.stage_history)?x.stage_history:[];
    const history=hist.map(h=>`${esc(h.stage||'Stage')} · ${esc(h.date||'')}`).join(' → ')||'No stage history recorded';
    const next=x.stage==='Grain Spawn'?'Bulk Substrate':x.stage==='Bulk Substrate'?'Fruiting':x.stage==='Fruiting'?'Harvested':'';
    const nextLabel=next==='Bulk Substrate'?'Move to Bags':next==='Fruiting'?'Move to Fruiting':'Mark Harvested';
    return `<article class="item" data-item-id="${esc(x.id)}" style="display:block;border:1px solid var(--border);border-radius:10px;padding:.8rem;margin:.55rem 0;background:#fff">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap"><div><strong>${esc(x.container_id||'Container')}</strong><div class="muted">${esc(x.strain||parent.strain)} · ${esc(x.container||'Container')} · ${esc(x.stage||'Grain Spawn')}</div></div><span class="badge">${esc(x.status||'Active')}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap"><div><strong>${esc(`${baseBatchId(parent)}-${index+1}`)}</strong><span class="badge" style="margin-left:.35rem">${index+1} of ${items.length}</span><div class="muted">${esc(x.strain||parent.strain)} · ${esc(x.container||'Container')} · ${esc(x.stage||'Grain Spawn')}</div></div><span class="badge">${esc(x.status||'Active')}</span></div>
     <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin:.65rem 0"><button type="button" class="btn" data-action="advance" ${!next?'disabled':''}>${nextLabel||'Complete'}</button><button type="button" class="btn btn-outline" data-action="save">Save edits</button></div>
     <div class="gf-inventory-grid">
       <label>Current stage<select data-field="stage">${stages.map(v=>`<option ${x.stage===v?'selected':''}>${v}</option>`).join('')}</select></label>
@@ -176,7 +180,7 @@ document.getElementById('promoteAll').addEventListener('click',async()=>{
  try{for(const item of active)await transition(item,next);await load();}catch(err){alert(err.message||err);}
 });
 document.getElementById('addContainer').addEventListener('click',async()=>{
- const n=items.length+1,base=String(parent.batch_id||'BATCH'),existing=new Set(items.map(x=>x.container_id));let suffix=n;while(existing.has(`${base}-${suffix}`))suffix++;
+ const n=items.length+1,base=baseBatchId(parent),existing=new Set(items.map(x=>x.container_id));let suffix=n;while(existing.has(`${base}-${suffix}`))suffix++;
  const stage=parent.stage||'Grain Spawn',d=parent.date||today(),container=stage==='Grain Spawn'?'Jar':'Bag';
  const row={batch_id:parent.id,container_id:`${base}-${suffix}`,strain:parent.strain,date:d,stage,status:'Active',container,substrate:parent.substrate||null,notes:null,stage_history:[{stage,date:d,recorded_at:new Date().toISOString()}],grain_started_on:stage==='Grain Spawn'?d:null,bulk_started_on:stage==='Bulk Substrate'?d:null,fruiting_started_on:stage==='Fruiting'?d:null,current_stage_started_on:d,target_days:parent.target_days||{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14}};
  const {error}=await db.from('batch_items').insert([row]);if(error){alert(error.message);return;}await db.from('batches').update({quantity:items.length+1}).eq('id',parent.id);await load();

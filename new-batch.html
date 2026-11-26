@@ -258,7 +258,7 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
         function buildDisplayRangeId(strain, dateStr, qty) {
             const base = buildBaseId(strain, dateStr);
             const n = Math.max(1, Number(qty || 1));
-            return `${base}\n${Array.from({length:n}, (_,i)=>`${base}-${i+1}`).join(' · ')}`;
+            return `${base} (1-${n})\n${Array.from({length:n}, (_,i)=>`${base}-${i+1}`).join(' · ')}`;
         }
 
         function updatePreview() {
