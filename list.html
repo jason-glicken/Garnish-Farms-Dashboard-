@@ -611,18 +611,20 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
      });
      const segment=(info,targetLine=false)=>{
        const width=info.target/totalTarget*100;
-       const base=targetLine?colors[info.st]:pale[info.st];
        const fill=targetLine?100:(info.state==='Complete'?100:info.state==='Current'?Math.min(100,info.elapsed/info.target*100):0);
        const over= !targetLine && info.state==='Current' && info.elapsed>info.target;
        const title=targetLine?`${labels[info.st]} target: ${info.target} days`:
          `${labels[info.st]}: ${info.state}${info.reached?` · ${info.elapsed} actual days · ${info.target} day target`:' · not started'}`;
-       return `<div title="${esc(title)}" style="position:relative;flex:${info.target} 1 0;min-width:0;height:13px;background:${pale[info.st]};overflow:hidden;${info.idx===0?'border-radius:999px 0 0 999px;':''}${info.idx===2?'border-radius:0 999px 999px 0;':''}"><div style="position:absolute;inset:0 auto 0 0;width:${fill}%;background:${base};${info.idx===0?'border-radius:999px 0 0 999px;':''}${info.idx===2?'border-radius:0 999px 999px 0;':''}"></div>${over?`<div style="position:absolute;inset:0;border:1.5px solid #b91c1c;box-sizing:border-box"></div>`:''}</div>`;
+       const fillColor=targetLine?colors[info.st]:colors[info.st];
+       const bg=targetLine?fillColor:`linear-gradient(90deg, ${fillColor} 0%, ${fillColor} ${fill}%, ${pale[info.st]} ${fill}%, ${pale[info.st]} 100%)`;
+       const radius=info.idx===0?'border-radius:999px 0 0 999px;':info.idx===2?'border-radius:0 999px 999px 0;':'';
+       return `<div title="${esc(title)}" style="flex:${info.target} 1 0;min-width:0;height:${targetLine?9:13}px;background:${bg};overflow:hidden;${radius}${over?'outline:1.5px solid #b91c1c;outline-offset:-1px;':''}"></div>`;
      };
      const actualSegments=stageInfo.map(i=>segment(i,false)).join('');
      const targetSegments=stageInfo.map(i=>segment(i,true)).join('');
      const actualLabels=stageInfo.map(i=>{
        const color=colors[i.st];
-       const text=i.state==='Complete'?'Complete':i.state==='Current'?`Day ${i.elapsed}`:'Next';
+       const text=i.state==='Complete'?(i.elapsed?`Complete · ${i.elapsed}d`:'Complete'):i.state==='Current'?`Day ${i.elapsed}`:'Next';
        return `<span style="color:${color};font-size:.57rem;font-weight:700;white-space:nowrap">${labels[i.st]}: ${text}</span>`;
      }).join('<span style="color:#cbd5e1;font-size:.55rem">·</span>');
      const targetLabels=stageInfo.map(i=>`<span style="font-size:.57rem;color:var(--text-muted);white-space:nowrap">${labels[i.st]} ${i.target}d</span>`).join('<span style="color:#cbd5e1;font-size:.55rem">·</span>');
