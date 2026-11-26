@@ -60,6 +60,7 @@
                         <button type="button" class="pill-btn" data-strain="Reishi">Reishi <span class="strain-scientific">(Ganoderma lingzhi)</span></button>
                         <button type="button" class="pill-btn" data-strain="Chestnut">Chestnut <span class="strain-scientific">(Pholiota adiposa)</span></button>
                         <button type="button" class="pill-btn" data-strain="Shiitake">Shiitake <span class="strain-scientific">(Lentinula edodes)</span></button>
+                        <button type="button" class="pill-btn" data-strain="Maitake">Maitake <span class="strain-scientific">(Grifola frondosa)</span></button>
                         <button type="button" class="pill-btn" data-strain="Pink Oyster">Pink Oyster <span class="strain-scientific">(Pleurotus djamor)</span></button>
                     </div>
                     <input type="hidden" id="strainInput" value="Blue Oyster">
@@ -156,6 +157,7 @@
             if (lower.includes('reishi') || lower === 're') return 'RE';
             if (lower.includes('chestnut') || lower === 'ch') return 'CH';
             if (lower.includes('shiitake') || lower === 'sh') return 'SH';
+            if (lower.includes('maitake') || lower === 'ma') return 'MA';
             if (lower.includes('pink oyster') || lower === 'po') return 'PO';
             const words = lower.replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
             if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();

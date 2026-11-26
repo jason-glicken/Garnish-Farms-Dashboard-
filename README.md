@@ -38,3 +38,9 @@ This release does not change database schema, production rows, or RLS policies.
 - Sign out is a lightweight text link directly before the sync dot/status beneath the dashboard title.
 - Settings and Home remain in the upper-right header actions.
 - The link uses the existing Supabase sign-out handler.
+
+
+## Maitake strain option fix
+- Added Maitake (Grifola frondosa) to the New Batch and New Culture strain selectors.
+- Explicitly maps Maitake to the canonical `MA` strain code when generating IDs.
+- No database records or schema were changed.
