@@ -1,0 +1,44 @@
+/* Garnish Farms shared data layer — canonical Supabase client and read API. */
+(() => {
+  'use strict';
+  if (window.GFData) return;
+  const URL = 'https://odtalucpwmxcydxbypke.supabase.co';
+  const KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+  let clientPromise;
+  const cache = new Map();
+  async function client() {
+    if (window.supabase?.createClient) return window.__GF_SUPABASE__ ||= window.supabase.createClient(URL, KEY);
+    if (!clientPromise) clientPromise = new Promise((resolve,reject)=>{
+      const script=document.createElement('script'); script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      script.onload=()=>resolve(window.__GF_SUPABASE__ ||= window.supabase.createClient(URL,KEY));
+      script.onerror=()=>reject(new Error('Supabase library failed to load')); document.head.appendChild(script);
+    });
+    return clientPromise;
+  }
+  async function read(table, configure, options={}) {
+    const key=table+':'+(options.cacheKey||'default');
+    if (!options.fresh && cache.has(key)) return cache.get(key);
+    const promise=(async()=>{const db=await client();let q=db.from(table).select('*');if(configure)q=configure(q);const {data,error}=await q;if(error)throw error;return Array.isArray(data)?data:[];})();
+    if (!options.fresh) cache.set(key,promise);
+    try{return await promise}catch(e){cache.delete(key);throw e;}
+  }
+  const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+  function isActive(row){return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(row.status));}
+  function stage(row){const s=norm(row.stage),c=norm(row.container);if(s.includes('fruit')||c.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'Bulk Substrate';return 'Grain Spawn';}
+  async function inventory(strainName, options={}){
+    const [parents,children]=await Promise.all([
+      read('batches',q=>q.order('created_at',{ascending:false}),options),
+      read('batch_items',null,options).catch(e=>{if(options.allowMissingChildren)return [];throw e;})
+    ]);
+    const wanted=norm(strainName);
+    const parentRows=strainName?parents.filter(x=>norm(x.strain)===wanted):parents;
+    const parentById=new Map(parentRows.map(x=>[String(x.id),x]));
+    const childRows=children.filter(x=>(strainName&&norm(x.strain)===wanted)||parentById.has(String(x.batch_id)));
+    const grouped=new Map();for(const row of childRows){const k=String(row.batch_id||'');if(!k)continue;if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(row);}
+    const expanded=childRows.map(row=>{const parent=parentById.get(String(row.batch_id))||{};const siblings=grouped.get(String(row.batch_id))||[];const idx=siblings.findIndex(x=>String(x.id)===String(row.id))+1;return {...parent,...row,id:row.id,parentId:row.batch_id||parent.id,quantity:1,unitIndex:idx||1,unitTotal:siblings.length||1,container_id:row.container_id||row.item_id||null,strain:row.strain||parent.strain,stage:row.stage||parent.stage,status:row.status||parent.status,container:row.container||parent.container,date:row.date||parent.date,notes:row.notes||parent.notes};});
+    const expandedParentIds=new Set(grouped.keys());
+    const remaining=parentRows.filter(p=>!expandedParentIds.has(String(p.id))).map(p=>({...p,parentId:p.id}));
+    return {parents:parentRows,children:childRows,rows:[...expanded,...remaining],allParents:parents};
+  }
+  window.GFData={client,read,inventory,norm,isActive,stage,invalidate(table){if(table){for(const k of cache.keys())if(k.startsWith(table+':'))cache.delete(k);}else cache.clear();}};
+})();

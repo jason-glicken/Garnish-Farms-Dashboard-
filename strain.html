@@ -4,64 +4,6 @@
 <style>
 :root{--primary:#2d5a27;--bg:#f4f7f2;--text:#1f2937;--muted:#6b7280;--border:#e5e7eb}*{box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}body{margin:0;background:var(--bg);color:var(--text)}header{background:#fff;border-bottom:1px solid var(--border);padding:.5rem .75rem .55rem;position:sticky;top:0;z-index:100;display:flex;flex-direction:column;gap:.35rem}h1{font-size:1.15rem;color:var(--primary);margin:0}.brand-row{display:flex;justify-content:space-between;align-items:center;width:100%;gap:.5rem}.brand-title{font-size:1.02rem;font-weight:700;color:var(--primary);text-decoration:none}.sync-line{font-size:.68rem;color:var(--muted);display:flex;align-items:center;gap:.35rem}.sync-dot{width:8px;height:8px;border-radius:50%;background:#9ca3af;display:inline-block}.sync-dot.connected{background:#16a34a}.sync-dot.error{background:#dc2626}.strain-nav-card{width:100%;min-width:0;padding:.32rem .4rem;background:#fff;border:1px solid var(--border);border-radius:9px;overflow:hidden}.strain-nav-scroll{display:flex;gap:.3rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.strain-nav-scroll a{flex:0 0 auto;border:1px solid #d1d5db;border-radius:999px;padding:.18rem .38rem;font-size:.62rem;font-weight:700;text-decoration:none}main{max-width:900px;margin:auto;padding:.8rem}.card{background:#fff;border:1px solid var(--border);border-radius:13px;padding:.85rem;margin-bottom:.75rem;box-shadow:0 3px 8px #00000008}.muted{color:var(--muted);font-size:.75rem}.btn{border:1px solid var(--primary);border-radius:9px;padding:.48rem .7rem;color:var(--primary);background:#fff;text-decoration:none;font-weight:700;font-size:.76rem}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem}.stat{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:.55rem;text-align:center}.stat strong{display:block;font-size:1.25rem;color:var(--primary)}.timeline{display:grid;gap:.75rem}.lane{display:grid;grid-template-columns:105px 1fr;gap:.5rem;align-items:center}.lane-name{font-size:.72rem;font-weight:800;color:var(--primary)}.track{height:34px;background:#f1f3f1;border-radius:8px;position:relative;overflow:hidden;border:1px solid var(--border)}.segment{position:absolute;top:5px;height:22px;border-radius:5px;min-width:3px;opacity:.9}.tick{position:absolute;top:0;bottom:0;width:1px;background:#d1d5db}.axis{display:flex;justify-content:space-between;position:relative;margin-left:110px;font-size:.62rem;color:var(--muted)}.batch-list{display:grid;gap:.4rem}.batch{padding:.55rem;border-radius:8px;border-left:4px solid var(--strain-border,var(--primary));background:var(--strain-bg,#f8faf8);display:flex;justify-content:space-between;gap:.5rem;align-items:center}.batch strong{font-size:.8rem}.pill{font-size:.67rem;background:#e8f2e5;color:var(--primary);border-radius:99px;padding:.18rem .45rem;white-space:nowrap}.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem}.section-title h2{font-size:.9rem;margin:0;color:var(--primary)}.cadence{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}.cadence div{background:#f8faf8;border:1px solid var(--border);padding:.5rem;border-radius:8px}.cadence b{display:block;font-size:.8rem}.cadence small{font-size:.65rem;color:var(--muted)}.empty{font-size:.75rem;color:var(--muted);padding:.5rem 0}@media(max-width:520px){.lane{grid-template-columns:82px 1fr}.axis{margin-left:87px}.stats strong{font-size:1.05rem}}
 
-/* V37 shared site-wide header */
-.gf-site-header{position:sticky!important;top:0;z-index:1000;background:#fff!important;border-bottom:1px solid var(--border,#e5e7eb)!important;padding:.48rem .65rem!important;display:flex!important;flex-direction:column!important;gap:.3rem!important;width:100%;box-shadow:0 2px 5px #00000008}
-.gf-brand-row{display:flex;justify-content:space-between;align-items:center;width:100%;gap:.5rem}
-.gf-brand{text-align:left;text-decoration:none;display:block;min-width:0}.gf-brand h1{font-size:1.05rem!important;line-height:1.2;margin:0;color:var(--primary,#2d5a27);font-weight:800}.gf-brand p{display:flex;align-items:center;justify-content:flex-start;gap:.32rem;margin:.13rem 0 0;font-size:.61rem;color:var(--text-muted,#6b7280)}
-.gf-settings{padding:.3rem .55rem!important;font-size:.7rem!important;white-space:nowrap}
-.gf-site-header .stat-link-card{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;text-decoration:none;color:var(--text-main,#1f2937);box-shadow:0 1px 2px #00000008}
-.gf-site-header .stat-link-card.gf-active{background:#eaf2e7!important;border:1.5px solid var(--primary,#2d5a27)!important;box-shadow:inset 0 0 0 1px var(--primary,#2d5a27)}
-.gf-site-header .header-production-actions{display:grid;grid-template-columns:1fr 1fr 1.45fr;gap:.3rem;align-items:stretch;width:100%;margin-top:.05rem;text-align:center}
-.gf-site-header .header-action-card{min-height:25px;padding:.14rem .2rem!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.04rem;text-align:center;font-size:.57rem;font-weight:700;line-height:1.1}
-.gf-site-header .header-action-card strong{font-size:.64rem;color:var(--primary);font-weight:800}
-.gf-site-header .strain-nav-card{width:100%;min-width:0;margin-top:.02rem;padding:.26rem .35rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;overflow:hidden}
-.gf-site-header .strain-nav-scroll{display:flex;gap:.28rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.04rem 0}
-.gf-site-header .strain-nav-scroll a{flex:0 0 auto;border:1px solid color-mix(in srgb,var(--strain-color) 35%,white);border-radius:999px;padding:.16rem .34rem;font-size:.59rem;font-weight:700;text-decoration:none;color:var(--strain-color);background:var(--strain-bg);line-height:1.2}
-.gf-site-header .strain-nav-scroll a.gf-strain-active{outline:2px solid var(--strain-color);outline-offset:1px;filter:saturate(1.2);font-weight:800}
-.gf-site-header a.gf-active:not(.header-action-card){color:var(--primary)}
-@media(max-width:520px){.gf-site-header{padding:.4rem .5rem!important;gap:.26rem!important}.gf-brand h1{font-size:.96rem!important}.gf-site-header .header-production-actions{grid-template-columns:1fr 1fr 1.35fr}.gf-site-header .header-action-card{min-height:24px;font-size:.54rem}.gf-site-header .header-action-card strong{font-size:.6rem}.gf-site-header .strain-nav-scroll a{font-size:.56rem;padding:.14rem .3rem}}
-
-
-/* V38 header refinements: override legacy page header selectors */
-header.gf-site-header{display:flex!important;flex-direction:column!important;align-items:stretch!important;grid-template-columns:none!important;gap:.3rem!important}
-header.gf-site-header>div,header.gf-site-header>nav{grid-column:auto!important;min-width:0!important;display:flex!important;justify-content:initial!important;align-items:stretch!important}
-header.gf-site-header>.gf-brand-row{display:flex!important;justify-content:space-between!important;align-items:center!important}
-header.gf-site-header>.gf-brand-row .gf-header-actions{display:flex;align-items:center;gap:.35rem;flex:0 0 auto}
-.gf-home{background:#2d5a27!important;color:#fff!important;border:1px solid #2d5a27!important;padding:.3rem .55rem!important;font-size:.68rem!important;white-space:nowrap}
-.gf-site-header .stat-link-card{transition:background .15s,border-color .15s}
-.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(1){background:#f1f6ef!important}
-.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(2){background:#f0f5fb!important}
-.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(3){background:#fbf4ed!important}
-.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(4){background:#f5f1fa!important}
-.gf-site-header .header-production-actions a:nth-child(1){background:#2d5a27!important;border:1px solid #244a20!important;color:#fff!important}
-.gf-site-header .header-production-actions a:nth-child(1) span,.gf-site-header .header-production-actions a:nth-child(1) strong{color:#fff!important}
-.gf-site-header .header-production-actions a:nth-child(2){background:#fff8e9!important}
-.gf-site-header .header-production-actions a:nth-child(3){background:#f1f6ef!important}
-.gf-site-header .header-production-actions a.gf-active{filter:brightness(.97)}
-.gf-home:focus,.gf-home:hover{background:#244a20!important}
-
-
-/* V39: keep the four KPI header cards in a full-width four-column grid.
-   This must override legacy page rules that style header div:nth-child(2) as flex. */
-header.gf-site-header > div:nth-child(2):not(.header-production-actions){
-  display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  justify-content:stretch!important;
-  align-items:stretch!important;
-  width:100%!important;
-  box-sizing:border-box!important;
-  gap:.35rem!important;
-  margin-top:.05rem!important;
-}
-header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat-link-card{
-  display:flex!important;
-  width:100%!important;
-  min-width:0!important;
-  box-sizing:border-box!important;
-  justify-content:center!important;
-  align-items:center!important;
-}
-
 </style><style>.gf-record-link{cursor:pointer;text-decoration:underline;text-decoration-color:#9ab39a;text-underline-offset:2px}.gf-record-link:focus-visible{outline:2px solid #6b8f5e;outline-offset:2px}</style></head><body>
 <div id="gf-shared-header" aria-label="Garnish Farms site header"></div>
 <main>
@@ -75,7 +17,7 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
 <section class="card"><div class="section-title"><h2>Harvest history</h2><span class="pill" id="harvestCount">0</span></div><div class="batch-list" id="harvestList"></div></section>
 </main>
 <script>
-const SUPABASE_URL='https://odtalucpwmxcydxbypke.supabase.co',SUPABASE_ANON_KEY='sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);const strain=new URLSearchParams(location.search).get('strain')||'';
+const strain=new URLSearchParams(location.search).get('strain')||'';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const iso=d=>{const x=new Date(d);return isNaN(x)?'':`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`};const parseTag=(notes,code)=>{const m=String(notes||'').match(new RegExp('\\[Stage:'+code+':(\\d{4}-\\d{2}-\\d{2})\\]'));return m?m[1]:''};const days=(a,b)=>Math.round((new Date(b)-new Date(a))/86400000);
 function canonicalStage(v,container=''){const s=String(v||'').trim().toLowerCase(),c=String(container||'').trim().toLowerCase();if(s.includes('fruit')||c.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'Bulk Substrate';return 'Grain Spawn';}
 function isActiveStatus(v){const s=String(v||'Active').trim().toLowerCase();return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(s);}
@@ -112,31 +54,10 @@ async function init(){
  document.getElementById('strainScientific').textContent=names[strain]||'';
  const norm=v=>String(v||'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
  try {
-   // Fetch broadly, then match client-side so minor capitalization/spacing differences do not blank a strain page.
-   const [{data:allParents,error:parentError},{data:allHarvests,error:harvestError}] = await Promise.all([
-     db.from('batches').select('*').order('created_at',{ascending:false}),
-     db.from('harvests').select('*').order('harvest_date',{ascending:false})
-   ]);
-   if(parentError) throw parentError;
-   const parents=(allParents||[]).filter(b=>norm(b.strain)===norm(strain));
-   const harvests=(allHarvests||[]).filter(h=>norm(h.strain)===norm(strain));
-   let childRows=[];
-   try { const cr=await db.from('batch_items').select('*'); if(!cr.error) childRows=(cr.data||[]).filter(x=>norm(x.strain)===norm(strain)||parents.some(p=>String(p.id)===String(x.batch_id))); } catch(e) { childRows=[]; }
-   const parentById=new Map(parents.map(b=>[String(b.id),b]));
-   // Expand batches that have child-container rows, but retain parent batches
-   // with no children. The previous branch discarded every such parent as soon
-   // as it found even one child row, making the at-a-glance totals incomplete.
-   const grouped=new Map();
-   childRows.forEach(x=>{const key=String(x.batch_id||'');if(!key)return;if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(x);});
-   const expandedParents=new Set(grouped.keys());
-   const expandedChildren=childRows.map(x=>{
-     const parent=parentById.get(String(x.batch_id))||{};
-     const siblings=grouped.get(String(x.batch_id))||[];
-     const unitIndex=siblings.findIndex(y=>String(y.id)===String(x.id))+1;
-     return {...parent,...x,id:x.id,parentId:x.batch_id,batch_id:parent.batch_id||x.container_id||x.item_id||x.batch_id,quantity:1,unitIndex:unitIndex||1,unitTotal:siblings.length||1,container_id:x.container_id||x.item_id||x.batch_id,date:x.date||parent.date,stage:x.stage||parent.stage,status:x.status||parent.status,notes:x.notes||parent.notes,strain:x.strain||parent.strain,container:x.container||parent.container};
-   });
-   const unexpandedParents=parents.filter(p=>!expandedParents.has(String(p.id))).map(b=>({...b,parentId:b.id}));
-   const all=[...expandedChildren,...unexpandedParents];
+   // All production pages use the shared repository for inventory identity and joins.
+   const inventory=await GFData.inventory(strain,{allowMissingChildren:true});
+   const all=inventory.rows;
+   const harvests=(await GFData.read('harvests',q=>q.order('harvest_date',{ascending:false}))).filter(h=>norm(h.strain)===norm(strain));
    const active=all.filter(b=>isActiveStatus(b.status));
    const jars=active.filter(b=>canonicalStage(b.stage,b.container)==='Grain Spawn');
    const bags=active.filter(b=>canonicalStage(b.stage,b.container)==='Bulk Substrate');
@@ -183,22 +104,7 @@ init();
  });
 })();
 </script>
-<style id="gf-canonical-header-layout-v4">
-header.gf-site-header{width:100%!important;box-sizing:border-box!important}
-header.gf-site-header .gf-brand-row{display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:8px!important;width:100%!important;min-width:0!important;box-sizing:border-box!important}
-header.gf-site-header .gf-brand-row>.gf-brand{display:block!important;flex:1 1 auto!important;min-width:0!important;text-decoration:none!important}
-header.gf-site-header .gf-brand-row>.gf-brand h1{margin:0!important;white-space:nowrap!important}
-header.gf-site-header .gf-brand-row>.gf-brand p{display:flex!important;align-items:center!important;gap:7px!important;margin:2px 0 0 0!important}
-header.gf-site-header .gf-header-actions{display:flex!important;flex:0 0 auto!important;flex-direction:row!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;white-space:nowrap!important}
-header.gf-site-header .gf-header-actions>a.gf-settings,
-header.gf-site-header .gf-header-actions>a.gf-home{display:inline-flex!important;box-sizing:border-box!important;flex-grow:0!important;flex-shrink:0!important;align-items:center!important;justify-content:center!important;height:42px!important;min-height:42px!important;padding:0 12px!important;line-height:1!important;white-space:nowrap!important}
-header.gf-site-header .gf-header-actions>a.gf-settings{width:104px!important;min-width:104px!important;max-width:104px!important}
-header.gf-site-header .gf-header-actions>a.gf-home{width:82px!important;min-width:82px!important;max-width:82px!important}
-header.gf-site-header .header-production-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;width:100%!important;box-sizing:border-box!important}
-header.gf-site-header .header-production-actions>*{width:100%!important;min-width:0!important;box-sizing:border-box!important}
-header.gf-site-header .sync-dot.connected{background-color:#16a34a!important}
-header.gf-site-header .sync-dot.error{background-color:#dc2626!important}
-</style>
 
-<script src="shared-header.js?v=1"></script>
+
+<script src="gf-data.js?v=1"></script><script src="shared-header.js?v=2"></script>
 </body></html>

@@ -8,7 +8,7 @@
   if (!mount) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = new URL('shared-header.css?v=1', ROOT).href;
+  link.href = new URL('shared-header.css?v=2', ROOT).href;
   document.head.appendChild(link);
 
   const setStatus = (state, message) => {
@@ -54,17 +54,13 @@
   async function refreshHeader() {
     setStatus('', 'Syncing...');
     try {
-      await ensureSupabase();
-      const client = window.supabase.createClient('https://odtalucpwmxcydxbypke.supabase.co', 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm');
-      const { data, error } = await client.from('batches').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      const batches = Array.isArray(data) ? data : [];
-      const norm = value => String(value || '').trim().toLowerCase();
-      const active = batches.filter(b => !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(b.status)));
-      const sum = rows => rows.reduce((total, b) => total + Number(b.quantity || 0), 0);
-      const jars = sum(active.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting'));
-      const bags = sum(active.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting'));
-      const fruiting = sum(active.filter(b => b.stage === 'Fruiting'));
+      if (!window.GFData) throw new Error('Shared data layer did not load');
+      const batches = await window.GFData.read('batches', q => q.order('created_at', { ascending: false }));
+      const active = batches.filter(window.GFData.isActive);
+      const sum = rows => rows.reduce((total, b) => total + Number(b.quantity || 1), 0);
+      const jars = sum(active.filter(b => window.GFData.stage(b) === 'Grain Spawn' && String(b.container||'').toLowerCase()==='jar'));
+      const bags = sum(active.filter(b => window.GFData.stage(b) === 'Bulk Substrate' && String(b.container||'').toLowerCase()==='bag'));
+      const fruiting = sum(active.filter(b => window.GFData.stage(b) === 'Fruiting'));
       const yieldLbs = batches.reduce((total, b) => total + Number(b.harvest_weight || 0), 0);
       setText('kpi-active', batches.length);
       setText('kpi-jars', jars);
@@ -79,7 +75,7 @@
   }
   async function init() {
     try {
-      const response = await fetch(new URL('shared-header.html?v=1', ROOT), { cache: 'no-store' });
+      const response = await fetch(new URL('shared-header.html?v=2', ROOT), { cache: 'no-store' });
       if (!response.ok) throw new Error('Could not load shared-header.html (' + response.status + ')');
       mount.innerHTML = await response.text();
       setActiveNavigation();
