@@ -33,3 +33,8 @@ This is a staged migration: several other page-specific data operations remain i
 - Do not remove existing database policies until the owner has deployed this build and confirmed sign-in on the live dashboard.
 
 This release does not change database schema, production rows, or RLS policies.
+
+## Header sign-out placement
+- Sign out is a lightweight text link directly before the sync dot/status beneath the dashboard title.
+- Settings and Home remain in the upper-right header actions.
+- The link uses the existing Supabase sign-out handler.

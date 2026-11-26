@@ -74,10 +74,12 @@
   document.addEventListener('click', async event => {
     const button = event.target.closest('[data-gf-signout]');
     if (!button) return;
-    button.disabled = true;
+    event.preventDefault();
+    if (button.getAttribute('aria-disabled') === 'true') return;
+    button.setAttribute('aria-disabled', 'true');
     button.textContent = 'Signing out…';
     const { error } = await db.auth.signOut();
-    if (error) { button.disabled = false; button.textContent = 'Sign out'; alert(error.message); }
+    if (error) { button.removeAttribute('aria-disabled'); button.textContent = 'Sign out'; alert(error.message); }
     else location.replace(LOGIN);
   });
 })();
