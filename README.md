@@ -44,3 +44,12 @@ This release does not change database schema, production rows, or RLS policies.
 - Added Maitake (Grifola frondosa) to the New Batch and New Culture strain selectors.
 - Explicitly maps Maitake to the canonical `MA` strain code when generating IDs.
 - No database records or schema were changed.
+
+
+## Permanent deletion controls (Clean 13 follow-up)
+
+- Batch details includes a clearly marked **Delete batch** action. Confirmation identifies the batch and warns that all linked containers will be permanently deleted.
+- Each individual container has a **Remove container** action. Confirmation identifies the selected container and explains that other containers remain.
+- Removing the final container deletes the now-empty parent batch as well.
+- The `batch_items.batch_id` foreign key in the existing V36 migration is `ON DELETE CASCADE`; deleting a parent batch therefore removes its linked containers in the same database operation.
+- No schema migration or existing production-data change is required to use these controls. Deletion still depends on the deployed Supabase owner-only RLS permissions.

@@ -25,7 +25,7 @@ function lifecycleHtml(x){
  return `<div style="margin-top:.65rem"><div style="display:flex;height:12px;border-radius:8px;overflow:hidden;background:#eef1ee">${segs}</div><div style="display:flex;justify-content:space-between;gap:.3rem;margin-top:.25rem;font-size:.62rem;color:#6b7280"><span>Grain: ${current>0?'Complete':current===0?'Day '+elapsed:'Next'}</span><span>Substrate: ${current>1?'Complete':current===1?'Day '+elapsed:'Next'}</span><span>Fruiting: ${current===2?'Day '+elapsed:'Next'}</span></div><div class="muted" style="margin-top:.3rem">Target plan: ${total} days · ${esc(x.stage||'Grain Spawn')} · Day ${elapsed}</div></div>`;
 }
 function render(){
- document.getElementById('batchTitle').innerHTML='<strong>'+esc(parentBatchLabel())+' · '+esc(parent.strain)+'</strong>';
+ document.getElementById('batchTitle').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap"><strong>'+esc(parentBatchLabel())+' · '+esc(parent.strain)+'</strong><button type="button" class="btn btn-outline" data-delete-batch style="color:#b42318;border-color:#b42318">Delete batch</button></div>';
  document.getElementById('batchMeta').textContent=(parent.date||'')+' · '+items.length+' '+(items.length===1?'container':'individual containers')+' · '+(parent.substrate||'Substrate not specified');
  const counts={};items.forEach(x=>counts[x.stage]=(counts[x.stage]||0)+1);
  document.getElementById('stageCounts').textContent=stages.slice(0,3).map(k=>k+': '+(counts[k]||0)).join('  ·  ');
@@ -42,7 +42,7 @@ function render(){
    const history=hist.map(h=>`${esc(h.stage||'Stage')} · ${esc(h.date||'')}`).join(' → ')||'No stage history recorded';
    const cid=x.container_id||`${baseBatchId(parent)}-${index+1}`;
    return `<article class="item" data-item-id="${esc(x.id)}" style="display:block;border:1px solid var(--border);border-radius:10px;padding:.8rem;margin:.55rem 0;background:#fff"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;flex-wrap:wrap"><div><strong>${esc(cid)}</strong>${items.length>1?`<span class="badge" style="margin-left:.35rem">${index+1} of ${items.length}</span>`:''}<div class="muted">${esc(x.strain||parent.strain)} · ${esc(x.container||'Container')} · ${esc(x.stage||'Grain Spawn')}</div></div><span class="badge">${esc(x.status||'Active')}</span></div>
-    <div class="gf-inventory-grid" style="margin-top:.65rem"><label>Current stage<select data-field="stage">${stages.map(v=>`<option ${x.stage===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Status<select data-field="status">${statuses.map(v=>`<option ${x.status===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Grain / inoculation date<input type="date" data-field="grain_started_on" value="${esc(x.grain_started_on||'')}"></label><label>Bulk substrate date<input type="date" data-field="bulk_started_on" value="${esc(x.bulk_started_on||'')}"></label><label>Fruiting start date<input type="date" data-field="fruiting_started_on" value="${esc(x.fruiting_started_on||'')}"></label><label>Fruiting method<select data-field="fruiting_method"><option value="">Not selected</option>${['Top fruiting','Out of bag','Slits'].map(v=>`<option ${x.fruiting_method===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Target days · Grain Spawn<input type="number" min="1" max="365" data-target="Grain Spawn" value="${Number(t['Grain Spawn'])}"></label><label>Target days · Bulk Substrate<input type="number" min="1" max="365" data-target="Bulk Substrate" value="${Number(t['Bulk Substrate'])}"></label><label>Target days · Fruiting<input type="number" min="1" max="365" data-target="Fruiting" value="${Number(t.Fruiting)}"></label><label>Substrate override<input data-field="substrate" value="${esc(x.substrate||'')}" placeholder="Inherits parent if blank"></label><label style="grid-column:1/-1">Individual notes<textarea data-field="notes" rows="2">${esc(x.notes||'')}</textarea></label></div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.55rem"><button type="button" class="btn btn-outline" data-action="save">Save edits</button></div><div class="muted" style="margin-top:.5rem;font-size:.68rem"><strong>Permanent stage history:</strong> ${history}</div></article>`;
+    <div class="gf-inventory-grid" style="margin-top:.65rem"><label>Current stage<select data-field="stage">${stages.map(v=>`<option ${x.stage===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Status<select data-field="status">${statuses.map(v=>`<option ${x.status===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Grain / inoculation date<input type="date" data-field="grain_started_on" value="${esc(x.grain_started_on||'')}"></label><label>Bulk substrate date<input type="date" data-field="bulk_started_on" value="${esc(x.bulk_started_on||'')}"></label><label>Fruiting start date<input type="date" data-field="fruiting_started_on" value="${esc(x.fruiting_started_on||'')}"></label><label>Fruiting method<select data-field="fruiting_method"><option value="">Not selected</option>${['Top fruiting','Out of bag','Slits'].map(v=>`<option ${x.fruiting_method===v?'selected':''}>${v}</option>`).join('')}</select></label><label>Target days · Grain Spawn<input type="number" min="1" max="365" data-target="Grain Spawn" value="${Number(t['Grain Spawn'])}"></label><label>Target days · Bulk Substrate<input type="number" min="1" max="365" data-target="Bulk Substrate" value="${Number(t['Bulk Substrate'])}"></label><label>Target days · Fruiting<input type="number" min="1" max="365" data-target="Fruiting" value="${Number(t.Fruiting)}"></label><label>Substrate override<input data-field="substrate" value="${esc(x.substrate||'')}" placeholder="Inherits parent if blank"></label><label style="grid-column:1/-1">Individual notes<textarea data-field="notes" rows="2">${esc(x.notes||'')}</textarea></label></div><div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.55rem"><button type="button" class="btn btn-outline" data-action="save">Save edits</button><button type="button" class="btn btn-outline" data-action="delete" style="color:#b42318;border-color:#b42318">Remove container</button></div><div class="muted" style="margin-top:.5rem;font-size:.68rem"><strong>Permanent stage history:</strong> ${history}</div></article>`;
  }).join('')||'<p class="muted">No individual containers recorded.</p>';
 }
 async function load(){
@@ -74,9 +74,49 @@ async function saveCard(card){
  const {error}=await db.from('batch_items').update(patch).eq('id',item.id);if(error)throw error;
  await load();
 }
+// Permanently remove a parent batch. The batch_items foreign key uses ON DELETE CASCADE,
+ // so Supabase removes all linked containers when the parent row is deleted.
+document.getElementById('batchTitle').addEventListener('click',async e=>{
+ const btn=e.target.closest('button[data-delete-batch]');if(!btn)return;
+ const label=parentBatchLabel()+' · '+(parent.strain||'Unknown strain');
+ if(!confirm('PERMANENTLY DELETE '+label+' and all '+items.length+' linked container(s)?\\n\\nThis cannot be undone.'))return;
+ try{
+  btn.disabled=true;btn.textContent='Deleting…';
+  const {error}=await db.from('batches').delete().eq('id',parent.id);
+  if(error)throw error;
+  alert('Batch '+label+' and its linked containers were permanently deleted.');
+  location.href='list.html?type=all';
+ }catch(err){alert('Could not delete batch: '+(err.message||err));btn.disabled=false;btn.textContent='Delete batch';}
+});
+
 document.getElementById('items').addEventListener('click',async e=>{
  const btn=e.target.closest('button[data-action]');if(!btn)return;const card=btn.closest('[data-item-id]');if(!card)return;
- try{btn.disabled=true;if(btn.dataset.action==='advance'){const item=items.find(x=>String(x.id)===String(card.dataset.itemId));const next=item.stage==='Grain Spawn'?'Bulk Substrate':item.stage==='Bulk Substrate'?'Fruiting':'Harvested';if(next==='Harvested'&&!confirm('Mark this container as harvested?'))return;await transition(item,next);await load();}else await saveCard(card);}catch(err){alert('Could not save container: '+(err.message||err));}finally{btn.disabled=false;}
+ const item=items.find(x=>String(x.id)===String(card.dataset.itemId));if(!item)return;
+ try{
+  btn.disabled=true;
+  if(btn.dataset.action==='delete'){
+   const cid=item.container_id||'this container';
+   const last=items.length===1;
+   const message=last
+    ? 'PERMANENTLY REMOVE '+cid+'?\\n\\nThis is the last container, so its parent batch will also be permanently deleted. This cannot be undone.'
+    : 'PERMANENTLY REMOVE '+cid+' from '+parentBatchLabel()+'?\\n\\nThe other '+(items.length-1)+' container(s) will remain. This cannot be undone.';
+   if(!confirm(message)){btn.disabled=false;return;}
+   if(last){
+    // Delete the parent directly; its ON DELETE CASCADE removes the final child atomically.
+    const {error}=await db.from('batches').delete().eq('id',parent.id);
+    if(error)throw error;
+    alert('The last container and its now-empty parent batch were permanently deleted.');
+    location.href='list.html?type=all';return;
+   }
+   const {error}=await db.from('batch_items').delete().eq('id',item.id);
+   if(error)throw error;
+   await load();
+  }else if(btn.dataset.action==='advance'){
+   const next=item.stage==='Grain Spawn'?'Bulk Substrate':item.stage==='Bulk Substrate'?'Fruiting':'Harvested';
+   if(next==='Harvested'&&!confirm('Mark this container as harvested?')){btn.disabled=false;return;}
+   await transition(item,next);await load();
+  }else await saveCard(card);
+ }catch(err){alert('Could not update container: '+(err.message||err));btn.disabled=false;}
 });
 
 document.getElementById('mainContainerCards').addEventListener('click',async e=>{
