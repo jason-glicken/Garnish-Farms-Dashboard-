@@ -1,95 +1,52 @@
-/* Garnish Farms — shared header sync (Home-compatible)
-   Non-Home pages only. Uses the same single batches query and KPI rules as
-   index.html. Optional batch_items/harvests queries are intentionally excluded
-   so a missing optional table/column cannot turn a valid batch sync red. */
+/* Garnish Farms — shared header sync, aligned with the working Home/List query */
 (() => {
   'use strict';
   if (window.__gfSharedHeaderSyncInstalled) return;
   window.__gfSharedHeaderSyncInstalled = true;
 
-  const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
-
-  const byId = id => document.getElementById(id);
-  const put = (id, value) => {
-    const el = byId(id);
-    if (el) el.textContent = String(value);
-  };
-  const setSync = (state, message) => {
-    const dot = byId('syncDot');
-    const label = byId('syncStatus');
-    if (dot) {
-      dot.className = 'sync-dot' + (state ? ' ' + state : '');
-      dot.style.removeProperty('background');
-      dot.style.removeProperty('background-color');
-    }
+  const URL = 'https://odtalucpwmxcydxbypke.supabase.co';
+  const KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+  const $ = id => document.getElementById(id);
+  const text = (id, value) => { const el = $(id); if (el) el.textContent = String(value); };
+  const sync = (state, message) => {
+    const dot = $('syncDot'), label = $('syncStatus');
+    if (dot) dot.className = 'sync-dot' + (state ? ' ' + state : '');
     if (label) label.textContent = message;
   };
-  const norm = value => String(value == null ? '' : value)
-    .trim().toLowerCase().replace(/[\s_-]+/g, ' ');
-  const isActive = batch => {
-    const status = norm(batch && batch.status);
-    return !['inactive', 'harvested', 'contaminated',
-             'archived', 'discarded', 'deleted'].includes(status);
-  };
 
-  async function refreshHeader() {
-    setSync('', 'Syncing...');
+  async function run() {
+    sync('', 'Cloud Sync · Checking…');
     try {
-      // Use the same client library, project, table, and select pattern as Home.
-      const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      const { data, error } = await client
-        .from('batches')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      if (!Array.isArray(data)) throw new Error('Batch query returned no data array');
-
-      const batches = data;
-      const active = batches.filter(isActive);
-      const jars = active
-        .filter(b => b.container === 'Jar' && b.stage !== 'Fruiting')
-        .reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-      const bags = active
-        .filter(b => b.container === 'Bag' && b.stage !== 'Fruiting')
-        .reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-      const fruiting = active
-        .filter(b => b.stage === 'Fruiting')
-        .reduce((sum, b) => sum + Number(b.quantity || 0), 0);
-      const totalYield = batches
-        .reduce((sum, b) => sum + Number(b.harvest_weight || 0), 0);
-
-      put('kpi-active', batches.length);
-      put('kpi-jars', jars);
-      put('kpi-bags', bags);
-      put('kpi-fruiting', fruiting);
-      put('kpi-yield', totalYield.toFixed(1));
-      put('header-total-farm-yield-val', totalYield.toFixed(1) + ' lbs');
-
-      setSync(
-        batches.length > 0 ? 'connected' : '',
-        batches.length > 0
-          ? 'Cloud Synced · ' + batches.length + ' batches'
-          : 'Connected · No batch records returned'
-      );
-    } catch (error) {
-      console.error('Garnish Farms shared header sync failed:', error);
-      const message = error && error.message ? error.message : 'Sync Error';
-      setSync('error', 'Sync Error: ' + message);
+      // The CDN exposes the same `supabase.createClient` used by the page scripts.
+      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+        throw new Error('Supabase client library unavailable');
+      }
+      const client = window.supabase.createClient(URL, KEY);
+      const result = await client.from('batches').select('*').order('created_at', { ascending: false });
+      if (result.error) throw result.error;
+      const batches = Array.isArray(result.data) ? result.data : [];
+      const active = batches.filter(b => {
+        const s = String(b.status || 'Active').trim().toLowerCase();
+        return !['inactive','archived','discarded','deleted','contaminated','harvested'].includes(s);
+      });
+      const sum = rows => rows.reduce((n,b) => n + (Number(b.quantity) || 0), 0);
+      const jars = sum(active.filter(b => String(b.container || '').toLowerCase() === 'jar' && String(b.stage || '').toLowerCase() !== 'fruiting'));
+      const bags = sum(active.filter(b => String(b.container || '').toLowerCase() === 'bag' && String(b.stage || '').toLowerCase() !== 'fruiting'));
+      const fruiting = sum(active.filter(b => String(b.stage || '').toLowerCase() === 'fruiting'));
+      text('kpi-active', batches.length);
+      text('kpi-jars', jars);
+      text('kpi-bags', bags);
+      text('kpi-fruiting', fruiting);
+      sync(batches.length ? 'connected' : '', batches.length ? `Cloud Synced · ${batches.length} batches` : 'Connected · No batches');
+    } catch (err) {
+      console.error('Shared header sync:', err);
+      sync('error', 'Cloud Sync Error');
     }
-  }
-
-  function start() {
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-      setSync('error', 'Sync Error: Supabase library unavailable');
-      return;
-    }
-    refreshHeader();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start, { once: true });
+    document.addEventListener('DOMContentLoaded', run, { once: true });
   } else {
-    start();
+    run();
   }
 })();
