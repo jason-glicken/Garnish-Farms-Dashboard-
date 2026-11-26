@@ -129,3 +129,20 @@ header.gf-site-header .gf-header-actions .gf-home{
   header.gf-site-header .gf-header-actions .gf-settings{flex-basis:78px!important;width:78px!important;min-width:78px!important;max-width:78px!important}
   header.gf-site-header .gf-header-actions .gf-home{flex-basis:62px!important;width:62px!important;min-width:62px!important;max-width:62px!important}
 }
+
+/* V42: compact the Settings and Home header controls further. */
+header.gf-site-header .gf-header-actions .gf-settings,
+header.gf-site-header .gf-header-actions .gf-home{
+  height:28px!important;min-height:28px!important;line-height:1!important;
+  padding:0 7px!important;font-size:.59rem!important;border-radius:7px!important;
+}
+header.gf-site-header .gf-header-actions .gf-settings{
+  flex:0 0 74px!important;width:74px!important;min-width:74px!important;max-width:74px!important;
+}
+header.gf-site-header .gf-header-actions .gf-home{
+  flex:0 0 58px!important;width:58px!important;min-width:58px!important;max-width:58px!important;
+}
+@media(max-width:520px){
+  header.gf-site-header .gf-header-actions .gf-settings{flex-basis:70px!important;width:70px!important;min-width:70px!important;max-width:70px!important}
+  header.gf-site-header .gf-header-actions .gf-home{flex-basis:54px!important;width:54px!important;min-width:54px!important;max-width:54px!important}
+}
