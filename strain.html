@@ -58,7 +58,17 @@ async function init(){
    // All production pages use the shared repository for inventory identity and joins.
    const inventory=await GFData.inventory(strain,{allowMissingChildren:true});
    const all=inventory.rows;
-   const harvests=(await GFData.read('harvests',q=>q.order('harvest_date',{ascending:false}))).filter(h=>norm(h.strain)===norm(strain));
+   // Harvest history is optional. A missing/unconfigured harvests table must never
+   // prevent the production inventory, counts, cards, or timelines from rendering.
+   let harvests=[];
+   let harvestLoadError=null;
+   try {
+     harvests=(await GFData.read('harvests',q=>q.order('harvest_date',{ascending:false})))
+       .filter(h=>norm(h.strain)===norm(strain));
+   } catch(harvestError) {
+     harvestLoadError=harvestError;
+     console.warn('Garnish Farms: harvest history unavailable; production inventory will still load.',harvestError);
+   }
    const active=all.filter(b=>isActiveStatus(b.status));
    const jars=active.filter(b=>canonicalStage(b.stage,b.container)==='Grain Spawn');
    const bags=active.filter(b=>canonicalStage(b.stage,b.container)==='Bulk Substrate');
@@ -70,7 +80,9 @@ async function init(){
    const starts=[['Spawn',all.map(b=>dateOfStage(b,'Grain Spawn'))],['Substrate',all.map(b=>dateOfStage(b,'Bulk Substrate'))],['Fruiting',all.map(b=>dateOfStage(b,'Fruiting'))]];
    document.getElementById('cadence').innerHTML=starts.map(([name,dates])=>{const sorted=dates.filter(Boolean).sort();const last=sorted.at(-1)||'—';return `<div><b>${name}</b><small>Last start</small><b>${formatDateDisplay(last)||'—'}</b><small>Average gap: ${avgGap(sorted)}</small></div>`}).join('');
    document.getElementById('harvestCount').textContent=harvests.length;
-   document.getElementById('harvestList').innerHTML=harvests.length?harvests.map(x=>`<div class="batch"><span><strong>${esc(x.batch_id||'Harvest')}</strong><br><span class="muted">${esc(formatDateDisplay(x.harvest_date)||x.harvest_date||'')} · Flush ${esc(x.flush_number||1)}</span></span><span class="pill">${Number(x.weight_lbs||0).toFixed(2)} lbs</span></div>`).join(''):'<div class="empty">No harvests recorded yet.</div>';
+   document.getElementById('harvestList').innerHTML=harvestLoadError
+     ? '<div class="empty">Harvest history is not available yet. Production inventory is loaded normally.</div>'
+     : harvests.length?harvests.map(x=>`<div class="batch"><span><strong>${esc(x.batch_id||'Harvest')}</strong><br><span class="muted">${esc(formatDateDisplay(x.harvest_date)||x.harvest_date||'')} · Flush ${esc(x.flush_number||1)}</span></span><span class="pill">${Number(x.weight_lbs||0).toFixed(2)} lbs</span></div>`).join(''):'<div class="empty">No harvests recorded yet.</div>';
    const sd=document.getElementById('strainSyncDot');if(sd)sd.classList.add('connected');const ss=document.getElementById('strainSyncStatus');if(ss)ss.textContent='Connected';
    if(!all.length){document.getElementById('timeline').innerHTML='<div class="empty">No production containers recorded for this strain yet.</div>';}
  } catch(error) {
