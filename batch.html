@@ -8,6 +8,10 @@ const SUPABASE_URL='https://odtalucpwmxcydxbypke.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const id=new URLSearchParams(location.search).get('id');
+let parent=null;
+let items=[];
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function targetDays(item){const defaults={'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14};return {...defaults,...(parent?.target_days||{}),...(item?.target_days||{}),...(item?.target_overrides||{})};}
 const stages=['Grain Spawn','Bulk Substrate','Fruiting','Harvested'];
 const statuses=['Active','Harvested','Contaminated','Archived'];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -49,7 +53,8 @@ async function load(){
  if(!id){document.getElementById('items').textContent='Missing batch ID.';return;}
  const [{data:b,error:be},{data:rows,error:ie}]=await Promise.all([db.from('batches').select('*').eq('id',id).single(),db.from('batch_items').select('*').eq('batch_id',id).order('container_id')]);
  if(be||ie){document.getElementById('items').textContent='Unable to load batch. Run v36 and v41 Supabase migrations first. '+(ie?.message||be?.message||'');return;}
- parent=b;items=rows||[];render();
+ parent=b;items=rows||[];
+ try{render();}catch(err){console.error('Batch detail render failed:',err);document.getElementById('mainContainerCards').textContent='Could not render containers: '+(err.message||err);document.getElementById('items').textContent='Could not render container details. Please refresh; if this continues, contact support.';}
 }
 function dateForStage(stage){return stage==='Grain Spawn'?'grain_started_on':stage==='Bulk Substrate'?'bulk_started_on':stage==='Fruiting'?'fruiting_started_on':null;}
 async function transition(item,stage,when=today()){
