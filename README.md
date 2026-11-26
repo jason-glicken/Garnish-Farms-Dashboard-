@@ -23,3 +23,13 @@ Upload the contents of this folder to the root of the `main` branch. Keep all HT
 - The strain Production at a Glance page now consumes `GFData.inventory()` rather than maintaining its own separate parent/child merge implementation.
 
 This is a staged migration: several other page-specific data operations remain in their existing page scripts and can be migrated onto `GFData` in subsequent passes. No database rows, IDs, or schema were changed.
+
+## Owner sign-in (authentication foundation)
+
+- `login.html` provides the mobile-friendly email/password sign-in screen.
+- `gf-auth.js` creates the shared persistent Supabase browser session, gates dashboard pages, and handles sign-out.
+- All dashboard pages load the auth gate before their page scripts. The shared header includes Sign out.
+- The account is restricted in the interface to the configured owner email. This is a user-experience gate only until owner-only database RLS policies are installed and verified.
+- Do not remove existing database policies until the owner has deployed this build and confirmed sign-in on the live dashboard.
+
+This release does not change database schema, production rows, or RLS policies.
