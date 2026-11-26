@@ -16,14 +16,14 @@ All HTML pages remain in the repository root so existing relative links and GitH
 - `settings.html` — settings
 
 ## Shared header sync
-`gf-shared-header-sync.js` is included at the bottom of every HTML page. It refreshes the shared header using the site's existing Supabase tables (`batches`, `batch_items`, and `harvests`).
+`gf-shared-header-sync.js` is included at the bottom of every HTML page. It refreshes non-Home page headers using the exact same `batches` table query as Home. It deliberately does not make optional `batch_items` or `harvests` queries required for header sync.
 
 Header behavior:
-- Green: batch/container/harvest queries completed and records were loaded.
+- Green: the shared `batches` query completed and records were loaded.
 - Gray: checking, or successful query with no production rows.
-- Red: a required query or Supabase client failed.
+- Red: the `batches` query or Supabase client failed.
 
-Header counts use the same parent-batch/child-container model already present in the supplied site's V41 footer logic. Each page's own content loader is retained.
+Header counts use the same `batches` rows and KPI rules as Home (`index.html`). Home retains its original loader and sync indicator; all other pages use the shared script. Each page's own content loader is retained.
 
 ## Important status
 - This package is a prepared clean working copy. It has not been uploaded to GitHub or deployed.

@@ -1,6 +1,7 @@
-/* Garnish Farms — shared header sync
-   Loaded at the end of each HTML page. Keeps header inventory and sync state
-   consistent without replacing that page's own production-page data loader. */
+/* Garnish Farms — shared header sync (Home-compatible)
+   Non-Home pages only. Uses the same single batches query and KPI rules as
+   index.html. Optional batch_items/harvests queries are intentionally excluded
+   so a missing optional table/column cannot turn a valid batch sync red. */
 (() => {
   'use strict';
   if (window.__gfSharedHeaderSyncInstalled) return;
@@ -10,7 +11,7 @@
   const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
 
   const byId = id => document.getElementById(id);
-  const setText = (id, value) => {
+  const put = (id, value) => {
     const el = byId(id);
     if (el) el.textContent = String(value);
   };
@@ -25,75 +26,70 @@
     if (label) label.textContent = message;
   };
   const norm = value => String(value == null ? '' : value)
-    .trim().toLowerCase().replace(/[’']/g, "'")
-    .replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
-  const isActive = status => norm(status || 'Active') === 'active';
+    .trim().toLowerCase().replace(/[\s_-]+/g, ' ');
+  const isActive = batch => {
+    const status = norm(batch && batch.status);
+    return !['inactive', 'harvested', 'contaminated',
+             'archived', 'discarded', 'deleted'].includes(status);
+  };
 
-  async function refreshSharedHeader() {
-    setSync('', 'Cloud Sync · Checking…');
+  async function refreshHeader() {
+    setSync('', 'Syncing...');
     try {
-      if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-        throw new Error('Supabase client library is not available on this page.');
-      }
+      // Use the same client library, project, table, and select pattern as Home.
       const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      const [parentsResult, childrenResult, harvestsResult] = await Promise.all([
-        client.from('batches').select('id,quantity,container,stage,status'),
-        client.from('batch_items').select('id,batch_id,container_id,container,stage,status'),
-        client.from('harvests').select('weight_lbs')
-      ]);
-      if (parentsResult.error) throw parentsResult.error;
-      if (childrenResult.error) throw childrenResult.error;
-      if (harvestsResult.error) throw harvestsResult.error;
+      const { data, error } = await client
+        .from('batches')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      if (!Array.isArray(data)) throw new Error('Batch query returned no data array');
 
-      const parents = parentsResult.data || [];
-      const children = childrenResult.data || [];
-      const harvests = harvestsResult.data || [];
-      const childParentIds = new Set(children.map(item => String(item.batch_id)));
-      const units = [];
+      const batches = data;
+      const active = batches.filter(isActive);
+      const jars = active
+        .filter(b => b.container === 'Jar' && b.stage !== 'Fruiting')
+        .reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+      const bags = active
+        .filter(b => b.container === 'Bag' && b.stage !== 'Fruiting')
+        .reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+      const fruiting = active
+        .filter(b => b.stage === 'Fruiting')
+        .reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+      const totalYield = batches
+        .reduce((sum, b) => sum + Number(b.harvest_weight || 0), 0);
 
-      children.forEach(item => {
-        if (isActive(item.status)) units.push(item);
-      });
-      parents
-        .filter(parent => !childParentIds.has(String(parent.id)) && isActive(parent.status))
-        .forEach(parent => {
-          const count = Math.max(1, Number(parent.quantity) || 1);
-          for (let i = 0; i < count; i++) {
-            units.push({
-              batch_id: parent.id,
-              stage: parent.stage,
-              status: parent.status,
-              container: parent.container
-            });
-          }
-        });
+      put('kpi-active', batches.length);
+      put('kpi-jars', jars);
+      put('kpi-bags', bags);
+      put('kpi-fruiting', fruiting);
+      put('kpi-yield', totalYield.toFixed(1));
+      put('header-total-farm-yield-val', totalYield.toFixed(1) + ' lbs');
 
-      const jars = units.filter(item => norm(item.stage) === 'grain spawn').length;
-      const bags = units.filter(item => norm(item.stage) === 'bulk substrate').length;
-      const fruiting = units.filter(item => norm(item.stage) === 'fruiting').length;
-      const batchCount = new Set(units.map(item => String(item.batch_id || item.id || ''))).size;
-      const totalYield = harvests.reduce((sum, row) => sum + (Number(row.weight_lbs) || 0), 0);
-
-      setText('kpi-active', batchCount);
-      setText('kpi-jars', jars);
-      setText('kpi-bags', bags);
-      setText('kpi-fruiting', fruiting);
-      setText('header-total-farm-yield-val', totalYield.toFixed(2) + ' lbs');
-
-      if (parents.length || children.length) {
-        setSync('connected', 'Cloud Synced · ' + batchCount + ' batches');
-      } else {
-        setSync('', 'Connected · No production records returned');
-      }
+      setSync(
+        batches.length > 0 ? 'connected' : '',
+        batches.length > 0
+          ? 'Cloud Synced · ' + batches.length + ' batches'
+          : 'Connected · No batch records returned'
+      );
     } catch (error) {
       console.error('Garnish Farms shared header sync failed:', error);
-      setSync('error', 'Cloud Sync Error');
+      const message = error && error.message ? error.message : 'Sync Error';
+      setSync('error', 'Sync Error: ' + message);
     }
   }
 
+  function start() {
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+      setSync('error', 'Sync Error: Supabase library unavailable');
+      return;
+    }
+    refreshHeader();
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', refreshSharedHeader, { once: true });
+    document.addEventListener('DOMContentLoaded', start, { once: true });
   } else {
-    refreshSharedHeader();
+    start();
   }
 })();
