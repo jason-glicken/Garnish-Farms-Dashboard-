@@ -8,7 +8,7 @@
   if (!mount) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = new URL('shared-header.css?v=2', ROOT).href;
+  link.href = new URL('shared-header.css?v=3', ROOT).href;
   document.head.appendChild(link);
 
   const setStatus = (state, message) => {
@@ -38,7 +38,12 @@
       if (href === 'harvest.html' && file === 'harvest.html') a.classList.add('gf-active');
       if (href === 'yield.html' && file === 'yield.html') a.classList.add('gf-active');
       if (href === 'settings.html' && file === 'settings.html') a.classList.add('gf-active');
-      if (href.startsWith('strain.html?strain=') && file === 'strain.html' && decodeURIComponent(href.split('strain=')[1] || '') === (params.get('strain') || '')) a.classList.add('gf-strain-active');
+      if (a.hasAttribute('data-strain')) {
+        const strainName = a.getAttribute('data-strain') || '';
+        if (file === 'list.html') a.href = `list.html?type=${encodeURIComponent(type || 'jars')}&strain=${encodeURIComponent(strainName)}`;
+        else if (file === 'strain.html') a.href = `strain.html?strain=${encodeURIComponent(strainName)}`;
+        if (file === 'strain.html' && strainName.toLowerCase() === (params.get('strain') || '').toLowerCase()) a.classList.add('gf-strain-active');
+      }
     });
   }
   async function ensureSupabase() {
@@ -75,7 +80,7 @@
   }
   async function init() {
     try {
-      const response = await fetch(new URL('shared-header.html?v=2', ROOT), { cache: 'no-store' });
+      const response = await fetch(new URL('shared-header.html?v=3', ROOT), { cache: 'no-store' });
       if (!response.ok) throw new Error('Could not load shared-header.html (' + response.status + ')');
       mount.innerHTML = await response.text();
       setActiveNavigation();
