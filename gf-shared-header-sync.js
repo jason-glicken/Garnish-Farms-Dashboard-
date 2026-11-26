@@ -10,7 +10,12 @@
   const text = (id, value) => { const el = $(id); if (el) el.textContent = String(value); };
   const sync = (state, message) => {
     const dot = $('syncDot'), label = $('syncStatus');
-    if (dot) dot.className = 'sync-dot' + (state ? ' ' + state : '');
+    if (dot) {
+      dot.className = 'sync-dot' + (state ? ' ' + state : '');
+      dot.style.setProperty('background-color',
+        state === 'connected' ? '#16a34a' : state === 'error' ? '#dc2626' : '#9ca3af',
+        'important');
+    }
     if (label) label.textContent = message;
   };
 
