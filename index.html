@@ -1288,7 +1288,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             const stage = item.stage || 'Grain Spawn';
             const strain = item.strain || '';
             // Allow the dashboard to finish rendering before expanding and locating the live card.
-            setTimeout(() => jumpToUpcomingBatch(Number(rawId), strain, stage), 120);
+            setTimeout(() => jumpToUpcomingBatch(rawId, strain, stage), 180);
         }
 
         function jumpToUpcomingBatch(dbId, strain, stage) {
@@ -1303,10 +1303,11 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 const cards = document.querySelectorAll('.pipeline-strain-card');
                 for (const c of cards) {
                     if (c.getAttribute('data-stage') === stage && c.getAttribute('data-strain') === strain) {
-                        const targetRow = c.querySelector(`[data-batch-db-id="${Number(dbId)}"]`) || c;
+                        const targetRow = [...c.querySelectorAll('[data-batch-db-id]')].find(row => String(row.getAttribute('data-batch-db-id')) === String(dbId)) || c;
                         targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        targetRow.style.outline = '2px solid var(--accent)';
-                        setTimeout(() => { targetRow.style.outline = ''; }, 1600);
+                        targetRow.style.outline = '3px solid var(--accent)';
+                        targetRow.style.outlineOffset = '3px';
+                        setTimeout(() => { targetRow.style.outline = ''; targetRow.style.outlineOffset = ''; }, 2200);
                         break;
                     }
                 }
@@ -1501,7 +1502,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             const complete=e.target.closest('[data-calendar-complete]');
             if(complete){e.preventDefault();completeCalendarTask(complete.getAttribute('data-dbid'),complete.getAttribute('data-calendar-complete'));return;}
             const open=e.target.closest('[data-calendar-open]');
-            if(open){e.preventDefault();jumpToUpcomingBatch(Number(open.getAttribute('data-dbid')),open.getAttribute('data-strain')||'',open.getAttribute('data-stage')||'');return;}
+            if(open){e.preventDefault();jumpToUpcomingBatch(open.getAttribute('data-dbid'),open.getAttribute('data-strain')||'',open.getAttribute('data-stage')||'');return;}
             const strainDate=e.target.closest('[data-strain-cal-date]');
             if(strainDate){const date=strainDate.getAttribute('data-strain-cal-date');const kind=strainDate.getAttribute('data-strain-cal-kind');const cfg=getAppSettings();const active=batches.filter(b=>b.status==='Active'&&b.strain===selectedPipelineStrainFilter);const matches=active.filter(b=>{const due=addLocalDays(getBatchStartDate(b),getStageTargetOffsetDays(b.stage,cfg.stageTargets||{}));const k=b.stage==='Grain Spawn'?'jar':(b.stage==='Bulk Substrate'?'bag':'fruit');return due===date&&k===kind;});if(matches[0])jumpToUpcomingBatch(matches[0].dbId,matches[0].strain,matches[0].stage);return;}
             if(e.target.closest('#strainCalendarPrev')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()-1);renderStrainCalendar(batches.filter(b=>b.status==='Active'&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
@@ -2102,7 +2103,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             if (jumpLink) {
                 e.preventDefault();
                 jumpToUpcomingBatch(
-                    Number(jumpLink.getAttribute('data-dbid')),
+                    jumpLink.getAttribute('data-dbid'),
                     jumpLink.getAttribute('data-strain') || '',
                     jumpLink.getAttribute('data-stage') || ''
                 );
