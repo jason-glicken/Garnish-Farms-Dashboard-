@@ -1,0 +1,54 @@
+--- a/index.html
++++ b/index.html
+@@ -855,3 +855,13 @@
+         const CACHE_BATCHES_KEY = 'garnish_farms_batches_cache_v1';
+
++        // Normalize status text once so Home-page filters are not sensitive to
++        // capitalization or accidental leading/trailing whitespace in Supabase.
++        function normalizeBatchStatus(value) {
++            const raw = String(value ?? '').trim();
++            const key = raw.toLowerCase().replace(/[\s_-]+/g, ' ');
++            if (key === 'active' || key === 'in progress') return 'Active';
++            if (key === 'harvested' || key === 'complete' || key === 'completed') return 'Harvested';
++            if (key === 'contaminated') return 'Contaminated';
++            return raw;
++        }
++
+         function mapBatchRows(rows) {
+             return (rows || []).map(b => ({
+                 dbId: b.id,
+@@ -865,7 +875,7 @@
+                 container: b.container,
+                 substrate: b.substrate,
+                 harvestWeight: b.harvest_weight,
+-                status: b.status,
++                status: normalizeBatchStatus(b.status),
+                 notes: b.notes
+             }));
+         }
+@@ -887,8 +897,13 @@
+                 try {
+                     localStorage.setItem(CACHE_BATCHES_KEY, JSON.stringify(batches));
+                 } catch (e) {}
+
+-                setSyncState('connected', 'Cloud Synced');
++                // A successful request returning no rows is not proof that the
++                // production dataset loaded. Keep the indicator neutral and explicit.
++                setSyncState(
++                    batches.length > 0 ? 'connected' : '',
++                    batches.length > 0 ? `Cloud Synced · ${batches.length} batches` : 'Connected · No batch records returned'
++                );
+                 populateStrainFilter();
+                 renderAll();
+                 focusDashboardBatchFromUrl();
+@@ -896,8 +911,9 @@
+                 let usedCache = false;
+                 try {
+                     const cached = JSON.parse(localStorage.getItem(CACHE_BATCHES_KEY) || 'null');
+                     if (Array.isArray(cached) && cached.length > 0) {
+-                        batches = cached;
++                        // Normalize older browser-cache records as well as cloud rows.
++                        batches = cached.map(b => ({ ...b, status: normalizeBatchStatus(b.status) }));
+                         usedCache = true;
+                     }
+                 } catch (e) {}

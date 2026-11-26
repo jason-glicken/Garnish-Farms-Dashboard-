@@ -1,0 +1,6 @@
+Preparation checks:
+- Patch targets index.html only.
+- No SQL or Supabase data changes.
+- Unknown status values are preserved.
+- Cached records are normalized on fallback.
+- Empty successful result is not labeled Cloud Synced.
