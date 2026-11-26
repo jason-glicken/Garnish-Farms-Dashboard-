@@ -368,7 +368,7 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
                             <div class="strain-card-heading">
                                 <div style="min-width:0;">
                                     <div class="strain-card-name">${formatStrainWithScientific(b.strain)}</div>
-                                    <div class="strain-card-id">${escapeAttr(formatDisplayBatchId(b.batch_id, b.strain, b.date, b.quantity))}</div>
+                                    <div class="strain-card-id"><a class="gf-record-link" href="index.html?focusBatch=${encodeURIComponent(String(b.id))}" style="color:inherit;text-decoration:underline;text-decoration-color:#9ab39a;text-underline-offset:2px;">${escapeAttr(formatDisplayBatchId(b.batch_id, b.strain, b.date, b.quantity))}</a></div>
                                 </div>
                                 <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
                             </div>
