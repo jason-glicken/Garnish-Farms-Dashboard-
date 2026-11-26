@@ -857,6 +857,8 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         // Canonicalize database and cached status values before Home-page filters run.
         function normalizeBatchStatus(value) {
             const raw = String(value ?? '').trim();
+            // Match the working Jars/Bags pages: a missing status is treated as Active.
+            if (!raw) return 'Active';
             const key = raw.toLowerCase().replace(/[\s_-]+/g, ' ');
             if (key === 'active' || key === 'in progress') return 'Active';
             if (key === 'harvested' || key === 'complete' || key === 'completed') return 'Harvested';
@@ -865,7 +867,10 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         }
 
         function isActiveBatch(batch) {
-            return normalizeBatchStatus(batch && batch.status) === 'Active';
+            // Match the working list/strain pages: exclude known terminal states,
+            // but do not hide valid records with a blank or unfamiliar status.
+            const status = normalizeBatchStatus(batch && batch.status).toLowerCase();
+            return !['inactive', 'harvested', 'contaminated', 'archived', 'discarded', 'deleted'].includes(status);
         }
 
         function mapBatchRows(rows) {
