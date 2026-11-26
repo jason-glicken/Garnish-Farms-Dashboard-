@@ -111,3 +111,21 @@ header.gf-site-header>.header-production-actions{display:grid!important;grid-tem
 header.gf-site-header .sync-dot.connected{background:#16a34a!important;background-color:#16a34a!important}
 header.gf-site-header .sync-dot.error{background:#dc2626!important;background-color:#dc2626!important}
 header.gf-site-header .sync-dot:not(.connected):not(.error){background:#9ca3af!important;background-color:#9ca3af!important}
+
+/* V41: slimmer Settings and Home header buttons; keep both equally aligned. */
+header.gf-site-header .gf-header-actions .gf-settings,
+header.gf-site-header .gf-header-actions .gf-home{
+  height:34px!important;min-height:34px!important;line-height:1!important;
+  padding:0 9px!important;font-size:.64rem!important;border-radius:8px!important;
+}
+header.gf-site-header .gf-header-actions .gf-settings{
+  flex:0 0 88px!important;width:88px!important;min-width:88px!important;max-width:88px!important;
+}
+header.gf-site-header .gf-header-actions .gf-home{
+  flex:0 0 68px!important;width:68px!important;min-width:68px!important;max-width:68px!important;
+}
+@media(max-width:520px){
+  header.gf-site-header .gf-header-actions{gap:.28rem!important}
+  header.gf-site-header .gf-header-actions .gf-settings{flex-basis:78px!important;width:78px!important;min-width:78px!important;max-width:78px!important}
+  header.gf-site-header .gf-header-actions .gf-home{flex-basis:62px!important;width:62px!important;min-width:62px!important;max-width:62px!important}
+}
