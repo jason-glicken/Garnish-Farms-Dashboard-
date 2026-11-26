@@ -26,7 +26,7 @@
   // Database rows have historically used a mix of display names, short strain
   // codes, and scientific names. Resolve all of them to one canonical key.
   const STRAINS={
-    BO:['blue oyster','pearl oyster','pleurotus ostreatus','bo'],
+    BO:['blue oyster','pearl oyster','pleurotus ostreatus','bo','bl'],
     LM:["lion's mane",'lions mane','hericium erinaceus','lm','li'],
     SH:['shiitake','lentinula edodes','sh'],
     MA:['maitake','hen of the woods','grifola frondosa','ma'],
@@ -38,8 +38,8 @@
   function strainKey(value){
     const v=norm(value); if(!v)return '';
     for(const [code,aliases] of Object.entries(STRAINS)) if(aliases.some(a=>v===norm(a)||v.includes(norm(a)))) return code;
-    const idCode=String(value).trim().match(/^(BO|LM|LI|SH|MA|PO|CH|GT|RE)(?:[-_ ]|$)/i);
-    return idCode?(idCode[1].toUpperCase()==='LI'?'LM':idCode[1].toUpperCase()):v;
+    const idCode=String(value).trim().match(/^(BO|BL|LM|LI|SH|MA|PO|CH|GT|RE)(?:[-_ ]|$)/i);
+    return idCode?(['LI'].includes(idCode[1].toUpperCase())?'LM':['BL'].includes(idCode[1].toUpperCase())?'BO':idCode[1].toUpperCase()):v;
   }
   function isActive(row){return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(row.status));}
   function stage(row){const s=norm(row.stage),c=norm(row.container);if(s.includes('fruit')||c.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'Bulk Substrate';return 'Grain Spawn';}
