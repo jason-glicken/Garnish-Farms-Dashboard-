@@ -18,3 +18,9 @@
 - Keep responsive behavior in the central stylesheet.
 - Do not append one-off override stylesheets or repeated override blocks. Edit the canonical component rule instead.
 - Any design-system change must be checked on Home, All Batches, Jars, Bags, Fruiting, Upcoming, Calendar, Yield, Cultures, Activities, Settings, and strain detail.
+
+## Header integration rule (V10)
+- Main page navigation is a child of `.site-header`, alongside the strain ribbon.
+- `GFUI.header(data)` renders exactly one `.site-header`, one `.strain-nav`, and one `.page-nav` inside `#gf-header`.
+- Never append `.page-nav` as a sibling after `.site-header`.
+- `#app` contains page content only; global navigation belongs exclusively in `#gf-header`.

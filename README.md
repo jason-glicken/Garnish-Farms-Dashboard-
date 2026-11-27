@@ -24,3 +24,6 @@ JavaScript syntax and archive integrity were checked. This package has not been 
 `gf3-styles.css` is the single visual source of truth. Page renderers use shared classes. The only remaining inline `style` attributes supply data-only CSS custom properties for chart/visualization values; all presentation declarations for those values are in the central stylesheet. No page-specific stylesheet was added.
 
 The previous visual behavior was preserved rather than redesigning page components. This is a first consolidation step: the existing stylesheet still contains legacy cascade sections, so future cleanup should consolidate duplicate selectors deliberately and verify screenshots before removing old declarations.
+
+## V10 header cleanup
+The main page navigation is rendered inside the shared `.site-header` rather than appended as a separate sibling strip. The shared header wrapper owns sticky positioning and visual continuity. CSS tightens spacing and integrates the page navigation and strain ribbon into one visual unit. Production and data modules are unchanged.

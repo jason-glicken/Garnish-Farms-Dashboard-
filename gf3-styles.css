@@ -175,3 +175,37 @@ button, .btn, .kpi, .yield-pill, .page-nav a, .strain-nav a {
 .spacing-card, .batch-group, .forecast-row, .task-row {
   color: var(--gf-color-text);
 }
+
+/* V10 HEADER FINISH — all navigation is inside the one shared header */
+#gf-header{position:sticky;top:0;z-index:50;background:#fff;box-shadow:0 2px 9px rgba(31,55,35,.07)}
+.site-header{position:relative;top:auto;z-index:auto;width:100%;padding:8px 14px 7px;border:0;box-shadow:none;background:#fff}
+.brand-row{min-height:42px}
+.brand-home-link h1{font-size:clamp(17px,3.7vw,23px);letter-spacing:-.45px}
+.sync{font-size:12px;line-height:1.25;margin-top:2px}
+.head-actions{align-items:center;gap:7px}
+.head-actions .btn{min-height:38px;padding:7px 13px;border-radius:11px;font-size:13px}
+.kpis{gap:6px;margin-top:8px}
+.kpi{min-height:49px;padding:5px 3px;border-radius:12px}
+.kpi span{font-size:10px;letter-spacing:.35px}
+.kpi strong{font-size:19px}
+.actions-row{gap:6px;margin-top:6px}
+.actions-row .btn{min-height:39px;border-radius:11px;font-size:12px}
+.yield-pill{min-height:39px;border-radius:11px}
+.strain-nav{gap:6px;padding:7px 0 8px;border-bottom:1px solid #edf0ed}
+.strain-nav a{padding:5px 10px;font-size:12px}
+.page-nav{display:flex;align-items:center;gap:7px;overflow-x:auto;padding:7px 0 1px;margin:0;background:#fff;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.page-nav::-webkit-scrollbar{display:none}
+.page-nav a{flex:0 0 auto;min-height:34px;display:inline-flex;align-items:center;justify-content:center;padding:6px 13px;border:1px solid #e2e7e2;border-radius:10px;background:#fff;color:#385b35;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
+.page-nav a.active{background:#2d5a27;border-color:#2d5a27;color:#fff;box-shadow:none}
+#app{position:relative}
+@media(max-width:520px){
+ .site-header{padding:6px 9px 5px}.brand-row{min-height:38px;gap:6px}
+ .brand-home-link h1{font-size:16px}.sync{font-size:11px}
+ .head-actions{gap:5px}.head-actions .btn{min-height:34px;padding:6px 9px;font-size:12px}
+ .kpis{gap:4px;margin-top:6px}.kpi{min-height:43px;padding:4px 2px;border-radius:10px}
+ .kpi span{font-size:9px}.kpi strong{font-size:17px}
+ .actions-row{gap:4px;margin-top:5px}.actions-row .btn{min-height:34px;padding:5px 3px;font-size:11px}
+ .yield-pill{min-height:34px;font-size:10px}.yield-pill strong{font-size:13px}
+ .strain-nav{padding:6px 0 7px}.page-nav{gap:5px;padding:6px 0 0}
+ .page-nav a{min-height:31px;padding:5px 11px;font-size:11px;border-radius:9px}
+}
