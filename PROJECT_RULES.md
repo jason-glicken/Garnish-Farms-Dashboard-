@@ -38,3 +38,9 @@
 - Do not render global navigation inside #app. Page content begins immediately after the strain ribbon.
 - New Batch uses the central soft-sage style in gf3-styles.css.
 - Keep this architecture unchanged unless the user explicitly requests a header change.
+
+## V13 — remove obsolete navigation code
+- Global page navigation is not part of the product header or page body.
+- Do not add page-nav or Pages-menu markup, styles, or hide/show workarounds.
+- When removing an unwanted component, remove its markup and obsolete CSS selectors rather than leaving it hidden with display:none.
+- The strain ribbon is the final header row; page content begins immediately below it.

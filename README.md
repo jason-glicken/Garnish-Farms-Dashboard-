@@ -33,3 +33,6 @@ Replaced the visible horizontal page-navigation strip with a compact expandable 
 
 ## V12 header simplification
 Removed the global page-navigation row/menu entirely. The shared header ends at the strain ribbon; no Pages dropdown or body navigation is provided. New Batch uses a softer sage-green treatment. Production and database logic are unchanged.
+
+## V13 cleanup
+Removed obsolete page-navigation CSS rules instead of relying on `display:none`. The shared header source contains only the requested brand/actions, KPI cards, action buttons, and strain ribbon. No page navigation component is included in the UI source or central stylesheet.
