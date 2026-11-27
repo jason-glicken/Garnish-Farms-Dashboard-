@@ -1,0 +1,14 @@
+GARNISH FARMS — CLEAN 13 STRAIN FILTER REPAIR
+
+Changes:
+- Shared inventory filtering now treats the explicit parent batch strain as authoritative.
+- Child containers attached to any known parent are included only when that parent belongs to the selected strain.
+- Child strain/ID fallback is permitted only for genuinely orphaned child rows.
+- Bumped gf-data.js cache-buster to v=4 across dashboard pages so browsers fetch the corrected shared data layer instead of reusing an older cached copy.
+
+No Supabase data or production records were modified.
+
+Validation:
+- JavaScript syntax checked with Node.js.
+- ZIP archive integrity checked after packaging.
+- Live browser/Supabase workflow has not been exercised from this build environment.

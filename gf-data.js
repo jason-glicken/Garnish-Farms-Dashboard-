@@ -52,10 +52,9 @@
       read('batch_items',null,options).catch(e=>{if(options.allowMissingChildren)return [];throw e;})
     ]);
     const wanted=strainKey(strainName);
-    // Parent batch strain is authoritative. Do not infer a child's strain from
-    // its display ID when it already belongs to a known parent: legacy IDs can
-    // contain stale/mismatched prefixes and must never leak across strain pages.
-    const parentStrain=b=>strainKey(b.batch_id || b.strain || b.container_id || '');
+    // The explicit parent strain field is authoritative. Use the canonical
+    // batch ID only as a fallback for older rows with no strain value.
+    const parentStrain=b=>strainKey(b.strain || b.batch_id || b.container_id || '');
     const parentRows=strainName?parents.filter(b=>parentStrain(b)===wanted):parents;
     const parentById=new Map(parentRows.map(x=>[String(x.id),x]));
     const allParentIds=new Set(parents.map(x=>String(x.id)));
@@ -63,9 +62,11 @@
     const childRows=children.filter(x=>{
       const parentId=String(x.batch_id||'');
       if(parentById.has(parentId)) return true;
-      // Only use the child's own strain when it is genuinely orphaned; a child
-      // attached to another strain's parent must not appear on this page.
-      return !!(strainName && !allParentIds.has(parentId) && belongsToStrain(x));
+      // A child attached to any known parent is never eligible for fallback:
+      // it belongs exclusively to that parent's strain, even if child fields
+      // or its display ID are stale. Only truly orphaned children may fallback.
+      if(allParentIds.has(parentId)) return false;
+      return !!(strainName && belongsToStrain(x));
     });
     const grouped=new Map();for(const row of childRows){const k=String(row.batch_id||'');if(!k)continue;if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(row);}
     const expanded=childRows.map(row=>{const parent=parentById.get(String(row.batch_id))||{};const siblings=grouped.get(String(row.batch_id))||[];const idx=siblings.findIndex(x=>String(x.id)===String(row.id))+1;return {...parent,...row,id:row.id,parentId:row.batch_id||parent.id,quantity:1,unitIndex:idx||1,unitTotal:siblings.length||1,container_id:row.container_id||row.item_id||null,strain:parent.strain||row.strain,stage:row.stage||parent.stage,status:row.status||parent.status,container:row.container||parent.container,date:row.date||parent.date,notes:row.notes||parent.notes};});
