@@ -1,0 +1,58 @@
+/* Garnish Farms visual refinement — v62 */
+.kpis{gap:8px;margin-top:7px}
+.kpis .kpi{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:3px;min-height:61px;padding:8px 5px 10px;border-radius:14px;
+ border:1px solid var(--line);position:relative;overflow:hidden;
+}
+.kpis .kpi::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--grain)}
+.kpis .kpi:nth-child(2)::after{background:var(--grain)}
+.kpis .kpi:nth-child(3)::after{background:var(--bulk)}
+.kpis .kpi:nth-child(4)::after{background:var(--fruit)}
+.kpis .kpi span{font-size:11px;line-height:1.1;letter-spacing:.35px}
+.kpis .kpi strong{font-size:24px;line-height:1.05;font-weight:800;color:var(--green)}
+@media(max-width:520px){
+ .kpis{gap:5px}
+ .kpis .kpi{min-height:59px;padding:7px 3px 9px;border-radius:13px}
+ .kpis .kpi span{font-size:10px}
+ .kpis .kpi strong{font-size:21px}
+}
+/* Quieter body scale: preserve readable hierarchy while tightening records. */
+#app{font-size:13px}
+.page-title h2{font-size:20px}
+.page-title p,.muted{font-size:12px;line-height:1.35}
+.section-title h3{font-size:16px}
+.record h3{font-size:15px}
+.record-id,.record-meta,.badge,.stage-pill{font-size:11px}
+.record-meta{margin:8px 0}
+.lane-head{font-size:11px;margin:7px 0 5px}
+.timeline-labels{font-size:10px}
+.strain-timeline{gap:10px;margin-top:8px}
+.strain-timeline-row{grid-template-columns:minmax(108px,35%) minmax(0,1fr);gap:9px;min-height:27px}
+.strain-timeline-name b{font-size:12px}
+.strain-timeline-name small{font-size:10px;line-height:1.2}
+.strain-timeline-track{height:14px}
+.actual-bar{top:2px;height:8px}
+.target-bar{top:1px;height:10px}
+.timeline-key{font-size:11px;margin:6px 0}
+@media(max-width:520px){
+ #app{font-size:13px}
+ .page-title h2{font-size:19px}
+ .section-title h3{font-size:15px}
+ .record h3{font-size:14px}
+ .record-meta,.badge,.stage-pill{font-size:10px}
+ .strain-timeline-row{grid-template-columns:minmax(102px,36%) minmax(0,1fr);gap:7px}
+ .strain-timeline-track{height:13px}
+ .actual-bar{height:7px}
+ .target-bar{height:9px}
+}
+/* Keep strain name and scientific name on one clean baseline. */
+.strain-page-title{min-height:34px;margin:2px 4px 14px}
+.strain-page-title>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.strain-page-title h2{font-size:21px;line-height:1.1;margin:0}
+.strain-page-title p{font-size:13px;margin:0;white-space:nowrap}
+@media(max-width:520px){
+ .strain-page-title{min-height:30px;margin:2px 3px 12px}
+ .strain-page-title h2{font-size:19px}
+ .strain-page-title p{font-size:12px}
+}

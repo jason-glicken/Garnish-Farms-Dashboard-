@@ -1,4 +1,3 @@
-
 (()=>{'use strict';
 const P=GFProduction,U=GFUI,esc=U.esc,app=document.querySelector('#app'),params=new URLSearchParams(location.search);
 const page=params.get('page')||'home',strain=params.get('strain')||'',filterStrain=params.get('filter')||'',settings=JSON.parse(localStorage.getItem('gf-targets')||'{}');
@@ -12,12 +11,51 @@ const strainColors={"Blue Oyster":"#3b82f6","Lion's Mane":"#64748b","Shiitake":"
 function donut(rows){const groups=P.groupByStrain(rows),total=groups.reduce((n,[,r])=>n+r.length,0);let cursor=0;const stops=groups.map(([s,r])=>{const a=cursor/Math.max(1,total)*100,b=(cursor+r.length)/Math.max(1,total)*100;cursor+=r.length;return `${strainColors[s]||'#94a3b8'} ${a}% ${b}%`}).join(',');return `<div class="mix-layout"><div class="donut-chart" role="img" aria-label="Current active production mix by strain" style="--donut-stops:${stops||'#e5e7eb 0 100%'}"><span>${total}<small>active</small></span></div><div class="mix-legend">${groups.map(([s,r])=>`<div><i style="--legend-color:${strainColors[s]||'#94a3b8'}"></i><span>${esc(s)}</span><b>${r.length}</b></div>`).join('')}</div></div>`}
 function strainInventory(rows){return `<div class="table-wrap"><table class="strain-table"><thead><tr><th>Strain</th><th>Stage Breakdown</th><th>Active</th></tr></thead><tbody>${P.groupByStrain(rows).map(([s,rs])=>{const a=rs.filter(P.active),g=a.filter(x=>P.stage(x)==='Grain Spawn').length,b=a.filter(x=>P.stage(x)==='Bulk Substrate').length,f=a.filter(x=>P.stage(x)==='Fruiting').length;return `<tr><td><a href="${U.href('strain',{strain:s})}"><b>${esc(s)}</b></a><small>${esc(scientific[s]||'')}</small></td><td><span>🫙 ${g}</span><span>🟫 ${b}</span><span>🍄 ${f}</span></td><td><b>${a.length}</b></td></tr>`}).join('')}</tbody></table></div>`}
 function home(d){const rows=active(d);return U.title('Production at a Glance',`${rows.length} active containers across ${d.parents.length} parent batches`)+U.panel('Strain Breakdown · Current Production Mix',donut(rows))+U.panel('Strain Summary & Inventory',strainInventory(rows))}
-function strainPage(d){const rows=d.containers.filter(x=>x.strain===strain),a=rows.filter(P.active),c=P.counts(a),grouped=[['Grain Spawn','Jars',a.filter(x=>P.stage(x)==='Grain Spawn')],['Bulk Substrate','Bags',a.filter(x=>P.stage(x)==='Bulk Substrate')],['Fruiting','Blocks',a.filter(x=>P.stage(x)==='Fruiting')]];
-const left=new Date(P.today()+'T12:00:00');left.setDate(left.getDate()-30);const right=new Date(P.today()+'T12:00:00');right.setDate(right.getDate()+60);const offset=d=>Math.max(0,Math.min(100,(d-left)/86400000/90*100));
-const timeline=a.map(x=>{const s=P.stage(x),from=P.start(x);if(!from)return '';const st=new Date(from+'T12:00:00'),now=new Date(P.today()+'T12:00:00'),target=new Date(st);target.setDate(target.getDate()+(P.targets(x,settings)[s]||14));const l=offset(st),r=offset(now),t=offset(target),color=s==='Grain Spawn'?'#16a34a':s==='Bulk Substrate'?'#d97706':'#3b82f6';return `<a class="strain-timeline-row" href="${U.href('container',{id:x.itemId||'legacy-'+x.parentId})}"><span class="strain-timeline-name"><b>${esc(P.unitLabel(x))}</b><small>${s==='Grain Spawn'?'🫙':s==='Bulk Substrate'?'🟫':'🍄'} ${esc(s)} · ${Math.max(0,P.diff(from)||0)}d elapsed</small></span><span class="strain-timeline-track"><i class="today-marker"></i><i class="actual-bar" style="--actual-left:${l}%;--actual-width:${Math.max(1,r-l)}%;--stage-color:${color}"></i><i class="target-bar" style="--target-left:${Math.min(r,t)}%;--target-width:${Math.max(0,t-r)}%;--stage-color:${color}"></i></span></a>`}).join('');
+function strainPage(d){
+const rows=d.containers.filter(x=>x.strain===strain),a=rows.filter(P.active),c=P.counts(a),grouped=[['Grain Spawn','Jars',a.filter(x=>P.stage(x)==='Grain Spawn')],['Bulk Substrate','Bags',a.filter(x=>P.stage(x)==='Bulk Substrate')],['Fruiting','Blocks',a.filter(x=>P.stage(x)==='Fruiting')]];
+const left=new Date(P.today()+'T12:00:00');left.setDate(left.getDate()-30);
+const right=new Date(P.today()+'T12:00:00');right.setDate(right.getDate()+60);
+const offset=d=>Math.max(0,Math.min(100,(d-left)/86400000/90*100));
+const stageNames=['Grain Spawn','Bulk Substrate','Fruiting'];
+const stageKeys=['grain_started_on','bulk_started_on','fruiting_started_on'];
+const stageColors=['#16a34a','#d97706','#3b82f6'];
+const day=d=>new Date(d+'T12:00:00');
+const historyDate=(x,name)=>{
+ const h=Array.isArray(x.stage_history)?x.stage_history.find(v=>(v.stage||'')===name):null;
+ return h?.date||h?.started_on||null;
+};
+const timeline=a.map(x=>{
+ const current=P.stage(x);
+ const dates=stageNames.map((name,i)=>x[stageKeys[i]]||historyDate(x,name)||(current===name?P.start(x):null));
+ const first=dates.filter(Boolean).sort()[0]||P.start(x);
+ if(!first)return '';
+ const targets=P.targets(x,settings);
+ let cursor=day(first);
+ const targetBars=stageNames.map((name,i)=>{
+   const begin=new Date(cursor),finish=new Date(cursor);
+   finish.setDate(finish.getDate()+targets[name]);
+   cursor=new Date(finish);
+   const l=offset(begin),r=offset(finish);
+   return `<i class="target-bar" style="--target-left:${l}%;--target-width:${Math.max(.7,r-l)}%;--stage-color:${stageColors[i]}"></i>`;
+ }).join('');
+ const actualBars=stageNames.map((name,i)=>{
+   if(!dates[i])return '';
+   const begin=day(dates[i]);
+   const later=dates.slice(i+1).find(Boolean);
+   const end=later?day(later):(current===name?day(P.today()):null);
+   if(!end)return '';
+   const l=offset(begin),r=offset(end);
+   if(r<=l)return '';
+   return `<i class="actual-bar" style="--actual-left:${l}%;--actual-width:${Math.max(.7,r-l)}%;--stage-color:${stageColors[i]}"></i>`;
+ }).join('');
+ const index=Math.max(0,stageNames.indexOf(current)),from=dates[index]||P.start(x);
+ const icon=current==='Grain Spawn'?'🫙':current==='Bulk Substrate'?'🟫':'🍄';
+ return `<a class="strain-timeline-row" href="${U.href('container',{id:x.itemId||'legacy-'+x.parentId})}"><span class="strain-timeline-name"><b>${esc(P.unitLabel(x))}</b><small>${icon} ${esc(current)} · ${Math.max(0,P.diff(from)||0)}d elapsed</small></span><span class="strain-timeline-track"><i class="today-marker"></i>${targetBars}${actualBars}</span></a>`;
+}).join('');
 function spacing(stage){const key={'Grain Spawn':'grain_started_on','Bulk Substrate':'bulk_started_on','Fruiting':'fruiting_started_on'}[stage],dates=a.map(x=>x[key]||(P.stage(x)===stage?P.start(x):null)).filter(Boolean).sort();const gaps=dates.slice(1).map((v,i)=>Math.round((new Date(v+'T12:00:00')-new Date(dates[i]+'T12:00:00'))/86400000));const avg=gaps.length?(gaps.reduce((n,x)=>n+x,0)/gaps.length).toFixed(1):'—';return `<div class="spacing-card"><b>${stage==='Grain Spawn'?'Spawn':stage==='Bulk Substrate'?'Substrate':'Fruiting'}</b><small>Last start</small><strong>${dates.at(-1)||'—'}</strong><small>Average gap: ${avg} days</small></div>`}
 const stagePanels=grouped.map(([s,label,rs])=>U.panel(`${s} · ${label}`,U.cards(rs),String(rs.length))).join('');
-return U.title(esc(strain),scientific[strain]||'Strain production')+U.panel('Production at a glance',`<div class="stage-breakdown"><div><b>${c.jars}</b><span>🫙 Jars</span></div><div><b>${c.bags}</b><span>🟫 Bags</span></div><div><b>${c.fruiting}</b><span>🍄 Fruiting</span></div></div>`,'Current active inventory')+U.panel('90-day production timeline',`<div class="timeline-key"><span>30 days ago</span><b>TODAY</b><span>60 days ahead</span></div><div class="strain-timeline">${timeline||'<p class="muted">No dated active containers to plot yet.</p>'}</div><p class="muted">Solid bars show elapsed time in the current stage; dashed outlines show the remaining target. The vertical line marks today.</p>`,'Actual + target stage dates')+U.panel('Batch spacing & next-start planning',`<div class="spacing-grid">${spacing('Grain Spawn')}${spacing('Bulk Substrate')}${spacing('Fruiting')}</div><p class="muted">Average spacing is calculated between successive recorded starts. Use this to plan future starts without changing recorded history.</p>`,'Based on recorded starts')+stagePanels+U.panel('Harvest History',harvestTable(d.harvests.filter(h=>h.strain===strain)))}
+const strainTitle=`<div class="page-title strain-page-title"><div><h2>${esc(strain)}</h2><p class="muted">${esc(scientific[strain]||'Strain production')}</p></div></div>`;
+return strainTitle+U.panel('Production at a glance',`<div class="stage-breakdown"><div><b>${c.jars}</b><span>🫙 Jars</span></div><div><b>${c.bags}</b><span>🟫 Bags</span></div><div><b>${c.fruiting}</b><span>🍄 Fruiting</span></div></div>`,'Current active inventory')+U.panel('90-day production timeline',`<div class="timeline-key"><span>30 days ago</span><b>TODAY</b><span>60 days ahead</span></div><div class="strain-timeline">${timeline||'<p class="muted">No dated active containers to plot yet.</p>'}</div><p class="muted">Solid colored segments show recorded progress through Grain Spawn, Bulk Substrate, and Fruiting. Dashed segments show the full targeted lifecycle from the original start date. The vertical line marks today.</p>`,'Actual + target stage dates')+U.panel('Batch spacing & next-start planning',`<div class="spacing-grid">${spacing('Grain Spawn')}${spacing('Bulk Substrate')}${spacing('Fruiting')}</div><p class="muted">Average spacing is calculated between successive recorded starts. Use this to plan future starts without changing recorded history.</p>`,'Based on recorded starts')+stagePanels+U.panel('Harvest History',harvestTable(d.harvests.filter(h=>h.strain===strain)))}
 function calendarBody(rows){const now=new Date(),y=now.getFullYear(),m=now.getMonth(),offset=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate();let html='<div class="calendar">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(x=>`<b>${x}</b>`).join('');for(let i=0;i<offset;i++)html+='<i></i>';for(let day=1;day<=n;day++){const key=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`,hits=rows.filter(x=>[x.grain_started_on,x.bulk_started_on,x.fruiting_started_on,x.date].includes(key));html+=`<div class="day"><b>${day}</b>${hits.map(x=>`<a href="${U.href('container',{id:x.itemId||'legacy-'+x.parentId})}">${esc(P.unitLabel(x))}</a>`).join('')}</div>`}return html+'</div>'}
 function harvestTable(h){return h.length?`<div class="table-wrap"><table><tr><th>Date</th><th>Flush</th><th>Weight</th><th>Batch</th></tr>${h.map(x=>`<tr><td>${P.fmt(x.harvest_date)}</td><td>${x.flush_number}</td><td>${Number(x.weight_lbs).toFixed(2)} lbs</td><td>${esc(x.batch_id)}</td></tr>`).join('')}</table></div>`:'<p class="muted">No harvests recorded.</p>'}
 function field(label,name,type='text',value='',opts=''){return `<label class="field">${label}${type==='textarea'?`<textarea name="${name}">${esc(value)}</textarea>`:type==='select'?`<select name="${name}">${opts}</select>`:`<input name="${name}" type="${type}" value="${esc(value)}" required>`}</label>`}
