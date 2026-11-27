@@ -145,3 +145,90 @@
   .strain-page-title h2 { font-size: 18px; }
   .strain-page-title p { font-size: 10px; }
 }
+
+
+/* Garnish Farms V64 — restore header tints and unify compact KPI sizing */
+/* Header KPI cards: retain the distinct soft strain-stage fills. */
+.site-header .kpis .kpi,
+.kpis .kpi {
+  box-sizing: border-box !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  padding: 5px 4px 8px !important;
+  gap: 1px !important;
+  border-radius: 12px !important;
+  border-color: #dfe4e1 !important;
+}
+.kpis .kpi:nth-child(1) { background: #f1f5f1 !important; }
+.kpis .kpi:nth-child(2) { background: #eef3fb !important; }
+.kpis .kpi:nth-child(3) { background: #fbf5ed !important; }
+.kpis .kpi:nth-child(4) { background: #f4f0f8 !important; }
+.kpis .kpi span {
+  font-size: 9px !important;
+  line-height: 1 !important;
+  letter-spacing: .45px !important;
+}
+.kpis .kpi strong {
+  font-size: 19px !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+.kpis .kpi::after { height: 3px !important; }
+
+/* Production tiles now match the header's compact height, padding and fills. */
+.stage-breakdown {
+  gap: 6px !important;
+  align-items: stretch;
+}
+.stage-breakdown > div {
+  box-sizing: border-box !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  padding: 5px 4px 7px !important;
+  gap: 1px !important;
+  border-radius: 12px !important;
+  border-bottom-width: 3px !important;
+}
+.stage-breakdown b {
+  font-size: 21px !important;
+  line-height: 1 !important;
+}
+.stage-breakdown span {
+  font-size: 10px !important;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+/* Emoji are rendered as text within the label; reducing label size scales them too. */
+
+/* Slightly reduce the production panel's visual footprint. */
+.panel:has(.stage-breakdown) {
+  padding: 10px 11px !important;
+  margin-bottom: 9px !important;
+}
+.panel:has(.stage-breakdown) .section-title {
+  margin-bottom: 7px !important;
+}
+.panel:has(.stage-breakdown) .section-title h3 {
+  font-size: 14px !important;
+}
+.panel:has(.stage-breakdown) .section-title > .muted {
+  font-size: 10px !important;
+}
+
+@media (max-width: 520px) {
+  .site-header .kpis .kpi,
+  .kpis .kpi {
+    min-height: 56px !important;
+    height: 56px !important;
+    padding: 4px 3px 7px !important;
+  }
+  .kpis .kpi span { font-size: 8px !important; }
+  .kpis .kpi strong { font-size: 18px !important; }
+  .stage-breakdown > div {
+    min-height: 56px !important;
+    height: 56px !important;
+    padding: 4px 3px 6px !important;
+  }
+  .stage-breakdown b { font-size: 20px !important; }
+  .stage-breakdown span { font-size: 9px !important; }
+}
