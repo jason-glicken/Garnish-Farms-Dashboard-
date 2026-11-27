@@ -278,3 +278,201 @@
     height: 21px !important;
   }
 }
+
+
+/* Garnish Farms V66 — tighter header KPIs and strain-colored item cards. */
+.site-header .kpis { gap: 5px !important; margin-top: 5px !important; }
+.site-header .kpis .kpi {
+  height: 49px !important;
+  min-height: 49px !important;
+  padding: 4px 3px 5px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 2px !important;
+}
+.site-header .kpis .kpi span {
+  font-size: 8px !important;
+  line-height: 1 !important;
+  letter-spacing: .35px !important;
+}
+.site-header .kpis .kpi strong {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+.site-header .kpis .kpi strong b {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+.site-header .kpis .kpi .kpi-icon {
+  display: inline-block !important;
+  font-style: normal !important;
+  font-size: 13px !important;
+  line-height: 1 !important;
+}
+.site-header .kpis .kpi.active {
+  outline: 2px solid var(--green) !important;
+  outline-offset: 1px !important;
+  box-shadow: inset 0 0 0 1px #ffffffb8 !important;
+  transform: translateY(-1px);
+}
+.site-header .kpis .kpi.active::after {
+  content: "" !important;
+  display: block !important;
+  height: 3px !important;
+  background: var(--green) !important;
+  border-radius: 0 0 8px 8px !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+.site-header .kpis .kpi { position: relative !important; overflow: hidden !important; }
+
+/* Three independent production summary cards, not one oversized tile group. */
+.production-summary {
+  display: block;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0 0 10px;
+}
+.production-summary .section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 2px 7px;
+}
+.production-summary .section-title h3 { font-size: 14px !important; }
+.production-summary .section-title .muted { font-size: 10px !important; }
+.production-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 6px;
+}
+.production-stat {
+  min-width: 0;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dfe4e1;
+  border-bottom: 3px solid #16a34a;
+  border-radius: 11px;
+  padding: 4px 3px 6px;
+  background: #f1f5f1;
+}
+.production-stat-2 { background: #fbf5ed; border-bottom-color: #d97706; }
+.production-stat-3 { background: #f4f0f8; border-bottom-color: #3b82f6; }
+.production-stat > b {
+  font-size: 20px !important;
+  line-height: 1 !important;
+  color: var(--green);
+}
+.production-stat > span {
+  font-size: 10px !important;
+  line-height: 1 !important;
+  margin-left: 4px;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+/* Compact individual cards and preserve the established color for each strain. */
+.record {
+  border-left: 4px solid var(--strain-color, var(--stage, var(--grain))) !important;
+  background: linear-gradient(90deg, var(--strain-bg, #fff) 0%, #fff 30%) !important;
+  padding: 9px 9px !important;
+  margin: 0 0 6px !important;
+  border-radius: 12px !important;
+}
+.record h3 {
+  color: var(--strain-color, var(--green)) !important;
+  font-size: 13px !important;
+  line-height: 1.15 !important;
+  margin-bottom: 2px !important;
+}
+.record-id { font-size: 10px !important; }
+.record .badge { font-size: 8px !important; padding: 2px 6px !important; }
+.record .stage-pill {
+  background: var(--strain-bg, #dcfce7) !important;
+  color: var(--strain-color, #23613a) !important;
+  font-size: 9px !important;
+  padding: 4px 6px !important;
+}
+.record-controls { margin-top: 5px !important; }
+.record-controls .btn { min-height: 24px !important; padding: 4px 7px !important; font-size: 9px !important; }
+.record-meta { font-size: 9px !important; margin: 5px 0 !important; }
+.timeline-block { margin-top: 5px !important; }
+.lane-head { font-size: 9px !important; margin: 4px 0 3px !important; }
+.timeline-track { height: 11px !important; }
+.targeted-track { height: 8px !important; }
+.timeline-labels { font-size: 8px !important; margin-top: 3px !important; }
+.records { gap: 6px !important; }
+
+@media (max-width: 520px) {
+  .site-header .kpis .kpi { height: 47px !important; min-height: 47px !important; }
+  .site-header .kpis .kpi strong, .site-header .kpis .kpi strong b { font-size: 15px !important; }
+  .site-header .kpis .kpi .kpi-icon { font-size: 12px !important; }
+  .production-stat { height: 54px; }
+  .production-stat > b { font-size: 19px !important; }
+  .production-stat > span { font-size: 9px !important; }
+  .record { padding: 8px 8px !important; }
+}
+
+
+/* Garnish Farms V67 — strain identity follows the strain everywhere. */
+.strain-nav a[style*="--strain-color"] {
+  color: var(--strain-color) !important;
+  border-color: color-mix(in srgb, var(--strain-color) 75%, white) !important;
+  background: var(--strain-bg) !important;
+}
+.strain-nav a[style*="--strain-color"].active,
+.strain-nav a[style*="--strain-color"][aria-pressed="true"] {
+  color: #fff !important;
+  background: var(--strain-color) !important;
+  border-color: var(--strain-color) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--strain-color) 18%, transparent) !important;
+}
+.production-summary.strain-themed .production-stat {
+  background: var(--strain-bg) !important;
+  border-color: color-mix(in srgb, var(--strain-color) 22%, #dfe4e1) !important;
+  border-bottom: 3px solid var(--strain-color) !important;
+}
+.production-summary.strain-themed .production-stat > b,
+.production-summary.strain-themed .production-stat > span {
+  color: var(--strain-color) !important;
+}
+.record .actual-strain-track .tl-stage {
+  background: var(--segment-bg, var(--strain-bg)) !important;
+}
+.record .actual-strain-track .tl-stage > i {
+  background: var(--fill-color, var(--strain-color)) !important;
+}
+.record .target-strain-track .tl-stage {
+  background: transparent !important;
+  border: 0 !important;
+  border-top: 2px dashed var(--target-color, var(--strain-color)) !important;
+  border-radius: 0 !important;
+}
+.strain-timeline-row .actual-bar {
+  background: var(--active-strain-color, var(--stage-color, #64748b)) !important;
+  border-color: var(--active-strain-color, var(--stage-color, #64748b)) !important;
+}
+.strain-timeline-row .target-bar {
+  border-top-color: var(--active-strain-color, var(--stage-color, #64748b)) !important;
+}
+.strain-timeline-row .strain-timeline-name b {
+  color: var(--active-strain-color, var(--green)) !important;
+}
+.strain-timeline-row .strain-timeline-track {
+  --strain-color: var(--active-strain-color, #64748b);
+}
+html[data-active-strain] .record {
+  border-left-color: var(--active-strain-color) !important;
+}
