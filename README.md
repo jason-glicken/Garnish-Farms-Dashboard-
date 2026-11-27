@@ -1,27 +1,26 @@
-# Garnish Farms — Fresh Modular Rebuild
+# Garnish Farms — Clean Rebuild (V3)
 
-This is a clean replacement application. It does not copy the legacy page implementations.
+Standalone replacement front-end. No legacy page scripts, shared-header files, or compatibility redirects are included.
 
-## Architecture
-- `gf-data.js`: one Supabase client, auth, shared read/write repository, parent/child normalization.
-- `production.js`: pure production-domain functions (stage normalization, lifecycle dates, timelines, counts, forecast, task generation, navigation targets).
-- `ui.js`: shared header, shared container cards, timeline renderer, formatting and reusable UI.
-- `views/*.js`: page-specific presentation and interaction only. Views consume the same `GF.store` snapshot and `GF.production` functions.
-- HTML entrypoints are thin shells. `index.html?page=...` routes to views; named HTML pages are direct links for familiar URLs.
+## Runtime
+- `index.html`, `login.html`: entry pages.
+- `gf3-data.js`: Supabase client and shared data access.
+- `gf3-production.js`: lifecycle calculations, counts, timelines, forecasts and tasks.
+- `gf3-ui.js`: shared header, navigation, cards and timelines.
+- `gf3-app.js`: page routing and interactions.
+- `gf3-styles.css`: styling.
+- `gf3-login.js`: sign-in.
 
-## Pages
-Home / Production at a Glance, Strain Summary, All Batches, Jars, Bags, Fruiting, Container Management, Batch Details, New Batch, New Culture, Harvest, Yield, Upcoming Tasks, Calendar, Activities, Settings.
+Runtime assets use unique `gf3-` names to avoid reusing cached legacy `app.js`, `ui.js`, `gf-data.js`, or `styles.css`.
 
-## Database safety
-Uses existing `batches`, `batch_items`, `harvests`, and `cultures` tables. No SQL migrations or schema changes are included. The client uses the existing Supabase project URL and publishable key. Writes are limited to existing columns/tables. Deleting records is deliberately not included in this first rebuild.
+## Clean deployment
+1. Back up the current repository/site.
+2. Remove old front-end HTML/JS/CSS entrypoints and scripts from the GitHub Pages site root, including legacy `app.js`, `ui.js`, `gf-data.js`, `shared-header.js` and old page scripts.
+3. Upload the contents of this package to the site root.
+4. Confirm deployed `index.html` references only `gf3-*.js` and `gf3-styles.css`.
+5. Test in a private/incognito browser window.
 
-## Important behavior
-- `batch_items` are individual containers; `batches` are parent batches.
-- Parent batches without child rows remain visible as legacy inventory placeholders. They are not silently inserted or migrated.
-- Container lifecycle dates are only shown when recorded. Missing historical transitions are not invented.
-- Actual timelines preserve completed stage segments; targeted timelines use each record's `target_days` when available, then farm defaults.
-- Links carry record IDs and open the relevant container/batch in context.
-- Settings are browser-local and do not change database schema.
+Preserve the Supabase project, tables, migrations, authentication settings and all database records. No SQL migration is included.
 
-## Deploy
-Upload the contents of this folder to the site root. Test sign-in and read/write workflows on the live Supabase project before relying on them operationally. No authenticated end-to-end browser test was available during packaging.
+## Data safety and verification
+Reads existing `batches`, `batch_items`, `harvests`, and `cultures` tables. User-initiated writes use existing tables; no schema changes are included. Historical transition dates are not invented. Existing parents without child rows remain represented as legacy placeholders. JavaScript syntax and ZIP integrity were checked; authenticated live browser testing was not available, so verify sign-in and a small test workflow before relying on writes.

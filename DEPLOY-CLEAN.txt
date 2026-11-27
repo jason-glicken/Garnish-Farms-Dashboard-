@@ -1,0 +1,1 @@
+Do not merge these files alongside the old frontend. Back up first, remove old frontend HTML/JS/CSS entrypoints and scripts from the site root, then upload this package's contents. Preserve Supabase and all database records.
