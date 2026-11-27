@@ -37,9 +37,12 @@
   };
   function strainKey(value){
     const v=norm(value); if(!v)return '';
-    for(const [code,aliases] of Object.entries(STRAINS)) if(aliases.some(a=>v===norm(a)||v.includes(norm(a)))) return code;
+    // Canonical ID prefixes are the strongest identity signal for legacy rows.
+    // This prevents a stale display-name field from putting a GT batch on the CH page.
     const idCode=String(value).trim().match(/^(BO|BL|LM|LI|SH|MA|PO|CH|GT|RE)(?:[-_ ]|$)/i);
-    return idCode?(['LI'].includes(idCode[1].toUpperCase())?'LM':['BL'].includes(idCode[1].toUpperCase())?'BO':idCode[1].toUpperCase()):v;
+    if(idCode)return (['LI'].includes(idCode[1].toUpperCase())?'LM':['BL'].includes(idCode[1].toUpperCase())?'BO':idCode[1].toUpperCase());
+    for(const [code,aliases] of Object.entries(STRAINS)) if(aliases.some(a=>v===norm(a))) return code;
+    return v;
   }
   function isActive(row){return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(row.status));}
   function stage(row){const s=norm(row.stage),c=norm(row.container);if(s.includes('fruit')||c.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'Bulk Substrate';return 'Grain Spawn';}
@@ -52,7 +55,7 @@
     // Parent batch strain is authoritative. Do not infer a child's strain from
     // its display ID when it already belongs to a known parent: legacy IDs can
     // contain stale/mismatched prefixes and must never leak across strain pages.
-    const parentStrain=b=>strainKey(b.strain || b.batch_id || b.container_id || '');
+    const parentStrain=b=>strainKey(b.batch_id || b.strain || b.container_id || '');
     const parentRows=strainName?parents.filter(b=>parentStrain(b)===wanted):parents;
     const parentById=new Map(parentRows.map(x=>[String(x.id),x]));
     const allParentIds=new Set(parents.map(x=>String(x.id)));
@@ -65,7 +68,7 @@
       return !!(strainName && !allParentIds.has(parentId) && belongsToStrain(x));
     });
     const grouped=new Map();for(const row of childRows){const k=String(row.batch_id||'');if(!k)continue;if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(row);}
-    const expanded=childRows.map(row=>{const parent=parentById.get(String(row.batch_id))||{};const siblings=grouped.get(String(row.batch_id))||[];const idx=siblings.findIndex(x=>String(x.id)===String(row.id))+1;return {...parent,...row,id:row.id,parentId:row.batch_id||parent.id,quantity:1,unitIndex:idx||1,unitTotal:siblings.length||1,container_id:row.container_id||row.item_id||null,strain:row.strain||parent.strain,stage:row.stage||parent.stage,status:row.status||parent.status,container:row.container||parent.container,date:row.date||parent.date,notes:row.notes||parent.notes};});
+    const expanded=childRows.map(row=>{const parent=parentById.get(String(row.batch_id))||{};const siblings=grouped.get(String(row.batch_id))||[];const idx=siblings.findIndex(x=>String(x.id)===String(row.id))+1;return {...parent,...row,id:row.id,parentId:row.batch_id||parent.id,quantity:1,unitIndex:idx||1,unitTotal:siblings.length||1,container_id:row.container_id||row.item_id||null,strain:parent.strain||row.strain,stage:row.stage||parent.stage,status:row.status||parent.status,container:row.container||parent.container,date:row.date||parent.date,notes:row.notes||parent.notes};});
     const expandedParentIds=new Set(grouped.keys());
     const remaining=parentRows.filter(p=>!expandedParentIds.has(String(p.id))).map(p=>({...p,parentId:p.id}));
     return {parents:parentRows,children:childRows,rows:[...expanded,...remaining],allParents:parents};
