@@ -13,6 +13,12 @@ Standalone replacement front-end. No legacy page scripts, shared-header files, o
 
 Runtime assets use unique `gf3-` names to avoid reusing cached legacy `app.js`, `ui.js`, `gf-data.js`, or `styles.css`.
 
+## Dashboard layout
+- Home includes the live strain-mix donut chart and Strain Summary & Inventory table.
+- Strain links open dedicated pages with active jar/bag/fruiting counts, a 90-day actual/target timeline, batch-spacing summary, stage-grouped records, and harvest history.
+- The Garnish Farms title in the header links back to Home.
+- Header KPI cards and action row use reduced vertical padding for a thinner mobile header.
+
 ## Clean deployment
 1. Back up the current repository/site.
 2. Remove old front-end HTML/JS/CSS entrypoints and scripts from the GitHub Pages site root, including legacy `app.js`, `ui.js`, `gf-data.js`, `shared-header.js` and old page scripts.
