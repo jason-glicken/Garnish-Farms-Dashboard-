@@ -1,0 +1,43 @@
+/* V71 — clear, compact physical-container groups in the strain timeline. */
+.strain-timeline-group {
+  margin: 8px 0 13px;
+  padding: 8px 9px 7px;
+  border: 1px solid var(--line, #dfe4e1);
+  border-radius: 12px;
+  background: #fbfcfb;
+}
+.strain-timeline-group > h4 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 8px;
+  padding: 0 1px 6px;
+  border-bottom: 1px solid var(--line, #e2e8e4);
+  color: var(--green, #2d5a27);
+  font-size: 13px;
+  line-height: 1.2;
+}
+.strain-timeline-group > h4 small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: #edf3ed;
+  color: var(--green, #2d5a27);
+  font-size: 11px;
+  font-weight: 700;
+}
+.strain-timeline-group-rows {
+  display: grid;
+  gap: 8px;
+}
+.strain-timeline-group-rows > .strain-timeline-row {
+  margin: 0;
+}
+.strain-timeline-group-rows > .strain-timeline-row + .strain-timeline-row {
+  border-top: 1px solid #edf0ed;
+  padding-top: 7px;
+}
