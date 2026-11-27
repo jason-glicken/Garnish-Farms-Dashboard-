@@ -1,40 +1,21 @@
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f4f7f2"><title>Sign in · Garnish Farms</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="gf-auth.js?v=1"></script>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#2d5a27"><title>Sign in · Garnish Farms</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="gf-data.js"></script>
 <style>
-:root{--green:#2d5a27;--bg:#f4f7f2;--ink:#1f2937;--muted:#6b7280;--line:#dfe7dc}*{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100svh;background:linear-gradient(145deg,#edf4e9,#f8faf7 55%,#e8f0e5);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);display:grid;place-items:center;padding:22px}.panel{width:min(100%,420px);background:#fff;border:1px solid var(--line);border-radius:22px;padding:28px 24px;box-shadow:0 18px 50px #1e3d1a12}.mark{width:48px;height:48px;border-radius:14px;background:#e8f2e5;display:grid;place-items:center;font-size:25px;margin-bottom:18px}h1{font-size:1.45rem;line-height:1.2;margin:0;color:var(--green)}.sub{color:var(--muted);font-size:.9rem;line-height:1.5;margin:8px 0 24px}.field{display:grid;gap:7px;margin:15px 0}.field label{font-size:.82rem;font-weight:700}.field input{width:100%;min-height:50px;border:1px solid #cfd8cc;border-radius:11px;padding:12px 13px;font-size:16px;background:#fff;color:var(--ink)}.field input:focus{outline:3px solid #2d5a2720;border-color:var(--green)}button{width:100%;min-height:50px;border:0;border-radius:11px;background:var(--green);color:#fff;font-weight:750;font-size:.95rem;margin-top:9px;cursor:pointer}button:disabled{opacity:.65}.error{display:none;margin-top:14px;padding:11px 12px;border-radius:10px;background:#fff1f0;color:#a12820;font-size:.82rem;line-height:1.4}.foot{font-size:.75rem;color:var(--muted);text-align:center;margin:20px 0 0}.show{display:flex;align-items:center;gap:8px;font-size:.78rem;color:var(--muted);margin-top:4px}.show input{width:17px;height:17px;accent-color:var(--green)}
-</style></head><body>
-<main class="panel"><div class="mark" aria-hidden="true">🍄</div><h1>Garnish Farms</h1><p class="sub">Sign in to your private mushroom production dashboard.</p>
-<form id="loginForm"><div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="username" value="jason.glicken@gmail.com" required></div>
-<div class="field"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required></div>
-<label class="show"><input id="showPassword" type="checkbox"> Show password</label><button id="submit" type="submit">Sign in</button><button id="forgot" type="button" style="background:#fff;color:var(--green);border:1px solid var(--line)">Forgot password?</button><div class="error" id="error" role="alert"></div></form>
-<form id="recoveryForm" hidden><p class="sub">Choose a new password for your Garnish Farms account.</p><div class="field"><label for="newPassword">New password</label><input id="newPassword" type="password" autocomplete="new-password" minlength="8" required></div><div class="field"><label for="confirmPassword">Confirm new password</label><input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" required></div><label class="show"><input id="showNewPassword" type="checkbox"> Show passwords</label><button id="savePassword" type="submit">Save new password</button><div class="error" id="recoveryError" role="alert"></div></form>
-<p class="foot">Private owner access · Your session stays signed in on this device.</p></main>
+:root{--green:#2d5a27;--bg:#f4f7f2;--border:#dce5d8;--muted:#647067}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#1f2937;padding:1rem}.panel{width:min(100%,420px);background:white;border:1px solid var(--border);border-radius:18px;padding:1.5rem;box-shadow:0 12px 32px #1e3d1a12}.brand{color:var(--green);font-size:1.45rem;font-weight:800;margin:0 0 .35rem}.sub{color:var(--muted);font-size:.9rem;margin:0 0 1.5rem}label{display:block;font-size:.85rem;font-weight:650;margin:.9rem 0 .35rem}input{width:100%;padding:.8rem;border:1px solid #cbd5cc;border-radius:9px;font-size:1rem}button{width:100%;margin-top:1.2rem;border:0;border-radius:9px;padding:.85rem;background:var(--green);color:white;font-size:1rem;font-weight:700;cursor:pointer}button:disabled{opacity:.65;cursor:wait}.message{min-height:1.5rem;margin:.9rem 0 0;font-size:.88rem;color:#a12626}.note{font-size:.78rem;color:var(--muted);margin-top:1.1rem;line-height:1.45}
+</style></head><body><main class="panel"><h1 class="brand">Garnish Farms</h1><p class="sub">Mushroom Production Dashboard</p>
+<form id="loginForm"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required><button id="submit" type="submit">Sign in</button><p class="message" id="message" role="alert" aria-live="polite"></p></form>
+<p class="note">Use your existing Garnish Farms Supabase email and password. This page does not create a new account or change your password.</p></main>
 <script>
 (() => {
-  const auth=window.GFAuth.client.auth;
-  const loginForm=document.getElementById('loginForm');
-  const recoveryForm=document.getElementById('recoveryForm');
-  const loginError=document.getElementById('error');
-  const recoveryError=document.getElementById('recoveryError');
-  const showRecovery=()=>{loginForm.hidden=true;recoveryForm.hidden=false;document.querySelector('main.panel .sub').hidden=true;document.querySelector('main.panel h1').textContent='Choose a new password';};
-  const showLogin=()=>{loginForm.hidden=false;recoveryForm.hidden=true;document.querySelector('main.panel .sub').hidden=false;document.querySelector('main.panel h1').textContent='Garnish Farms';};
-  document.getElementById('showPassword').addEventListener('change',e=>document.getElementById('password').type=e.target.checked?'text':'password');
-  document.getElementById('showNewPassword').addEventListener('change',e=>{const t=e.target.checked?'text':'password';document.getElementById('newPassword').type=t;document.getElementById('confirmPassword').type=t;});
-  document.getElementById('forgot').addEventListener('click',async()=>{
-    loginError.style.display='none';
-    const email=document.getElementById('email').value.trim();
-    if(!email){loginError.textContent='Enter your email address first.';loginError.style.display='block';return;}
-    const button=document.getElementById('forgot');button.disabled=true;button.textContent='Sending reset email…';
-    try{const redirectTo=location.origin+location.pathname;const {error}=await auth.resetPasswordForEmail(email,{redirectTo});if(error)throw error;loginError.textContent='If the account exists, a password-reset email has been sent. Open the newest email on this device.';loginError.style.display='block';loginError.style.background='#eef6eb';loginError.style.color='#2d5a27';}
-    catch(ex){loginError.textContent=ex.message||'Could not send the reset email.';loginError.style.display='block';}
-    finally{button.disabled=false;button.textContent='Forgot password?';}
-  });
-  loginForm.addEventListener('submit',async e=>{e.preventDefault();const btn=document.getElementById('submit');loginError.style.display='none';btn.disabled=true;btn.textContent='Signing in…';try{const {data,error}=await auth.signInWithPassword({email:document.getElementById('email').value.trim(),password:document.getElementById('password').value});if(error)throw error;if(data.user?.email?.toLowerCase()!=='jason.glicken@gmail.com'){await auth.signOut();throw new Error('This account is not authorized for Garnish Farms.');}const next=new URLSearchParams(location.search).get('next')||'index.html';location.replace(next);}catch(ex){loginError.textContent=ex.message||'Unable to sign in. Check your email and password.';loginError.style.display='block';btn.disabled=false;btn.textContent='Sign in';}});
-  recoveryForm.addEventListener('submit',async e=>{e.preventDefault();const btn=document.getElementById('savePassword');recoveryError.style.display='none';const password=document.getElementById('newPassword').value;const confirm=document.getElementById('confirmPassword').value;if(password!==confirm){recoveryError.textContent='The passwords do not match.';recoveryError.style.display='block';return;}btn.disabled=true;btn.textContent='Saving password…';try{const {data,error}=await auth.updateUser({password});if(error)throw error;if(data.user?.email?.toLowerCase()!=='jason.glicken@gmail.com'){await auth.signOut();throw new Error('This account is not authorized for Garnish Farms.');}document.querySelector('main.panel h1').textContent='Password updated';recoveryForm.innerHTML='<p class="sub">Your password has been changed. Taking you to your dashboard…</p>';setTimeout(()=>location.replace('index.html'),900);}catch(ex){recoveryError.textContent=ex.message||'Could not update the password. Request a fresh reset email and try again.';recoveryError.style.display='block';btn.disabled=false;btn.textContent='Save new password';}});
-  if(window.GFAuth.recoveryMode)showRecovery();
-  window.addEventListener('gf-password-recovery',showRecovery);
+ const form=document.getElementById('loginForm'), button=document.getElementById('submit'), message=document.getElementById('message');
+ const params=new URLSearchParams(location.search); const rawNext=params.get('next')||'index.html';
+ const safeNext=rawNext.startsWith('/') && !rawNext.startsWith('//') && rawNext.includes('/Garnish-Farms-Dashboard-/') ? rawNext : 'index.html';
+ window.GFData.getAuthState().then(auth=>{if(auth.authenticated) location.replace(new URL(safeNext,location.origin).href);}).catch(()=>{});
+ form.addEventListener('submit',async event=>{event.preventDefault();message.textContent='';button.disabled=true;button.textContent='Signing in…';
+  try{const result=await window.GFData.signInWithPassword(document.getElementById('email').value,document.getElementById('password').value);if(result.error) throw result.error;
+   const destination=safeNext.startsWith('/')?new URL(safeNext,location.origin).href:new URL(safeNext,location.href).href;location.replace(destination);
+  }catch(error){message.textContent=error.message||'Sign-in failed. Check your email and password.';button.disabled=false;button.textContent='Sign in';}
+ });
 })();
 </script></body></html>

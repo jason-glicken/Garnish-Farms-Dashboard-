@@ -1,95 +1,127 @@
-/* Garnish Farms shared site header — one markup, one stylesheet, one data loader */
+/* Garnish Farms global layout loader and shared header controller. */
 (() => {
   'use strict';
-  if (window.__GF_SHARED_HEADER__) return;
-  window.__GF_SHARED_HEADER__ = true;
-  const ROOT = new URL('.', document.currentScript.src);
+  if (window.__GF_LAYOUT_LOADED__) return;
   const mount = document.getElementById('gf-shared-header');
   if (!mount) return;
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = new URL('shared-header.css?v=3', ROOT).href;
-  document.head.appendChild(link);
+  window.__GF_LAYOUT_LOADED__ = true;
+  const base = new URL('.', document.currentScript.src);
+  const css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.href = new URL('shared-header.css?v=2', base).href;
+  document.head.appendChild(css);
 
-  const setStatus = (state, message) => {
+  const status = (state, message) => {
     const dot = document.getElementById('syncDot');
     const label = document.getElementById('syncStatus');
-    if (dot) {
-      dot.className = 'sync-dot ' + state;
-      dot.style.setProperty('background-color', state === 'connected' ? '#16a34a' : state === 'error' ? '#dc2626' : '#9ca3af', 'important');
-    }
+    if (dot) dot.className = 'sync-dot ' + state;
     if (label) label.textContent = message;
   };
-  const setText = (id, value) => {
-    const node = document.getElementById(id);
-    if (node) node.textContent = String(value);
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(value);
   };
-  function setActiveNavigation() {
+  const norm = value => window.GFData.normalize(value);
+  const active = row => window.GFData.isActive(row);
+  const stage = row => window.GFData.stage(row);
+
+  function markActiveLinks() {
     const file = location.pathname.split('/').pop() || 'index.html';
     const params = new URLSearchParams(location.search);
     const type = (params.get('type') || '').toLowerCase();
-    document.querySelectorAll('#gf-shared-header a').forEach(a => {
+    const strain = (params.get('strain') || '').toLowerCase();
+    mount.querySelectorAll('a').forEach(a => {
       const href = a.getAttribute('href') || '';
-      if (href === 'list.html?type=all' && (file === 'batch.html' || (file === 'list.html' && type === 'all'))) a.classList.add('gf-active');
-      if (href === 'list.html?type=jars' && file === 'list.html' && type === 'jars') a.classList.add('gf-active');
-      if (href === 'list.html?type=bags' && file === 'list.html' && type === 'bags') a.classList.add('gf-active');
-      if (href === 'list.html?type=fruiting' && file === 'list.html' && type === 'fruiting') a.classList.add('gf-active');
-      if (href === 'new-batch.html' && file === 'new-batch.html') a.classList.add('gf-active');
-      if (href === 'harvest.html' && file === 'harvest.html') a.classList.add('gf-active');
-      if (href === 'yield.html' && file === 'yield.html') a.classList.add('gf-active');
-      if (href === 'settings.html' && file === 'settings.html') a.classList.add('gf-active');
+      if ((href === 'list.html?type=all' && (file === 'batch.html' || (file === 'list.html' && type === 'all'))) ||
+          (href === 'list.html?type=jars' && file === 'list.html' && type === 'jars') ||
+          (href === 'list.html?type=bags' && file === 'list.html' && type === 'bags') ||
+          (href === 'list.html?type=fruiting' && file === 'list.html' && type === 'fruiting') ||
+          (href === file && ['index.html','new-batch.html','harvest.html','yield.html','settings.html','upcoming.html','activities.html','new-culture.html'].includes(file))) {
+        a.classList.add('gf-active');
+      }
       if (a.hasAttribute('data-strain')) {
-        const strainName = a.getAttribute('data-strain') || '';
-        if (file === 'list.html') a.href = `list.html?type=${encodeURIComponent(type || 'jars')}&strain=${encodeURIComponent(strainName)}`;
-        else if (file === 'strain.html') a.href = `strain.html?strain=${encodeURIComponent(strainName)}`;
-        if (file === 'strain.html' && strainName.toLowerCase() === (params.get('strain') || '').toLowerCase()) a.classList.add('gf-strain-active');
+        const name = a.getAttribute('data-strain') || '';
+        if (strain && strain === name.toLowerCase()) a.classList.add('gf-strain-active');
+        if (file === 'list.html') a.href = `list.html?type=${encodeURIComponent(type || 'jars')}&strain=${encodeURIComponent(name)}`;
+        if (file === 'strain.html') a.href = `strain.html?strain=${encodeURIComponent(name)}`;
       }
     });
   }
-  async function ensureSupabase() {
-    if (window.supabase && typeof window.supabase.createClient === 'function') return;
-    await new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      script.onload = resolve;
-      script.onerror = () => reject(new Error('Supabase library failed to load'));
-      document.head.appendChild(script);
-    });
-  }
+
   async function refreshHeader() {
-    setStatus('', 'Syncing...');
-    try {
-      if (!window.GFData) throw new Error('Shared data layer did not load');
-      const batches = await window.GFData.read('batches', q => q.order('created_at', { ascending: false }));
-      const active = batches.filter(window.GFData.isActive);
-      const sum = rows => rows.reduce((total, b) => total + Number(b.quantity || 1), 0);
-      const jars = sum(active.filter(b => window.GFData.stage(b) === 'Grain Spawn' && String(b.container||'').toLowerCase()==='jar'));
-      const bags = sum(active.filter(b => window.GFData.stage(b) === 'Bulk Substrate' && String(b.container||'').toLowerCase()==='bag'));
-      const fruiting = sum(active.filter(b => window.GFData.stage(b) === 'Fruiting'));
-      const yieldLbs = batches.reduce((total, b) => total + Number(b.harvest_weight || 0), 0);
-      setText('kpi-active', batches.length);
-      setText('kpi-jars', jars);
-      setText('kpi-bags', bags);
-      setText('kpi-fruiting', fruiting);
-      setText('header-total-farm-yield-val', yieldLbs.toFixed(1) + ' lbs');
-      setStatus(batches.length ? 'connected' : '', batches.length ? `Cloud Synced · ${batches.length} batches` : 'Connected · No batch records returned');
-    } catch (error) {
-      console.error('Garnish Farms shared header sync:', error);
-      setStatus('error', 'Sync Error: ' + (error && error.message ? error.message : 'Unable to connect'));
+    if (!window.GFData) throw new Error('Shared database layer did not initialize');
+    status('', 'Checking sign-in…');
+    const auth = await window.GFData.getAuthState();
+    if (auth.error) throw auth.error;
+    if (!auth.authenticated) {
+      const error = new Error('No active Supabase user session. Database access requires signing in.');
+      error.code = 'GF_AUTH_REQUIRED';
+      throw error;
+    }
+    status('', 'Syncing…');
+    const [parentResult, childResult, harvestResult] = await Promise.all([
+      window.GFData.getBatches({ columns: 'id,quantity,container,stage,status,harvest_weight' }),
+      window.GFData.getBatchItems({ columns: 'id,batch_id,container_id,container,stage,status' }),
+      window.GFData.getHarvests({ columns: 'weight_lbs', orderBy: false })
+    ]);
+    if (parentResult.error) throw parentResult.error;
+    if (childResult.error) throw childResult.error;
+    const parents = parentResult.data || [];
+    const children = childResult.data || [];
+    const childParentIds = new Set(children.map(row => String(row.batch_id)));
+    const units = children.filter(active);
+    parents.filter(row => !childParentIds.has(String(row.id)) && active(row)).forEach(row => {
+      const quantity = Math.max(1, Number(row.quantity) || 1);
+      for (let i = 0; i < quantity; i++) units.push(row);
+    });
+    const jars = units.filter(row => stage(row) === 'Grain Spawn' && norm(row.container).includes('jar')).length;
+    const bags = units.filter(row => stage(row) === 'Bulk Substrate' && (norm(row.container).includes('bag') || norm(row.container).includes('block'))).length;
+    const fruiting = units.filter(row => stage(row) === 'Fruiting').length;
+    const activeParents = new Set(units.map(row => String(row.batch_id ?? row.id))).size;
+    set('kpi-active', activeParents);
+    set('kpi-jars', jars);
+    set('kpi-bags', bags);
+    set('kpi-fruiting', fruiting);
+    if (harvestResult.error) {
+      set('header-total-farm-yield-val', '—');
+      status('error', 'Cloud Connected · harvest log setup required');
+      console.warn('Harvest table unavailable; header yield intentionally not shown.', harvestResult.error);
+    } else {
+      const total = (harvestResult.data || []).reduce((sum, row) => sum + (Number(row.weight_lbs) || 0), 0);
+      set('header-total-farm-yield-val', total.toFixed(2) + ' lbs');
+      status('connected', 'Cloud Connected · ' + parents.length + ' batches');
     }
   }
+
   async function init() {
     try {
-      const response = await fetch(new URL('shared-header.html?v=3', ROOT), { cache: 'no-store' });
-      if (!response.ok) throw new Error('Could not load shared-header.html (' + response.status + ')');
+      const response = await fetch(new URL('shared-header.html?v=2', base), { cache: 'no-store' });
+      if (!response.ok) throw new Error('Unable to load shared header (' + response.status + ')');
       mount.innerHTML = await response.text();
-      setActiveNavigation();
+      const signOutButton = document.getElementById('gfSignOut');
+      if (signOutButton) signOutButton.addEventListener('click', async () => {
+        signOutButton.disabled = true; signOutButton.textContent = 'Signing out…';
+        const result = await window.GFData.signOut();
+        if (result.error) { signOutButton.disabled = false; signOutButton.textContent = 'Sign out'; alert('Could not sign out: ' + result.error.message); return; }
+        location.replace(new URL('login.html', base).href);
+      });
+      markActiveLinks();
       document.dispatchEvent(new CustomEvent('gf:shared-header-ready'));
       await refreshHeader();
     } catch (error) {
-      console.error('Garnish Farms shared header failed:', error);
-      mount.textContent = 'Garnish Farms header could not load: ' + error.message;
+      console.error('Garnish Farms global layout:', error);
+      status('error', error && error.code === 'GF_AUTH_REQUIRED' ? 'Sign-in required' : 'Sync unavailable');
     }
   }
   init();
+  if (window.GFData && typeof window.GFData.onAuthStateChange === 'function') {
+    window.GFData.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        refreshHeader().catch(error => {
+          console.error('Garnish Farms header refresh after auth change:', error);
+          status('error', error && error.code === 'GF_AUTH_REQUIRED' ? 'Sign-in required' : 'Sync unavailable');
+        });
+      }
+    });
+  }
 })();

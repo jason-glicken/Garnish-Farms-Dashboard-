@@ -1,0 +1,7 @@
+VERSION 59 STATIC VERIFICATION
+- Added existing-user email/password sign-in via Supabase Auth.
+- Added login page; no sign-up or password reset operation.
+- Added DOMContentLoaded auth gate to all HTML pages loading gf-data.js, excluding login.html.
+- Added shared-header Sign out action.
+- No Supabase database writes, SQL migrations, auth settings changes, or GitHub deployment.
+- Browser sign-in and authenticated data access still require user testing in the deployed site.

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Container List - Garnish Farms</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="gf-data.js"></script><script src="auth-guard.js?v=1"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -54,27 +55,75 @@
         .badge-green { background: #dcfce7; color: #166534; }
         .badge-yellow { background: #fef9c3; color: #854d0e; }
             .strain-scientific { font-size: .78em; color: var(--text-muted); font-style: italic; font-weight: 500; }
-    </style>
+    .strain-nav-card{width:100%;min-width:0;margin-top:.25rem;padding:.45rem .5rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:9px;overflow:hidden}.strain-nav-scroll{display:flex;gap:.35rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.1rem 0}.strain-nav-scroll a{flex:0 0 auto;border-radius:999px!important;text-decoration:none!important;font-weight:700!important}
+
+/* V37 shared site-wide header */
+.gf-site-header{position:sticky!important;top:0;z-index:1000;background:#fff!important;border-bottom:1px solid var(--border,#e5e7eb)!important;padding:.48rem .65rem!important;display:flex!important;flex-direction:column!important;gap:.3rem!important;width:100%;box-shadow:0 2px 5px #00000008}
+.gf-brand-row{display:flex;justify-content:space-between;align-items:center;width:100%;gap:.5rem}
+.gf-brand{text-align:left;text-decoration:none;display:block;min-width:0}.gf-brand h1{font-size:1.05rem!important;line-height:1.2;margin:0;color:var(--primary,#2d5a27);font-weight:800}.gf-brand p{display:flex;align-items:center;justify-content:flex-start;gap:.32rem;margin:.13rem 0 0;font-size:.61rem;color:var(--text-muted,#6b7280)}
+.gf-settings{padding:.3rem .55rem!important;font-size:.7rem!important;white-space:nowrap}
+.gf-site-header .stat-link-card{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;text-decoration:none;color:var(--text-main,#1f2937);box-shadow:0 1px 2px #00000008}
+.gf-site-header .stat-link-card.gf-active{background:#eaf2e7!important;border:1.5px solid var(--primary,#2d5a27)!important;box-shadow:inset 0 0 0 1px var(--primary,#2d5a27)}
+.gf-site-header .header-production-actions{display:grid;grid-template-columns:1fr 1fr 1.45fr;gap:.3rem;align-items:stretch;width:100%;margin-top:.05rem;text-align:center}
+.gf-site-header .header-action-card{min-height:25px;padding:.14rem .2rem!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.04rem;text-align:center;font-size:.57rem;font-weight:700;line-height:1.1}
+.gf-site-header .header-action-card strong{font-size:.64rem;color:var(--primary);font-weight:800}
+.gf-site-header .strain-nav-card{width:100%;min-width:0;margin-top:.02rem;padding:.26rem .35rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;overflow:hidden}
+.gf-site-header .strain-nav-scroll{display:flex;gap:.28rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.04rem 0}
+.gf-site-header .strain-nav-scroll a{flex:0 0 auto;border:1px solid color-mix(in srgb,var(--strain-color) 35%,white);border-radius:999px;padding:.16rem .34rem;font-size:.59rem;font-weight:700;text-decoration:none;color:var(--strain-color);background:var(--strain-bg);line-height:1.2}
+.gf-site-header .strain-nav-scroll a.gf-strain-active{outline:2px solid var(--strain-color);outline-offset:1px;filter:saturate(1.2);font-weight:800}
+.gf-site-header a.gf-active:not(.header-action-card){color:var(--primary)}
+@media(max-width:520px){.gf-site-header{padding:.4rem .5rem!important;gap:.26rem!important}.gf-brand h1{font-size:.96rem!important}.gf-site-header .header-production-actions{grid-template-columns:1fr 1fr 1.35fr}.gf-site-header .header-action-card{min-height:24px;font-size:.54rem}.gf-site-header .header-action-card strong{font-size:.6rem}.gf-site-header .strain-nav-scroll a{font-size:.56rem;padding:.14rem .3rem}}
+
+
+/* V38 header refinements: override legacy page header selectors */
+header.gf-site-header{display:flex!important;flex-direction:column!important;align-items:stretch!important;grid-template-columns:none!important;gap:.3rem!important}
+header.gf-site-header>div,header.gf-site-header>nav{grid-column:auto!important;min-width:0!important}
+header.gf-site-header>.gf-brand-row{display:flex!important;justify-content:space-between!important;align-items:center!important}
+header.gf-site-header>.gf-brand-row .gf-header-actions{display:flex;align-items:center;gap:.35rem;flex:0 0 auto}
+.gf-home{background:#2d5a27!important;color:#fff!important;border:1px solid #2d5a27!important;padding:.3rem .55rem!important;font-size:.68rem!important;white-space:nowrap}
+.gf-site-header .stat-link-card{transition:background .15s,border-color .15s}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(1){background:#f1f6ef!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(2){background:#f0f5fb!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(3){background:#fbf4ed!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(4){background:#f5f1fa!important}
+.gf-site-header .header-production-actions a:nth-child(1){background:#2d5a27!important;border:1px solid #244a20!important;color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(1) span,.gf-site-header .header-production-actions a:nth-child(1) strong{color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(2){background:#fff8e9!important}
+.gf-site-header .header-production-actions a:nth-child(3){background:#f1f6ef!important}
+.gf-site-header .header-production-actions a.gf-active{filter:brightness(.97)}
+.gf-home:focus,.gf-home:hover{background:#244a20!important}
+
+
+/* V39: keep the four KPI header cards in a full-width four-column grid.
+   This must override legacy page rules that style header div:nth-child(2) as flex. */
+header.gf-site-header > div:nth-child(2):not(.header-production-actions){
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  justify-content:stretch!important;
+  align-items:stretch!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  gap:.35rem!important;
+  margin-top:.05rem!important;
+}
+header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat-link-card{
+  display:flex!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  justify-content:center!important;
+  align-items:center!important;
+}
+
+.gf-record-link{color:inherit;text-decoration:underline;text-decoration-color:#9ab39a;text-underline-offset:2px;cursor:pointer}.gf-record-link:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+</style>
 </head>
 <body>
-    <header>
-        <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <h1 id="pageHeading">Active Jars</h1>
-            <span id="topVesselQtyBadge" style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 999px; padding: 0.22rem 0.55rem; font-size: 0.78rem; font-weight: 700; color: var(--primary);">
-                <svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>
-            </span>
-        </div>
-        <div style="display:flex;gap:0.35rem;"><a href="settings.html" class="btn btn-outline">Settings</a><a href="index.html" class="btn btn-outline">← Dashboard</a></div>
-    <details open style="width:100%;margin-top:.18rem;font-size:.68rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#3b82f6;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#64748b;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#7c3aed;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#15803d;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#db2777;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#92400e;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#ca8a04;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#c2410c;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
+    <div id="gf-shared-header" aria-label="Garnish Farms site header"></div>
     <main>
         <div class="card">
-            <div class="tab-bar">
-                <a href="list.html?type=jars" class="tab-link" id="tab-jars">Jars</a>
-                <a href="list.html?type=bags" class="tab-link" id="tab-bags">Bags</a>
-                <a href="list.html?type=fruiting" class="tab-link" id="tab-fruiting">🍄 Fruiting</a>
-                <a href="list.html?type=all" class="tab-link" id="tab-all">All Batches</a>
-            </div>
-            <div class="pill-row" id="strainFilterPills">
+            <div hidden aria-hidden="true"><h1 id="pageHeading">Active Jars</h1><a id="tab-jars"></a><a id="tab-bags"></a><a id="tab-fruiting"></a><a id="tab-all"></a><span id="topVesselQtyBadge"><span id="topVesselQtyVal">0</span></span></div>
+<div class="pill-row" id="strainFilterPills" style="display:none!important">
                 <button type="button" class="pill-btn selected" data-strain="">All Strains</button>
             </div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.55rem;">
@@ -85,11 +134,6 @@
         </div>
     </main>
     <script>
-        const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const STAGE_CLOCK_KEY = 'garnish_farms_stage_clock_v1';
 
         const SETTINGS_KEY = 'garnish_farms_settings_v1';
         const DEFAULT_SETTINGS = {
@@ -131,7 +175,8 @@
         const params = new URLSearchParams(window.location.search);
         const listType = (params.get('type') || 'jars').toLowerCase();
         let allBatches = [];
-        let selectedStrain = '';
+        let allBatchItems = [];
+        let selectedStrain = params.get('strain') || '';
 
         function escapeAttr(str) {
             return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -182,10 +227,14 @@
             const raw = String(batchId || '').trim().replace(/^GF[-_]?/i, '');
             const embedded = raw.match(/(\d{6})/);
             if (embedded) return `${code}-${embedded[1]}`;
-            return raw ? `${code}-${raw}` : code;
+            return code;
         }
         function formatContainerUnitId(batchId, strain, dateStr, index) {
             return `${getBaseBatchId(batchId, strain, dateStr)}-${index}`;
+        }
+        function formatParentBatchLabel(batchId, strain, dateStr, quantity) {
+            const n = Math.max(1, Number(quantity || 1));
+            return `${getBaseBatchId(batchId, strain, dateStr)} (1-${n})`;
         }
         function getStrainCardTheme(strain) {
             const code = formatStrainCode(strain);
@@ -208,14 +257,7 @@
             return match ? match[1] : null;
         }
         function getEffectiveStageDate(item) {
-            try {
-                const map = JSON.parse(localStorage.getItem(STAGE_CLOCK_KEY) || '{}');
-                const key = `${item.id}::${item.stage}`;
-                const noteDate = getStageClockFromNotes(item.notes, item.stage);
-                return noteDate || map[key] || item.date;
-            } catch (e) {
-                return item.date;
-            }
+            return getStageClockFromNotes(item.notes, item.stage) || item.date;
         }
         function getDaysActive(dateString) {
             if (!dateString) return 0;
@@ -347,105 +389,34 @@
                 if (badge) badge.innerHTML = `<svg class="vessel-icon" viewBox="0 0 24 24" width="15" height="15" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="topVesselQtyVal">0</span>`;
             }
         }
+        function normalizeRecordValue(value) { return String(value ?? '').trim().toLowerCase().replace(/[’']/g, "'").replace(/[_-]+/g, ' ').replace(/\s+/g, ' '); }
+        function isRecordActive(value) { return normalizeRecordValue(value) === 'active'; }
+        function isJarContainer(value) { const v=normalizeRecordValue(value); return !v || v.includes('jar') || v.includes('grain spawn') || v.includes('spawn'); }
+        function isBagContainer(value) { const v=normalizeRecordValue(value); return v.includes('bag') || v.includes('bulk substrate') || v.includes('substrate'); }
+        function isFruitingStage(value) { const v=normalizeRecordValue(value); return v === 'fruiting' || v.includes('fruit'); }
+
         function renderContainerCards() {
-            const listEl = document.getElementById('containerCardsList');
-            const countEl = document.getElementById('containerCount');
-            const cfg = getAppSettings();
-            const stageTargets = cfg.stageTargets;
-            let matchingBatches = allBatches.filter(b => listType === 'all' || b.status === 'Active');
-            if (listType === 'all') {
-                matchingBatches = matchingBatches.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-            } else if (listType === 'bags') {
-                matchingBatches = matchingBatches.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting');
-            } else if (listType === 'fruiting') {
-                matchingBatches = matchingBatches.filter(b => b.stage === 'Fruiting');
-            } else {
-                matchingBatches = matchingBatches.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting');
+            // V43: the V41+ individual-container renderer is authoritative.
+            // The legacy parent-batch renderer previously raced this renderer and
+            // overwrote its per-container timelines with parent-level cards.
+            if (typeof window.gfV41RenderContainerCards === 'function') {
+                window.gfV41RenderContainerCards().catch(err => {
+                    const el=document.getElementById('containerCardsList');
+                    if(el) el.innerHTML='<div class="empty">Could not load individual containers: '+escapeAttr(err.message||err)+'</div>';
+                });
             }
-            if (selectedStrain) matchingBatches = matchingBatches.filter(b => b.strain === selectedStrain);
-
-            const unitCards = [];
-            matchingBatches.forEach(b => {
-                const qty = listType === 'all' ? 1 : Math.max(1, Number(b.quantity || 1));
-                const stageDate = getEffectiveStageDate(b);
-                const startDate = getBatchStartDate(b);
-                const days = Math.max(0, getDaysActive(startDate));
-                const stageTargetDays = Number(stageTargets[b.stage] || 14);
-                const targetDays = getStageTargetOffsetDays(b.stage, stageTargets);
-                for (let idx = 1; idx <= qty; idx++) {
-                    unitCards.push({
-                        batch: b,
-                        unitIndex: idx,
-                        totalUnits: qty,
-                        unitId: formatContainerUnitId(b.batch_id, b.strain, b.date, idx),
-                        stageDate,
-                        days,
-                        stageTargetDays,
-                        targetDays
-                    });
-                }
-            });
-
-            const unitNoun = listType === 'all' ? 'batch' : (listType === 'bags' ? 'bag' : (listType === 'fruiting' ? 'block' : 'jar'));
-            countEl.innerText = `${unitCards.length} ${unitNoun}${unitCards.length === 1 ? '' : 's'}`;
-            const topQtyEl = document.getElementById('topVesselQtyVal');
-            if (topQtyEl) topQtyEl.innerText = String(unitCards.length);
-            if (unitCards.length === 0) {
-                listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 1.2rem;">No active ${unitNoun}s found.</div>`;
-                return;
-            }
-            listEl.innerHTML = unitCards.map(u => {
-                const { batch, unitIndex, totalUnits, unitId, stageDate, days, stageTargetDays, targetDays } = u;
-                const theme = getStrainCardTheme(batch.strain);
-                const pastTarget = days > targetDays;
-                const badgeClass = pastTarget ? 'badge-yellow' : 'badge-green';
-                const badgeText = pastTarget ? `Past Day ${targetDays}` : `Day ${days} / ${targetDays}d`;
-                const subInfo = batch.substrate ? ` • ${escapeAttr(batch.substrate)}` : '';
-                const actionLink = batch.stage === 'Fruiting'
-                    ? `<div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-outline revert-fruiting-btn" data-id="${batch.id}" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">↩ Bulk Sub</button>
-                        <a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.5rem; font-size: 0.68rem;">Edit</a>
-                        <a href="harvest.html?id=${batch.id}" class="btn" style="padding: 0.25rem 0.55rem; font-size: 0.68rem; background-color: #d97706;">Harvest ➔</a>
-                       </div>`
-                    : `<a href="new-batch.html?id=${batch.id}" class="btn btn-outline" style="padding: 0.25rem 0.55rem; font-size: 0.68rem;">Edit Batch</a>`;
-                return `
-                    <div class="container-card strain-record-card" style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
-                        <div class="strain-card-heading">
-                            <div style="min-width:0;">
-                                <div class="strain-card-name">${formatStrainWithScientific(batch.strain)}</div>
-                                <div class="strain-card-id">${escapeAttr(unitId)} <span style="font-weight:500;color:var(--text-muted);">${formatUnitIconPatternHtml(batch.container, unitIndex, totalUnits)}</span></div>
-                            </div>
-                            <span class="badge ${badgeClass}">${escapeAttr(badgeText)}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap;">
-                            <span class="strain-card-stage">${escapeAttr(batch.stage)}${subInfo}</span>
-                            ${actionLink}
-                        </div>
-                        <div style="font-size: 0.68rem; color: var(--text-muted);">Batch Date: ${escapeAttr(batch.date)} • Stage Start: ${escapeAttr(stageDate)}</div>
-                        ${renderContinuousStageBar(batch)}
-                    </div>
-                `;
-            }).join('');
         }
 
         async function revertFruitingToBulk(dbId) {
             const batch = allBatches.find(b => Number(b.id) === Number(dbId));
             if (!batch) return;
             const cleanedNotes = String(batch.notes || '').replace(/\s*\[Stage:FRT:\d{4}-\d{2}-\d{2}\]/g, '').trim();
-            const { error } = await _supabase
-                .from('batches')
-                .update({ stage: 'Bulk Substrate', notes: cleanedNotes })
-                .eq('id', dbId);
+            const { error } = await window.GFData.repositories.batches.update(dbId, { stage: 'Bulk Substrate', notes: cleanedNotes });
             if (error) {
                 alert('Could not revert batch: ' + error.message);
                 return;
             }
-            try {
-                const map = JSON.parse(localStorage.getItem(STAGE_CLOCK_KEY) || '{}');
-                delete map[`${dbId}::Fruiting`];
-                localStorage.setItem(STAGE_CLOCK_KEY, JSON.stringify(map));
-            } catch (e) {}
-            const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
+            const { data } = await window.GFData.repositories.batches.list({ orderBy: 'created_at', ascending: false });
             allBatches = data || [];
             renderContainerCards();
         }
@@ -459,9 +430,16 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             setupHeader();
-            const { data } = await _supabase.from('batches').select('*').order('created_at', { ascending: false });
+            const { data, error } = await window.GFData.repositories.batches.list({ orderBy: 'created_at', ascending: false });
+            if (error) { document.getElementById('containerCardsList').innerHTML = `<div class="empty">Could not load batches: ${escapeAttr(error.message)}</div>`; return; }
             allBatches = data || [];
-            const strains = [...new Set(allBatches.filter(b => b.status === 'Active').map(b => b.strain))];
+            const childResult = await window.GFData.repositories.items.list();
+            if (childResult.error) {
+                document.getElementById('containerCardsList').innerHTML = `<div class="empty">Could not load individual containers: ${escapeAttr(childResult.error.message)}</div>`;
+                return;
+            }
+            allBatchItems = childResult.data || [];
+            const strains = [...new Set(allBatches.filter(b => isRecordActive(b.status)).map(b => b.strain).filter(Boolean))];
             const pillBar = document.getElementById('strainFilterPills');
             pillBar.innerHTML = `<button type="button" class="pill-btn selected" data-strain="">All Strains</button>` +
                 strains.map(s => `<button type="button" class="pill-btn" data-strain="${escapeAttr(s)}">${formatStrainWithScientific(s)}</button>`).join('');
@@ -476,5 +454,145 @@
         });
     </script>
 <script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
+<script>
+(()=>{
+ const q=new URLSearchParams(location.search); const file=location.pathname.split('/').pop()||'index.html';
+ const type=(q.get('type')||'').toLowerCase(); const strain=q.get('strain')||'';
+ const activeHref = file==='list.html' ? `list.html?type=${type||'jars'}` : file;
+ document.querySelectorAll('.gf-site-header a').forEach(a=>{
+   const href=a.getAttribute('href')||'';
+   if(href==='list.html?type=all' && (file==='batch.html'||(file==='list.html'&&type==='all'))) a.classList.add('gf-active');
+   if(href==='list.html?type=jars' && file==='list.html'&&type==='jars') a.classList.add('gf-active');
+   if(href==='list.html?type=bags' && file==='list.html'&&type==='bags') a.classList.add('gf-active');
+   if(href==='list.html?type=fruiting' && file==='list.html'&&type==='fruiting') a.classList.add('gf-active');
+   if(href==='new-batch.html'&&file==='new-batch.html') a.classList.add('gf-active');
+   if(href==='harvest.html'&&file==='harvest.html') a.classList.add('gf-active');
+   if(href==='yield.html'&&file==='yield.html') a.classList.add('gf-active');
+   if(href==='settings.html'&&file==='settings.html') a.classList.add('gf-active');
+   if(a.hasAttribute('data-strain')){
+     const name=a.getAttribute('data-strain');
+     if(file==='list.html') a.href=`list.html?type=${encodeURIComponent(type||'jars')}&strain=${encodeURIComponent(name)}`;
+     else if(file==='strain.html') a.href=`strain.html?strain=${encodeURIComponent(name)}`;
+     if(strain && strain.toLowerCase()===name.toLowerCase()) a.classList.add('gf-strain-active');
+   }
+ });
+ const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
+})();
+</script>
+<script id="gf-v41-container-list">
+(function(){
+ const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const isActive=x=>{const s=norm(x.status||'Active');return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(s);};
+ const stageType=x=>{const s=norm(x.stage),c=norm(x.container);if(s.includes('fruit')||c.includes('fruit'))return 'fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'bags';return 'jars';};
+ window.gfV41RenderContainerCards=async function(){
+   const listEl=document.getElementById('containerCardsList'),countEl=document.getElementById('containerCount');
+   if(!listEl||!window.supabase)return;
+   listEl.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text-muted)">Loading individual production records…</div>';
+   const [{data:parents,error:pe},{data:children,error:ce}]=await Promise.all([window.GFData.repositories.batches.list({ orderBy: 'created_at', ascending: false }),window.GFData.repositories.items.list({ orderBy: 'container_id' })]);
+   if(pe){listEl.innerHTML='<div class="empty">Could not load batches: '+esc(pe.message)+'</div>';return;}
+   const ps=parents||[],cs=ce?[]:(children||[]),parentMap=new Map(ps.map(p=>[String(p.id),p]));
+   const childParents=new Set(cs.map(x=>String(x.batch_id)));
+   let units=cs.map(x=>{const p=parentMap.get(String(x.batch_id))||{};return {...p,...x,parentId:x.batch_id,parentBatchId:p.batch_id||x.container_id,container_id:x.container_id||x.item_id||'',strain:x.strain||p.strain,stage:x.stage||p.stage,status:x.status||p.status,date:x.date||p.date,container:x.container||p.container,substrate:x.substrate||p.substrate,notes:x.notes||p.notes,quantity:1};});
+   ps.filter(p=>!childParents.has(String(p.id))).forEach(p=>{const q=Math.max(1,Number(p.quantity)||1);for(let i=1;i<=q;i++)units.push({...p,parentId:p.id,parentBatchId:p.batch_id,container_id:q>1?`${p.batch_id}-${i}`:p.batch_id,quantity:1,unitIndex:i,unitTotal:q});});
+   const siblingGroups=new Map();units.forEach(x=>{const k=String(x.parentId);if(!siblingGroups.has(k))siblingGroups.set(k,[]);siblingGroups.get(k).push(x);});siblingGroups.forEach(g=>g.forEach((x,i)=>{x.unitIndex=x.unitIndex||i+1;x.unitTotal=x.unitTotal||g.length;}));
+   const all=listType==='all';
+   if(!all) units=units.filter(isActive).filter(x=>stageType(x)===listType);
+   if(selectedStrain) units=units.filter(x=>norm(x.strain)===norm(selectedStrain));
+   units.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(a.container_id).localeCompare(String(b.container_id)));
+   if(countEl)countEl.textContent=units.length+' container'+(units.length===1?'':'s');
+   const top=document.getElementById('topVesselQtyVal');if(top)top.textContent=String(units.length);
+   if(!units.length){listEl.innerHTML='<div style="text-align:center;color:var(--text-muted);font-size:.8rem;padding:1.2rem">No '+(all?'production containers':'active '+listType)+' found.</div>';return;}
+   const targetsDefault={'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14};
+   function canonicalStage(v){const s=norm(v);if(s.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag')return 'Bulk Substrate';return 'Grain Spawn';}
+   function stageDate(x){const st=canonicalStage(x.stage);return x.current_stage_started_on||({'Grain Spawn':x.grain_started_on,'Bulk Substrate':x.bulk_started_on,'Fruiting':x.fruiting_started_on}[st])||(st==='Grain Spawn'?x.date:'')||'';}
+   function timelineHtml(x){
+     const order=['Grain Spawn','Bulk Substrate','Fruiting'];
+     const colors={'Grain Spawn':'#16a34a','Bulk Substrate':'#d97706','Fruiting':'#3b82f6'};
+     const pale={'Grain Spawn':'#e8f5ec','Bulk Substrate':'#fff2df','Fruiting':'#eaf2ff'};
+     const labels={'Grain Spawn':'Grain','Bulk Substrate':'Substrate','Fruiting':'Fruiting'};
+     const hist=Array.isArray(x.stage_history)?x.stage_history:[];
+     const note=String(x.notes||'');
+     const tagged={
+       'Grain Spawn':(note.match(/\[Origin:(\d{4}-\d{2}-\d{2})\]/)||[])[1]||'',
+       'Bulk Substrate':(note.match(/\[Stage:SUB:(\d{4}-\d{2}-\d{2})\]/)||[])[1]||'',
+       'Fruiting':(note.match(/\[Stage:FRT:(\d{4}-\d{2}-\d{2})\]/)||[])[1]||''
+     };
+     const dateKeys={'Grain Spawn':'grain_started_on','Bulk Substrate':'bulk_started_on','Fruiting':'fruiting_started_on'};
+     const starts={};
+     order.forEach(st=>{starts[st]=x[dateKeys[st]]||tagged[st]||'';});
+     hist.forEach(h=>{
+       if(!h||!h.date)return;
+       const st=canonicalStage(h.stage);
+       const d=String(h.date).slice(0,10);
+       if(!starts[st])starts[st]=d;
+     });
+     const current=canonicalStage(x.stage);
+     const currentIndex=Math.max(0,order.indexOf(current));
+     if(x.current_stage_started_on&&!starts[current])starts[current]=String(x.current_stage_started_on).slice(0,10);
+     // Do not mistake the parent batch date for Grain Spawn when the record is already in a later stage.
+     if(current==='Grain Spawn'&&!starts['Grain Spawn'])starts['Grain Spawn']=x.current_stage_started_on||x.date||'';
+     const targets={...targetsDefault,...(x.target_days||{}),...(x.target_overrides||{})};
+     const today=localIsoDate(new Date());
+     const dayDiff=(a,b)=>{if(!a||!b)return 0;const aa=new Date(String(a).slice(0,10)+'T00:00:00'),bb=new Date(String(b).slice(0,10)+'T00:00:00');return Math.max(0,Math.round((bb-aa)/86400000));};
+     const targetValues=order.map(st=>Math.max(1,Number(targets[st]||14)));
+     const totalTarget=targetValues.reduce((a,b)=>a+b,0);
+     const stageInfo=order.map((st,idx)=>{
+       const start=starts[st],reached=idx<=currentIndex&&!!start;
+       const nextStart=idx<currentIndex?starts[order[idx+1]]:'';
+       const elapsed=reached?dayDiff(start,nextStart||today):0;
+       const target=targetValues[idx];
+       const state=!reached?'Planned':(idx<currentIndex?'Complete':'Current');
+       return {st,idx,start,reached,elapsed,target,state};
+     });
+     const segment=(info,targetLine=false)=>{
+       const width=info.target/totalTarget*100;
+       const fill=targetLine?100:(info.state==='Complete'?100:info.state==='Current'?Math.min(100,info.elapsed/info.target*100):0);
+       const over= !targetLine && info.state==='Current' && info.elapsed>info.target;
+       const title=targetLine?`${labels[info.st]} target: ${info.target} days`:
+         `${labels[info.st]}: ${info.state}${info.reached?` · ${info.elapsed} actual days · ${info.target} day target`:' · not started'}`;
+       const fillColor=targetLine?colors[info.st]:colors[info.st];
+       const bg=targetLine?fillColor:`linear-gradient(90deg, ${fillColor} 0%, ${fillColor} ${fill}%, ${pale[info.st]} ${fill}%, ${pale[info.st]} 100%)`;
+       const radius=info.idx===0?'border-radius:999px 0 0 999px;':info.idx===2?'border-radius:0 999px 999px 0;':'';
+       return `<div title="${esc(title)}" style="flex:${info.target} 1 0;min-width:0;height:${targetLine?9:13}px;background:${bg};overflow:hidden;${radius}${over?'outline:1.5px solid #b91c1c;outline-offset:-1px;':''}"></div>`;
+     };
+     const actualSegments=stageInfo.map(i=>segment(i,false)).join('');
+     const targetSegments=stageInfo.map(i=>segment(i,true)).join('');
+     const actualLabels=stageInfo.map(i=>{
+       const color=colors[i.st];
+       const text=i.state==='Complete'?(i.elapsed?`Complete · ${i.elapsed}d`:'Complete'):i.state==='Current'?`Day ${i.elapsed}`:'Next';
+       return `<span style="color:${color};font-size:.57rem;font-weight:700;white-space:nowrap">${labels[i.st]}: ${text}</span>`;
+     }).join('<span style="color:#cbd5e1;font-size:.55rem">·</span>');
+     const targetLabels=stageInfo.map(i=>`<span style="font-size:.57rem;color:var(--text-muted);white-space:nowrap">${labels[i.st]} ${i.target}d</span>`).join('<span style="color:#cbd5e1;font-size:.55rem">·</span>');
+     const currentData=stageInfo[currentIndex];
+     const currentText=currentData.start?`${currentData.elapsed}d in ${labels[current]}`:`${labels[current]} start date needed`;
+     return `<div class="batch-lifecycle-timeline" style="margin-top:.58rem;display:grid;gap:.28rem">
+       <div style="display:flex;justify-content:space-between;align-items:center;font-size:.61rem"><strong style="color:var(--text-main);letter-spacing:.035em">ACTUAL</strong><span style="color:var(--text-muted)">${esc(currentText)}</span></div>
+       <div style="display:flex;gap:2px;width:100%;height:13px;border-radius:999px;overflow:hidden">${actualSegments}</div>
+       <div style="display:flex;justify-content:space-between;gap:.2rem;flex-wrap:wrap">${actualLabels}</div>
+       <div style="display:flex;justify-content:space-between;align-items:center;font-size:.61rem;margin-top:.16rem"><strong style="color:var(--text-main);letter-spacing:.035em">TARGETED</strong><span style="color:var(--text-muted)">${totalTarget} days planned</span></div>
+       <div style="display:flex;gap:2px;width:100%;height:9px;border-radius:999px;overflow:hidden">${targetSegments}</div>
+       <div style="display:flex;justify-content:space-between;gap:.2rem;flex-wrap:wrap">${targetLabels}</div>
+     </div>`;
+   }
+   function card(x,i,total){
+     const stage=canonicalStage(x.stage),date=stageDate(x),targetMap={...targetsDefault,...(x.target_days||{}),...(x.target_overrides||{})},target=Number(targetMap[stage]||14);
+     const elapsed=date?Math.max(0,Math.floor((Date.now()-new Date(date+'T00:00:00').getTime())/86400000)):0;
+     const id=formatContainerUnitId(x.parentBatchId||x.batch_id,x.strain,x.date,x.unitIndex||i+1);
+     const method=x.fruiting_method?(' · '+x.fruiting_method):'';
+     const label=Number(x.unitTotal||1)>1?'<span class="badge badge-green">'+Number(x.unitIndex||i+1)+' of '+Number(x.unitTotal)+'</span>':'';
+     const targetText=date?(stage+' · Day '+elapsed+' / '+target+'d'):'Stage date not entered';
+     return `<article class="container-card strain-record-card" style="background:#f8faf7;border-left:4px solid #6b8f5e;padding:.65rem .75rem;margin:.3rem 0"><div class="strain-card-heading"><div style="min-width:0"><div class="strain-card-name">${esc(x.strain||'Unknown strain')}</div><div class="strain-card-id"><a href="index.html?focusBatch=${encodeURIComponent(x.parentId)}" class="gf-record-link">${esc(id)}</a> ${label}</div></div><span class="badge ${elapsed>target?'badge-yellow':'badge-green'}">${esc(targetText)}</span></div><div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap"><span class="strain-card-stage">${esc(stage)}${method?' · '+esc(method):''}</span><a href="batch.html?id=${encodeURIComponent(x.parentId)}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .55rem">Manage container</a></div><div style="font-size:.68rem;color:var(--text-muted)">Stage start: ${esc(date||'Not recorded')} · Batch: ${esc(formatParentBatchLabel(x.parentBatchId||x.batch_id,x.strain,x.date,x.unitTotal||1))}</div>${timelineHtml(x)}</article>`;
+   }
+   if(all){
+     const groups=new Map();units.forEach(x=>{const k=String(x.parentId);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(x);});
+     listEl.innerHTML=[...groups.values()].map(group=>{const p=group[0],n=group.length,items=group.map((x,i)=>card(x,i,n)).join('');return `<details class="container-card all-batch-group" style="background:#fff;border-left:4px solid #6b8f5e;padding:.7rem .8rem"><summary style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;cursor:pointer;list-style:none"><span><a href="index.html?focusBatch=${encodeURIComponent(p.parentId)}" class="gf-record-link" style="display:block;color:var(--primary);font-size:.86rem;font-weight:800">${esc(formatParentBatchLabel(p.parentBatchId||p.batch_id,p.strain,p.date,n))}</a><span style="font-size:.72rem;color:var(--text-muted)">${esc(p.strain||'')} · ${esc(p.date||'')}</span></span><span class="badge badge-green">${n} container${n===1?'':'s'} ▾</span></summary><div style="margin-top:.5rem;border-top:1px solid var(--border);padding-top:.35rem">${items}<div style="text-align:right;margin-top:.4rem"><a href="batch.html?id=${encodeURIComponent(p.parentId)}" class="btn btn-outline" style="font-size:.68rem;padding:.25rem .55rem">Manage batch</a></div></div></details>`;}).join('');
+   } else listEl.innerHTML=units.map((x,i)=>card(x,i,units.length)).join('');
+ };
+ const run=()=>window.gfV41RenderContainerCards().catch(e=>{const el=document.getElementById('containerCardsList');if(el)el.textContent='Could not load production records: '+(e.message||e);});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+})();
+</script>
+<script src="shared-header.js?v=1"></script>
 </body>
 </html>

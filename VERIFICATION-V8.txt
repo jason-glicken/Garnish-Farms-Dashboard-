@@ -1,0 +1,13 @@
+GLOBAL FOUNDATION V8 — STATIC VERIFICATION
+
+[PASS] gf-data.js exposes read-only Supabase Auth session diagnostics.
+[PASS] Shared header checks for an authenticated session before querying protected production data.
+[PASS] Shared header listens for authentication state changes and refreshes status.
+[PASS] All Batches page no longer converts batch_items query errors into an empty list.
+[PASS] Strain page no longer converts batch_items query errors into an empty list.
+[PASS] Existing shared header and shared data layer references retained.
+[PASS] Review-only harvest migration retained and not executed.
+[NOT RUN] Authenticated browser test (requires a valid user session and browser).
+[NOT RUN] Sign-in flow (no login UI or sign-in method exists in this source ZIP).
+[NOT RUN] GitHub Pages deployment.
+[NOT RUN] Live database migration.

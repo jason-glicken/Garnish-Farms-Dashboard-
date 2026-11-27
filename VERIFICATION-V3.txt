@@ -1,0 +1,20 @@
+GLOBAL FOUNDATION V3 — STATIC VERIFICATION
+
+Source: Garnish-Farms-Global-Foundation-v2.zip
+Target: Global Foundation v3
+
+Checks performed:
+[PASS] gf-data.js parses with Node.js syntax checker.
+[PASS] All inline scripts in the 11 dashboard HTML pages parse with Node.js syntax checker.
+[PASS] No dashboard page directly calls .from() for batches, batch_items, cultures, or harvests.
+[PASS] Those four production tables are accessed only within gf-data.js.
+[PASS] One Supabase createClient call exists, in gf-data.js.
+[PASS] All 11 dashboard pages retain the shared-header loader and global data-layer script.
+[PASS] Batch creation uses shared createWithItems operation with explicit rollback reporting.
+[PASS] ZIP archive integrity verified after creation.
+
+Not verified:
+[NOT RUN] Authenticated browser workflows against live Supabase.
+[NOT RUN] Harvest writes; public.harvests table was absent in the read-only schema audit.
+[NOT RUN] SQL migration; no schema changes were authorized or applied.
+[NOT RUN] GitHub deployment; no repository files were pushed.

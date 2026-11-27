@@ -1,0 +1,18 @@
+GLOBAL FOUNDATION V4 — STATIC VERIFICATION
+
+Source: Global Foundation v3
+
+[PASS] Home-page production batch cache and fallback removed.
+[PASS] Shake status derives from Supabase batch notes; local shake map removed.
+[PASS] Shake action checks and surfaces Supabase write errors.
+[PASS] Home/list/upcoming stage date lookup no longer uses localStorage stage-clock map.
+[PASS] No legacy production cache/shake/stage-clock localStorage keys remain in dashboard source.
+[PASS] Direct page-level .from() calls for batches, batch_items, cultures, and harvests remain absent.
+[PASS] All inline scripts parse with Node.js syntax checker.
+[PASS] ZIP integrity checked.
+
+Not verified:
+[NOT RUN] Authenticated browser tests.
+[NOT RUN] Harvest table migration.
+[NOT RUN] Any live database write or schema change.
+[NOT RUN] GitHub deployment.

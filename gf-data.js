@@ -1,78 +1,209 @@
-/* Garnish Farms shared data layer — canonical Supabase client and read API. */
+/* Garnish Farms shared database foundation. One client per browser page. */
 (() => {
   'use strict';
   if (window.GFData) return;
-  const URL = 'https://odtalucpwmxcydxbypke.supabase.co';
-  const KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
-  let clientPromise;
+  const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+  if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+    console.error('Garnish Farms: Supabase library must load before gf-data.js');
+    return;
+  }
+  const client = window.__GF_SUPABASE__ || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  window.__GF_SUPABASE__ = client;
   const cache = new Map();
-  async function client() {
-    if (window.supabase?.createClient) return window.__GF_SUPABASE__ ||= window.supabase.createClient(URL, KEY);
-    if (!clientPromise) clientPromise = new Promise((resolve,reject)=>{
-      const script=document.createElement('script'); script.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-      script.onload=()=>resolve(window.__GF_SUPABASE__ ||= window.supabase.createClient(URL,KEY));
-      script.onerror=()=>reject(new Error('Supabase library failed to load')); document.head.appendChild(script);
-    });
-    return clientPromise;
+  // Supabase Auth uses the existing account; this dashboard never creates users.
+  async function getAuthState() {
+    if (!client.auth || typeof client.auth.getSession !== 'function') {
+      return { authenticated: false, session: null, error: new Error('Supabase Auth is unavailable in this browser session.') };
+    }
+    const { data, error } = await client.auth.getSession();
+    if (error) return { authenticated: false, session: null, error };
+    return { authenticated: !!data?.session?.user, session: data?.session || null, error: null };
   }
-  async function read(table, configure, options={}) {
-    const key=table+':'+(options.cacheKey||'default');
+  async function signInWithPassword(email, password) {
+    return client.auth.signInWithPassword({ email: String(email || '').trim(), password: String(password || '') });
+  }
+  async function signOut() { return client.auth.signOut(); }
+  function getCurrentUser() { return client.auth.getUser(); }
+  function onAuthStateChange(callback) {
+    if (!client.auth || typeof client.auth.onAuthStateChange !== 'function') return { data: { subscription: { unsubscribe() {} } } };
+    return client.auth.onAuthStateChange(callback);
+  }
+  const norm = value => String(value ?? '').trim().toLowerCase().replace(/[’']/g, "'").replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+  function read(table, configure, options = {}) {
+    const key = table + ':' + (options.cacheKey || 'default');
     if (!options.fresh && cache.has(key)) return cache.get(key);
-    const promise=(async()=>{const db=await client();let q=db.from(table).select('*');if(configure)q=configure(q);const {data,error}=await q;if(error)throw error;return Array.isArray(data)?data:[];})();
-    if (!options.fresh) cache.set(key,promise);
-    try{return await promise}catch(e){cache.delete(key);throw e;}
+    const promise = (async () => {
+      let query = client.from(table).select('*');
+      if (typeof configure === 'function') query = configure(query);
+      const { data, error } = await query;
+      if (error) throw error;
+      return Array.isArray(data) ? data : [];
+    })();
+    if (!options.fresh) cache.set(key, promise);
+    return promise.catch(error => { cache.delete(key); throw error; });
   }
-  const norm=v=>String(v??'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
-  // Database rows have historically used a mix of display names, short strain
-  // codes, and scientific names. Resolve all of them to one canonical key.
-  const STRAINS={
-    BO:['blue oyster','pearl oyster','pleurotus ostreatus','bo','bl'],
-    LM:["lion's mane",'lions mane','hericium erinaceus','lm','li'],
-    SH:['shiitake','lentinula edodes','sh'],
-    MA:['maitake','hen of the woods','grifola frondosa','ma'],
-    PO:['pink oyster','pleurotus djamor','po'],
-    CH:['chestnut','pholiota adiposa','ch'],
-    GT:['golden teacher','psilocybe cubensis','gt'],
-    RE:['reishi','ganoderma lingzhi','re']
-  };
-  function strainKey(value){
-    const v=norm(value); if(!v)return '';
-    // Canonical ID prefixes are the strongest identity signal for legacy rows.
-    // This prevents a stale display-name field from putting a GT batch on the CH page.
-    const idCode=String(value).trim().match(/^(BO|BL|LM|LI|SH|MA|PO|CH|GT|RE)(?:[-_ ]|$)/i);
-    if(idCode)return (['LI'].includes(idCode[1].toUpperCase())?'LM':['BL'].includes(idCode[1].toUpperCase())?'BO':idCode[1].toUpperCase());
-    for(const [code,aliases] of Object.entries(STRAINS)) if(aliases.some(a=>v===norm(a))) return code;
-    return v;
+  function invalidate(table) {
+    if (table) { for (const key of cache.keys()) if (key.startsWith(table + ':')) cache.delete(key); }
+    else cache.clear();
   }
-  function isActive(row){return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(row.status));}
-  function stage(row){const s=norm(row.stage),c=norm(row.container);if(s.includes('fruit')||c.includes('fruit'))return 'Fruiting';if(s.includes('bulk')||s.includes('substrate')||s==='bag'||c.includes('bag')||c.includes('substrate'))return 'Bulk Substrate';return 'Grain Spawn';}
-  async function inventory(strainName, options={}){
-    const [parents,children]=await Promise.all([
-      read('batches',q=>q.order('created_at',{ascending:false}),options),
-      read('batch_items',null,options).catch(e=>{if(options.allowMissingChildren)return [];throw e;})
-    ]);
-    const wanted=strainKey(strainName);
-    // The explicit parent strain field is authoritative. Use the canonical
-    // batch ID only as a fallback for older rows with no strain value.
-    const parentStrain=b=>strainKey(b.strain || b.batch_id || b.container_id || '');
-    const parentRows=strainName?parents.filter(b=>parentStrain(b)===wanted):parents;
-    const parentById=new Map(parentRows.map(x=>[String(x.id),x]));
-    const allParentIds=new Set(parents.map(x=>String(x.id)));
-    const belongsToStrain=row=>strainKey(row.strain || row.container_id || row.item_id || '')===wanted;
-    const childRows=children.filter(x=>{
-      const parentId=String(x.batch_id||'');
-      if(parentById.has(parentId)) return true;
-      // A child attached to any known parent is never eligible for fallback:
-      // it belongs exclusively to that parent's strain, even if child fields
-      // or its display ID are stale. Only truly orphaned children may fallback.
-      if(allParentIds.has(parentId)) return false;
-      return !!(strainName && belongsToStrain(x));
-    });
-    const grouped=new Map();for(const row of childRows){const k=String(row.batch_id||'');if(!k)continue;if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(row);}
-    const expanded=childRows.map(row=>{const parent=parentById.get(String(row.batch_id))||{};const siblings=grouped.get(String(row.batch_id))||[];const idx=siblings.findIndex(x=>String(x.id)===String(row.id))+1;return {...parent,...row,id:row.id,parentId:row.batch_id||parent.id,quantity:1,unitIndex:idx||1,unitTotal:siblings.length||1,container_id:row.container_id||row.item_id||null,strain:parent.strain||row.strain,stage:row.stage||parent.stage,status:row.status||parent.status,container:row.container||parent.container,date:row.date||parent.date,notes:row.notes||parent.notes};});
-    const expandedParentIds=new Set(grouped.keys());
-    const remaining=parentRows.filter(p=>!expandedParentIds.has(String(p.id))).map(p=>({...p,parentId:p.id}));
-    return {parents:parentRows,children:childRows,rows:[...expanded,...remaining],allParents:parents};
+  // Domain service for harvest history. No localStorage fallback: Supabase is authoritative.
+  async function getHarvests(options = {}) {
+    let query = client.from('harvests').select(options.columns || '*');
+    if (options.orderBy !== false) query = query.order(options.orderBy || 'harvest_date', { ascending: !!options.ascending });
+    if (Number.isInteger(options.limit) && options.limit > 0) query = query.limit(options.limit);
+    const result = await query;
+    return result;
   }
-  window.GFData={client,read,inventory,norm,isActive,stage,invalidate(table){if(table){for(const k of cache.keys())if(k.startsWith(table+':'))cache.delete(k);}else cache.clear();}};
+  async function insertHarvest(entry) {
+    const result = await client.from('harvests').insert([entry]).select().single();
+    if (!result.error) invalidate('harvests');
+    return result;
+  }
+  async function updateBatch(id, changes) {
+    const result = await client.from('batches').update(changes).eq('id', id).select().single();
+    if (!result.error) invalidate('batches');
+    return result;
+  }
+  async function getBatches(options = {}) {
+    let query = client.from('batches').select(options.columns || '*');
+    if (options.orderBy) query = query.order(options.orderBy, { ascending: !!options.ascending });
+    if (Number.isInteger(options.limit) && options.limit > 0) query = query.limit(options.limit);
+    return query;
+  }
+  async function getBatchItems(options = {}) {
+    let query = client.from('batch_items').select(options.columns || '*');
+    if (options.orderBy) query = query.order(options.orderBy, { ascending: !!options.ascending });
+    return query;
+  }
+  async function getCultures(options = {}) {
+    let query = client.from('cultures').select(options.columns || '*');
+    if (options.orderBy) query = query.order(options.orderBy, { ascending: !!options.ascending });
+    return query;
+  }
+  // Canonical repositories: page code calls these methods instead of composing table queries.
+  // Each write invalidates the affected read cache only after a successful response.
+  const filters = (query, where = {}) => Object.entries(where || {}).reduce((q, [key, value]) => value === undefined ? q : q.eq(key, value), query);
+  async function listBatches(options = {}) {
+    let q = filters(client.from('batches').select(options.columns || '*'), options.where);
+    if (options.orderBy) q = q.order(options.orderBy, { ascending: !!options.ascending });
+    if (Number.isInteger(options.limit) && options.limit > 0) q = q.limit(options.limit);
+    return q;
+  }
+  async function getBatch(id) { return client.from('batches').select('*').eq('id', id).single(); }
+  async function createBatch(payload) {
+    const result = await client.from('batches').insert([payload]).select('*').single();
+    if (!result.error) invalidate('batches');
+    return result;
+  }
+  async function updateBatchRecord(id, changes) {
+    const result = await client.from('batches').update(changes).eq('id', id).select('*').maybeSingle();
+    if (!result.error) invalidate('batches');
+    return result;
+  }
+  async function deleteBatch(id) {
+    const result = await client.from('batches').delete().eq('id', id);
+    if (!result.error) invalidate('batches');
+    return result;
+  }
+  async function listBatchItems(options = {}) {
+    let q = filters(client.from('batch_items').select(options.columns || '*'), options.where);
+    if (options.orderBy) q = q.order(options.orderBy, { ascending: !!options.ascending });
+    if (Number.isInteger(options.limit) && options.limit > 0) q = q.limit(options.limit);
+    return q;
+  }
+  async function createBatchItems(rows) {
+    const result = await client.from('batch_items').insert(Array.isArray(rows) ? rows : [rows]).select('*');
+    if (!result.error) invalidate('batch_items');
+    return result;
+  }
+  async function updateBatchItem(id, changes) {
+    const result = await client.from('batch_items').update(changes).eq('id', id).select('*').maybeSingle();
+    if (!result.error) invalidate('batch_items');
+    return result;
+  }
+  async function deleteBatchItem(id) {
+    const result = await client.from('batch_items').delete().eq('id', id);
+    if (!result.error) invalidate('batch_items');
+    return result;
+  }
+
+  // Canonical lifecycle writer. stage_history is the append-only event record;
+  // lifecycle date columns are indexed/current projections used by timelines.
+  const STAGE_DATE_FIELDS = Object.freeze({
+    'Grain Spawn': 'grain_started_on',
+    'Bulk Substrate': 'bulk_started_on',
+    'Fruiting': 'fruiting_started_on'
+  });
+  async function saveItemLifecycle(item, changes = {}, options = {}) {
+    if (!item || item.id == null) return { data: null, error: new Error('A persisted container is required for lifecycle updates.') };
+    const patch = { ...changes };
+    const history = Array.isArray(item.stage_history) ? item.stage_history.slice() : [];
+    const oldStage = item.stage || 'Grain Spawn';
+    const nextStage = patch.stage || oldStage;
+    const dateNow = options.date || new Date().toISOString().slice(0, 10);
+    const recordedAt = new Date().toISOString();
+
+    if (nextStage !== oldStage) {
+      const field = STAGE_DATE_FIELDS[nextStage];
+      const transitionDate = (field && patch[field]) || dateNow;
+      if (field) patch[field] = transitionDate;
+      patch.current_stage_started_on = transitionDate;
+      if (nextStage === 'Bulk Substrate' || nextStage === 'Fruiting') patch.container = 'Bag';
+      if (nextStage === 'Harvested') patch.status = 'Harvested';
+      else if (!patch.status || patch.status === 'Harvested' || item.status === 'Harvested') patch.status = 'Active';
+      history.push({ type: 'stage_transition', from: oldStage, stage: nextStage, date: transitionDate, recorded_at: recordedAt });
+    }
+
+    for (const [stage, field] of Object.entries(STAGE_DATE_FIELDS)) {
+      if (!Object.prototype.hasOwnProperty.call(patch, field)) continue;
+      const nextDate = patch[field] || null;
+      const previousDate = item[field] || null;
+      if (nextDate && nextDate !== previousDate && nextStage === stage && nextStage === oldStage) {
+        patch.current_stage_started_on = nextDate;
+      }
+      if (nextDate !== previousDate && previousDate !== null && !(nextStage !== oldStage && nextStage === stage)) {
+        history.push({ type: 'stage_date_correction', stage, date: nextDate, previous_date: previousDate, recorded_at: recordedAt });
+      }
+    }
+    if (history.length || Object.keys(patch).some(k => STAGE_DATE_FIELDS[k])) patch.stage_history = history;
+    const result = await client.from('batch_items').update(patch).eq('id', item.id).select('*').maybeSingle();
+    if (!result.error) invalidate('batch_items');
+    return result;
+  }
+  async function listCultures(options = {}) {
+    let q = filters(client.from('cultures').select(options.columns || '*'), options.where);
+    if (options.orderBy) q = q.order(options.orderBy, { ascending: !!options.ascending });
+    if (Number.isInteger(options.limit) && options.limit > 0) q = q.limit(options.limit);
+    return q;
+  }
+  async function createCulture(payload) {
+    const result = await client.from('cultures').insert([payload]);
+    if (!result.error) invalidate('cultures');
+    return result;
+  }
+  async function deleteCulture(id) {
+    const result = await client.from('cultures').delete().eq('id', id);
+    if (!result.error) invalidate('cultures');
+    return result;
+  }
+  async function createBatchWithItems(parentPayload, itemRows) {
+    const parentResult = await createBatch(parentPayload);
+    if (parentResult.error) return parentResult;
+    const childRows = (Array.isArray(itemRows) ? itemRows : []).map(row => ({ ...row, batch_id: parentResult.data.id }));
+    if (!childRows.length) return parentResult;
+    const childResult = await createBatchItems(childRows);
+    if (!childResult.error) return { data: { ...parentResult.data, items: childResult.data }, error: null };
+    // Best-effort rollback: never leave an empty parent when child creation fails.
+    const rollback = await deleteBatch(parentResult.data.id);
+    return { data: null, error: Object.assign(new Error(`Container creation failed: ${childResult.error.message || childResult.error}. Parent rollback ${rollback.error ? 'also failed: ' + rollback.error.message : 'succeeded'}.`), { cause: childResult.error, rollbackError: rollback.error || null }) };
+  }
+  function isActive(row) { return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(row?.status)); }
+  function stage(row) {
+    const value = norm(row?.stage), container = norm(row?.container);
+    if (value.includes('fruit') || container.includes('fruit')) return 'Fruiting';
+    if (value.includes('bulk') || value.includes('substrate') || container.includes('bag') || container.includes('block')) return 'Bulk Substrate';
+    return 'Grain Spawn';
+  }
+  window.GFData = Object.freeze({ ready: true, getAuthState, onAuthStateChange, signInWithPassword, signOut, getCurrentUser, read, invalidate, getHarvests, insertHarvest, updateBatch, getBatches, getBatchItems, getCultures, repositories: Object.freeze({ batches: Object.freeze({ list: listBatches, get: getBatch, create: createBatch, update: updateBatchRecord, remove: deleteBatch, createWithItems: createBatchWithItems }), items: Object.freeze({ list: listBatchItems, create: createBatchItems, update: updateBatchItem, saveLifecycle: saveItemLifecycle, remove: deleteBatchItem }), cultures: Object.freeze({ list: listCultures, create: createCulture, remove: deleteCulture }), harvests: Object.freeze({ list: getHarvests, create: insertHarvest }) }), isActive, stage, normalize: norm, project: Object.freeze({ url: SUPABASE_URL }) });
 })();

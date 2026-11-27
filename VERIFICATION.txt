@@ -1,6 +1,14 @@
-Preparation checks:
-- Patch targets index.html only.
-- No SQL or Supabase data changes.
-- Unknown status values are preserved.
-- Cached records are normalized on fallback.
-- Empty successful result is not labeled Cloud Synced.
+VERSION 52 STATIC VERIFICATION
+
+[PASS] ZIP extracted successfully from the supplied Global Foundation package.
+[PASS] All 11 dashboard HTML pages contain exactly one shared-header mount.
+[PASS] All 11 dashboard HTML pages load gf-data.js and shared-header.js.
+[PASS] No page-level duplicate Supabase createClient() calls remain.
+[PASS] Duplicate page-embedded V41 header KPI scripts removed.
+[PASS] Harvest table access in application pages is routed through gf-data.js.
+[PASS] No harvest-history localStorage fallback remains in the harvest or home page.
+[PASS] Proposed harvest table migration included for review only.
+[PASS] Supabase schema inspection was read-only; public.harvests was not present.
+[PASS] No SQL migration was applied and no production records were changed.
+
+NOT VERIFIED: authenticated browser behavior, GitHub Pages deployment, full CRUD regression coverage, and the harvests migration. These require migration approval and a live browser test.

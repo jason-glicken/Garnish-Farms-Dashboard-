@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>New Batch - Garnish Farms</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="gf-data.js"></script><script src="auth-guard.js?v=1"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -36,13 +37,70 @@
         .pill-btn.active { background: var(--primary); color: #ffffff; border-color: var(--primary); }
         .preview-banner { background: #e6f4ea; border: 1px solid #b7dfc2; color: #137333; padding: 0.6rem 0.75rem; border-radius: 8px; font-size: 0.82rem; font-weight: 700; margin-bottom: 0.9rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
             .strain-scientific { font-size: .78em; color: var(--text-muted); font-style: italic; font-weight: 500; }
-    </style>
-</head>
+    .strain-nav-card{width:100%;min-width:0;margin-top:.25rem;padding:.45rem .5rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:9px;overflow:hidden}.strain-nav-scroll{display:flex;gap:.35rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.1rem 0}.strain-nav-scroll a{flex:0 0 auto;border-radius:999px!important;text-decoration:none!important;font-weight:700!important}
+
+/* V37 shared site-wide header */
+.gf-site-header{position:sticky!important;top:0;z-index:1000;background:#fff!important;border-bottom:1px solid var(--border,#e5e7eb)!important;padding:.48rem .65rem!important;display:flex!important;flex-direction:column!important;gap:.3rem!important;width:100%;box-shadow:0 2px 5px #00000008}
+.gf-brand-row{display:flex;justify-content:space-between;align-items:center;width:100%;gap:.5rem}
+.gf-brand{text-align:left;text-decoration:none;display:block;min-width:0}.gf-brand h1{font-size:1.05rem!important;line-height:1.2;margin:0;color:var(--primary,#2d5a27);font-weight:800}.gf-brand p{display:flex;align-items:center;justify-content:flex-start;gap:.32rem;margin:.13rem 0 0;font-size:.61rem;color:var(--text-muted,#6b7280)}
+.gf-settings{padding:.3rem .55rem!important;font-size:.7rem!important;white-space:nowrap}
+.gf-site-header .stat-link-card{background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;text-decoration:none;color:var(--text-main,#1f2937);box-shadow:0 1px 2px #00000008}
+.gf-site-header .stat-link-card.gf-active{background:#eaf2e7!important;border:1.5px solid var(--primary,#2d5a27)!important;box-shadow:inset 0 0 0 1px var(--primary,#2d5a27)}
+.gf-site-header .header-production-actions{display:grid;grid-template-columns:1fr 1fr 1.45fr;gap:.3rem;align-items:stretch;width:100%;margin-top:.05rem;text-align:center}
+.gf-site-header .header-action-card{min-height:25px;padding:.14rem .2rem!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.04rem;text-align:center;font-size:.57rem;font-weight:700;line-height:1.1}
+.gf-site-header .header-action-card strong{font-size:.64rem;color:var(--primary);font-weight:800}
+.gf-site-header .strain-nav-card{width:100%;min-width:0;margin-top:.02rem;padding:.26rem .35rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:8px;overflow:hidden}
+.gf-site-header .strain-nav-scroll{display:flex;gap:.28rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.04rem 0}
+.gf-site-header .strain-nav-scroll a{flex:0 0 auto;border:1px solid color-mix(in srgb,var(--strain-color) 35%,white);border-radius:999px;padding:.16rem .34rem;font-size:.59rem;font-weight:700;text-decoration:none;color:var(--strain-color);background:var(--strain-bg);line-height:1.2}
+.gf-site-header .strain-nav-scroll a.gf-strain-active{outline:2px solid var(--strain-color);outline-offset:1px;filter:saturate(1.2);font-weight:800}
+.gf-site-header a.gf-active:not(.header-action-card){color:var(--primary)}
+@media(max-width:520px){.gf-site-header{padding:.4rem .5rem!important;gap:.26rem!important}.gf-brand h1{font-size:.96rem!important}.gf-site-header .header-production-actions{grid-template-columns:1fr 1fr 1.35fr}.gf-site-header .header-action-card{min-height:24px;font-size:.54rem}.gf-site-header .header-action-card strong{font-size:.6rem}.gf-site-header .strain-nav-scroll a{font-size:.56rem;padding:.14rem .3rem}}
+
+
+/* V38 header refinements: override legacy page header selectors */
+header.gf-site-header{display:flex!important;flex-direction:column!important;align-items:stretch!important;grid-template-columns:none!important;gap:.3rem!important}
+header.gf-site-header>div,header.gf-site-header>nav{grid-column:auto!important;min-width:0!important;display:flex!important;justify-content:initial!important;align-items:stretch!important}
+header.gf-site-header>.gf-brand-row{display:flex!important;justify-content:space-between!important;align-items:center!important}
+header.gf-site-header>.gf-brand-row .gf-header-actions{display:flex;align-items:center;gap:.35rem;flex:0 0 auto}
+.gf-home{background:#2d5a27!important;color:#fff!important;border:1px solid #2d5a27!important;padding:.3rem .55rem!important;font-size:.68rem!important;white-space:nowrap}
+.gf-site-header .stat-link-card{transition:background .15s,border-color .15s}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(1){background:#f1f6ef!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(2){background:#f0f5fb!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(3){background:#fbf4ed!important}
+.gf-site-header>div[style*="grid-template-columns: repeat(4"] .stat-link-card:nth-child(4){background:#f5f1fa!important}
+.gf-site-header .header-production-actions a:nth-child(1){background:#2d5a27!important;border:1px solid #244a20!important;color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(1) span,.gf-site-header .header-production-actions a:nth-child(1) strong{color:#fff!important}
+.gf-site-header .header-production-actions a:nth-child(2){background:#fff8e9!important}
+.gf-site-header .header-production-actions a:nth-child(3){background:#f1f6ef!important}
+.gf-site-header .header-production-actions a.gf-active{filter:brightness(.97)}
+.gf-home:focus,.gf-home:hover{background:#244a20!important}
+
+
+/* V39: keep the four KPI header cards in a full-width four-column grid.
+   This must override legacy page rules that style header div:nth-child(2) as flex. */
+header.gf-site-header > div:nth-child(2):not(.header-production-actions){
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  justify-content:stretch!important;
+  align-items:stretch!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  gap:.35rem!important;
+  margin-top:.05rem!important;
+}
+header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat-link-card{
+  display:flex!important;
+  width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  justify-content:center!important;
+  align-items:center!important;
+}
+
+</style>
+<style>.gf-record-link{cursor:pointer;text-decoration:underline;text-decoration-color:#9ab39a;text-underline-offset:2px}.gf-record-link:focus-visible{outline:2px solid #6b8f5e;outline-offset:2px}</style></head>
 <body>
-    <header>
-        <h1 id="pageTitle">+ New Batch</h1>
-        <a href="index.html" class="btn btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;">← Dashboard</a>
-    <details open style="width:100%;margin-top:.18rem;font-size:.68rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#3b82f6;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#64748b;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#7c3aed;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#15803d;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#db2777;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#92400e;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#ca8a04;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#c2410c;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
+    <div id="gf-shared-header" aria-label="Garnish Farms site header"></div>
 
     <main>
         <div class="card">
@@ -121,10 +179,6 @@
     </main>
 
     <script>
-        const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         const urlParams = new URLSearchParams(window.location.search);
         const SETTINGS_KEY = 'garnish_farms_settings_v1';
@@ -178,7 +232,7 @@
         function buildDisplayRangeId(strain, dateStr, qty) {
             const base = buildBaseId(strain, dateStr);
             const n = Math.max(1, Number(qty || 1));
-            return `${base}\n${Array.from({length:n}, (_,i)=>`${base}-${i+1}`).join(' · ')}`;
+            return `${base} (1-${n})\n${Array.from({length:n}, (_,i)=>`${base}-${i+1}`).join(' · ')}`;
         }
 
         function updatePreview() {
@@ -220,7 +274,7 @@
             if (editId) {
                 document.getElementById('pageTitle').innerText = 'Edit Batch';
                 document.getElementById('saveBtn').innerText = 'Update Batch';
-                const { data } = await _supabase.from('batches').select('*').eq('id', editId).single();
+                const { data } = await window.GFData.repositories.batches.get(editId);
                 if (data) {
                     setSelectedStrain(data.strain || 'Blue Oyster');
                     document.getElementById('dateInput').value = data.date || todayIso;
@@ -251,7 +305,8 @@
                 container: document.getElementById('containerInput').value,
                 substrate: document.getElementById('substrateInput').value.trim(),
                 status: document.getElementById('statusInput').value,
-                notes: document.getElementById('notesInput').value.trim()
+                notes: document.getElementById('notesInput').value.trim(),
+                target_days: (() => { try { const cfg=JSON.parse(localStorage.getItem('garnish_farms_settings_v1')||'{}'); return {...{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},...(cfg.stageTargets||{})}; } catch(e) { return {'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14}; } })()
             };
 
             const saveBtn = document.getElementById('saveBtn');
@@ -261,23 +316,23 @@
             try {
                 let res;
                 if (editId) {
-                    res = await _supabase.from('batches').update(payload).eq('id', editId);
+                    res = await window.GFData.repositories.batches.update(editId, payload);
                     if (res.error) throw res.error;
                     window.location.href = 'index.html';
                 } else {
-                    res = await _supabase.from('batches').insert([payload]).select('*').single();
+                    const targetDays = (() => { try { const cfg=JSON.parse(localStorage.getItem('garnish_farms_settings_v1')||'{}'); return {...{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},...(cfg.stageTargets||{})}; } catch(e) { return {'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14}; } })();
+                    const items = Array.from({length:qty}, (_,i) => ({
+                        container_id: `${batchBaseId}-${i+1}`, strain, date: dateVal,
+                        stage: payload.stage, status: payload.status, container: payload.container,
+                        substrate: payload.substrate, notes: payload.notes, stage_history: [{stage:payload.stage, date:dateVal, recorded_at:new Date().toISOString()}],
+                        grain_started_on: payload.stage==='Grain Spawn'?dateVal:null,
+                        bulk_started_on: payload.stage==='Bulk Substrate'?dateVal:null,
+                        fruiting_started_on: payload.stage==='Fruiting'?dateVal:null,
+                        current_stage_started_on: dateVal, target_days: targetDays, target_overrides: {}
+                    }));
+                    res = await window.GFData.repositories.batches.createWithItems(payload, items);
                     if (res.error) throw res.error;
                     const parent = res.data;
-                    const items = Array.from({length:qty}, (_,i) => ({
-                        batch_id: parent.id, container_id: `${batchBaseId}-${i+1}`, strain, date: dateVal,
-                        stage: payload.stage, status: payload.status, container: payload.container,
-                        substrate: payload.substrate, notes: payload.notes, stage_history: [{stage:payload.stage, date:dateVal}]
-                    }));
-                    const childRes = await _supabase.from('batch_items').insert(items);
-                    if (childRes.error) {
-                        await _supabase.from('batches').delete().eq('id', parent.id);
-                        throw new Error(`Batch container tracking table is not ready. Run the included v35 Supabase migration, then try again. ${childRes.error.message || ''}`);
-                    }
                     window.location.href = `batch.html?id=${encodeURIComponent(parent.id)}`;
                 }
             } catch (err) {
@@ -288,5 +343,31 @@
         });
     </script>
 <script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
+<script>
+(()=>{
+ const q=new URLSearchParams(location.search); const file=location.pathname.split('/').pop()||'index.html';
+ const type=(q.get('type')||'').toLowerCase(); const strain=q.get('strain')||'';
+ const activeHref = file==='list.html' ? `list.html?type=${type||'jars'}` : file;
+ document.querySelectorAll('.gf-site-header a').forEach(a=>{
+   const href=a.getAttribute('href')||'';
+   if(href==='list.html?type=all' && (file==='batch.html'||(file==='list.html'&&type==='all'))) a.classList.add('gf-active');
+   if(href==='list.html?type=jars' && file==='list.html'&&type==='jars') a.classList.add('gf-active');
+   if(href==='list.html?type=bags' && file==='list.html'&&type==='bags') a.classList.add('gf-active');
+   if(href==='list.html?type=fruiting' && file==='list.html'&&type==='fruiting') a.classList.add('gf-active');
+   if(href==='new-batch.html'&&file==='new-batch.html') a.classList.add('gf-active');
+   if(href==='harvest.html'&&file==='harvest.html') a.classList.add('gf-active');
+   if(href==='yield.html'&&file==='yield.html') a.classList.add('gf-active');
+   if(href==='settings.html'&&file==='settings.html') a.classList.add('gf-active');
+   if(a.hasAttribute('data-strain')){
+     const name=a.getAttribute('data-strain');
+     if(file==='list.html') a.href=`list.html?type=${encodeURIComponent(type||'jars')}&strain=${encodeURIComponent(name)}`;
+     else if(file==='strain.html') a.href=`strain.html?strain=${encodeURIComponent(name)}`;
+     if(strain && strain.toLowerCase()===name.toLowerCase()) a.classList.add('gf-strain-active');
+   }
+ });
+ const dot=document.getElementById('syncDot'); if(dot && !dot.classList.contains('connected') && !dot.classList.contains('error')) dot.style.background='#9ca3af';
+})();
+</script>
+<script src="shared-header.js?v=1"></script>
 </body>
 </html>

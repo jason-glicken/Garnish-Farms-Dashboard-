@@ -1,0 +1,11 @@
+GLOBAL FOUNDATION V7 — STATIC VERIFICATION
+
+[PASS] Supabase client is created and retained privately inside gf-data.js.
+[PASS] No dashboard HTML page calls GFData.clientSync().
+[PASS] No dashboard HTML page reads GFData.client.
+[PASS] Home page checks GFData.ready rather than receiving the raw client.
+[PASS] Shared header and shared data-layer script references retained.
+[PASS] Review-only harvest migration retained; not executed.
+[PASS] No live database schema or records changed.
+[NOT RUN] Authenticated browser tests against Supabase.
+[NOT RUN] GitHub Pages deployment.

@@ -1,0 +1,11 @@
+GLOBAL FOUNDATION V6 — STATIC VERIFICATION
+
+[PASS] Harvest migration uses batch_pk bigint -> public.batches(id).
+[PASS] Human-readable batch_id retained for current UI/history display.
+[PASS] Harvest form sends batch_pk and batch_id.
+[PASS] ON DELETE SET NULL preserves harvest history if a batch is deleted.
+[PASS] Owner-only authenticated RLS policy retained in review-only migration.
+[PASS] No migration executed and no live data/schema changed.
+[TO VERIFY] Migration against actual database by applying only after user approval.
+[NOT RUN] Authenticated browser harvest insert/update workflow.
+[NOT RUN] GitHub deployment.
