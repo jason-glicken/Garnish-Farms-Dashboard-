@@ -1,1 +1,355 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Garnish Farms</title><script>location.replace('index.html?page=new-batch'+location.search.replace(/^\?/,'&'))</script></head><body>Opening Garnish Farms…</body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>New Batch - Garnish Farms</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --primary-hover: #1e3d1a;
+            --accent: #4c9a2a;
+            --bg-light: #f4f7f2;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        main {
+            flex: 1;
+            padding: 0.85rem;
+            max-width: 640px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 0.9rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 0.35rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #ffffff;
+            color: var(--text-main);
+        }
+
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .pill-btn {
+            padding: 0.45rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--bg-light);
+            color: var(--text-main);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .pill-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .preview-banner {
+            background: #e6f4ea;
+            border: 1px solid #b7dfc2;
+            color: #137333;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 id="pageTitle">+ New Batch</h1>
+        <a href="index.html" class="btn btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;">← Dashboard</a>
+    </header>
+
+    <main>
+        <div class="card">
+            <div class="preview-banner">
+                <span>Batch ID Preview:</span>
+                <strong id="batchIdPreview">BO-111926</strong>
+            </div>
+
+            <form id="batchForm">
+                <div class="form-group">
+                    <label>Strain</label>
+                    <div class="pill-group" id="strainPills">
+                        <button type="button" class="pill-btn active" data-strain="Blue Oyster">Blue Oyster</button>
+                        <button type="button" class="pill-btn" data-strain="Lion's Mane">Lion's Mane</button>
+                        <button type="button" class="pill-btn" data-strain="Reishi">Reishi</button>
+                        <button type="button" class="pill-btn" data-strain="Chestnut">Chestnut</button>
+                        <button type="button" class="pill-btn" data-strain="Shiitake">Shiitake</button>
+                        <button type="button" class="pill-btn" data-strain="Pink Oyster">Pink Oyster</button>
+                    </div>
+                    <input type="hidden" id="strainInput" value="Blue Oyster">
+                </div>
+
+                <div class="form-group">
+                    <label for="dateInput">Date</label>
+                    <input type="date" id="dateInput" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="stageInput">Stage</label>
+                    <select id="stageInput" class="form-control">
+                        <option value="Grain Spawn" selected>Grain Spawn</option>
+                        <option value="Bulk Substrate">Bulk Substrate</option>
+                        <option value="Fruiting">Fruiting</option>
+                        <option value="Harvested">Harvested</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
+                    <div class="form-group">
+                        <label for="quantityInput">Quantity</label>
+                        <input type="number" id="quantityInput" class="form-control" min="1" value="1" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="containerInput">Container</label>
+                        <select id="containerInput" class="form-control">
+                            <option value="Jar" selected>Jar</option>
+                            <option value="Bag">Bag</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="substrateInput">Substrate</label>
+                    <input type="text" id="substrateInput" class="form-control" placeholder="e.g. Oats, Masters Mix, Hardwood">
+                </div>
+
+                <div class="form-group">
+                    <label for="statusInput">Status</label>
+                    <select id="statusInput" class="form-control">
+                        <option value="Active" selected>Active</option>
+                        <option value="Harvested">Harvested</option>
+                        <option value="Contaminated">Contaminated</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="notesInput">Notes</label>
+                    <textarea id="notesInput" class="form-control" rows="2" placeholder="Optional notes..."></textarea>
+                </div>
+
+                <button type="submit" class="btn" id="saveBtn" style="width: 100%; padding: 0.7rem;">Save Batch</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('id');
+
+        function formatStrainCode(strain) {
+            const lower = String(strain || '').trim().toLowerCase();
+            if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
+            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li') return 'LI';
+            if (lower.includes('reishi') || lower === 're') return 'RE';
+            if (lower.includes('chestnut') || lower === 'ch') return 'CH';
+            if (lower.includes('shiitake') || lower === 'sh') return 'SH';
+            if (lower.includes('pink oyster') || lower === 'po') return 'PO';
+            const words = lower.replace(/[^a-z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+            if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+            return (words[0] || 'BA').slice(0, 2).toUpperCase();
+        }
+
+        function formatMMDDYY(dateStr) {
+            const m = String(dateStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (!m) return '';
+            return `${m[2]}${m[3]}${m[1].slice(2)}`;
+        }
+
+        function buildBatchId(strain, dateStr) {
+            const code = formatStrainCode(strain);
+            const stamp = formatMMDDYY(dateStr);
+            return stamp ? `${code}-${stamp}` : code;
+        }
+
+        function updatePreview() {
+            const strain = document.getElementById('strainInput').value;
+            const dateVal = document.getElementById('dateInput').value;
+            document.getElementById('batchIdPreview').innerText = buildBatchId(strain, dateVal);
+        }
+
+        function setSelectedStrain(strain) {
+            document.getElementById('strainInput').value = strain;
+            document.querySelectorAll('#strainPills .pill-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-strain') === strain);
+            });
+            updatePreview();
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const now = new Date();
+            const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            document.getElementById('dateInput').value = todayIso;
+
+            document.querySelectorAll('#strainPills .pill-btn').forEach(btn => {
+                btn.addEventListener('click', () => setSelectedStrain(btn.getAttribute('data-strain')));
+            });
+
+            document.getElementById('dateInput').addEventListener('change', updatePreview);
+
+            if (editId) {
+                document.getElementById('pageTitle').innerText = 'Edit Batch';
+                document.getElementById('saveBtn').innerText = 'Update Batch';
+                const { data } = await _supabase.from('batches').select('*').eq('id', editId).single();
+                if (data) {
+                    setSelectedStrain(data.strain || 'Blue Oyster');
+                    document.getElementById('dateInput').value = data.date || todayIso;
+                    document.getElementById('stageInput').value = data.stage || 'Grain Spawn';
+                    document.getElementById('quantityInput').value = data.quantity || 1;
+                    document.getElementById('containerInput').value = data.container || 'Jar';
+                    document.getElementById('substrateInput').value = data.substrate || '';
+                    document.getElementById('statusInput').value = data.status || 'Active';
+                    document.getElementById('notesInput').value = data.notes || '';
+                }
+            }
+
+            updatePreview();
+        });
+
+        document.getElementById('batchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const strain = document.getElementById('strainInput').value;
+            const dateVal = document.getElementById('dateInput').value;
+            const payload = {
+                batch_id: buildBatchId(strain, dateVal),
+                strain,
+                date: dateVal,
+                stage: document.getElementById('stageInput').value,
+                quantity: Number(document.getElementById('quantityInput').value || 1),
+                container: document.getElementById('containerInput').value,
+                substrate: document.getElementById('substrateInput').value.trim(),
+                status: document.getElementById('statusInput').value,
+                notes: document.getElementById('notesInput').value.trim()
+            };
+
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Saving...';
+
+            try {
+                let res;
+                if (editId) {
+                    res = await _supabase.from('batches').update(payload).eq('id', editId);
+                } else {
+                    res = await _supabase.from('batches').insert([payload]);
+                }
+                if (res.error) throw res.error;
+                window.location.href = 'index.html';
+            } catch (err) {
+                alert('Error saving batch: ' + (err.message || err));
+                saveBtn.disabled = false;
+                saveBtn.innerText = editId ? 'Update Batch' : 'Save Batch';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,26 +1,1658 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#2d5a27">
-<title>Garnish Farms — Mushrooms</title>
-<link rel="stylesheet" href="gf3-styles.css">
-<link rel="stylesheet" href="gf3-visual-refinement.css?v=67">
-<link rel="stylesheet" href="gf3-v68-header-strain-fix.css?v=68">
-<link rel="stylesheet" href="gf3-v69-header-actions.css?v=69">
-<link rel="stylesheet" href="gf3-v71-timeline-groups.css?v=71">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script defer src="gf3-data.js"></script>
-<script defer src="gf3-production.js"></script>
-<script defer src="gf3-ui.js"></script>
-<script defer src="gf3-app.js"></script>
-<script defer src="gf3-v69-list-separation.js?v=69"></script>
-<script defer src="gf3-v71-timeline-groups.js?v=71"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Garnish Farms - Mushrooms</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d5a27;
+            --primary-hover: #1e3d1a;
+            --accent: #4c9a2a;
+            --bg-light: #f4f7f2;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0.85rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            gap: 0.4rem;
+            text-align: center;
+        }
+
+        .logo-area h1 {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .logo-area p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #9ca3af;
+            display: inline-block;
+        }
+
+        .sync-dot.connected {
+            background-color: #16a34a;
+        }
+
+        .sync-dot.error {
+            background-color: #dc2626;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--bg-light);
+        }
+
+        .btn-accent {
+            background-color: #d97706;
+            color: white;
+        }
+        .btn-accent:hover {
+            background-color: #b45309;
+        }
+
+        main {
+            flex: 1;
+            padding: 0.75rem;
+            max-width: 100%;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .card-header h2 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Pipeline Kanban */
+        .pipeline-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .pipeline-stage {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 0.65rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .pipeline-stage h4 {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.2rem;
+        }
+
+        .stage-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .batch-card {
+            background: white;
+            padding: 0.65rem;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            font-size: 0.82rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            border-left: 4px solid var(--accent);
+            cursor: pointer;
+        }
+
+        .batch-id {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .batch-strain {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .batch-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Tables & Search */
+        .table-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            flex-direction: column;
+        }
+
+        .search-input, .filter-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.8rem;
+        }
+
+        th, td {
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--text-muted);
+            background-color: var(--bg-light);
+        }
+
+        .badge {
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .badge-active { background: #e6f4ea; color: #137333; }
+        .badge-harvested { background: #e8f0fe; color: #1967d2; }
+        .badge-contaminated { background: #fce8e6; color: #c5221f; }
+
+        .option-btn {
+            background: var(--bg-light);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .option-btn.selected {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+
+        .pipeline-summary-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.45rem;
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+
+
+        .stat-link-card {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.35rem;
+            text-decoration: none;
+            display: block;
+            color: inherit;
+            cursor: pointer;
+            transition: transform 0.1s ease, border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .stat-link-card:hover, .stat-link-card:active {
+            border-color: var(--primary);
+            background-color: #e6f4ea;
+        }
+        .pipeline-stat-btn {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.45rem 0.35rem;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: inherit;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+        .pipeline-stat-btn:hover, .pipeline-stat-btn:active {
+            border-color: var(--primary);
+            background-color: #e6f4ea;
+        }
+
+        .pipeline-stat-box {
+            background: var(--bg-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.45rem 0.35rem;
+        }
+
+        .pipeline-stat-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .pipeline-stat-val {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 0.1rem;
+        }
+
+        .stage-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 0.25rem;
+        }
+
+        .stage-header-row h4 {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .stage-qty-pill {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: #e6f4ea;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+        }
+
+        .expanded-batches {
+            margin-top: 0.55rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+
+        .day-bar-wrap {
+            margin-top: 0.35rem;
+            width: 100%;
+        }
+        .day-bar-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.64rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+        }
+        .day-bar-track {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .day-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.25s ease;
+        }
+
+        .sub-batch-row {
+            background: var(--bg-light);
+            border-radius: 6px;
+            padding: 0.45rem 0.55rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+    </style>
 </head>
 <body>
-<div id="gf-header"></div>
-<main id="app"><div class="loading">Loading production data…</div></main>
-<footer>Garnish Farms · Mushroom Production</footer>
+
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <a href="index.html" class="logo-area" style="text-align: left; text-decoration: none; display: block;">
+                <h1 style="font-size: 1.15rem;">Garnish Farms - Mushrooms</h1>
+                <p style="justify-content: flex-start;"><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Connecting...</span></p>
+            </a>
+            <div class="header-actions" style="width: auto; justify-content: flex-end;">
+                <button class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;" onclick="loadBatches()">Sync</button>
+                <a href="harvest.html" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; text-decoration: none;">Harvest</a>
+                <a href="new-batch.html" class="btn" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; text-decoration: none;">+ Batch</a>
+            </div>
+        </div>
+        <!-- Compact KPI Counters in Header -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.35rem; width: 100%; margin-top: 0.4rem; text-align: center;">
+            <div style="background: var(--bg-light); padding: 0.35rem 0.25rem; border-radius: 6px; border: 1px solid var(--border);">
+                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Batches</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-active">0</div>
+            </div>
+            <a href="list.html?type=jars" class="stat-link-card" style="padding: 0.35rem 0.25rem;">
+                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Jars ➔</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-jars">0</div>
+            </a>
+            <a href="list.html?type=bags" class="stat-link-card" style="padding: 0.35rem 0.25rem;">
+                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Bags ➔</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-bags">0</div>
+            </a>
+            <a href="list.html?type=fruiting" class="stat-link-card" style="padding: 0.35rem 0.25rem;">
+                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Fruiting ➔</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-fruiting">0</div>
+            </a>
+            <a href="harvest.html" class="stat-link-card" style="padding: 0.35rem 0.25rem;">
+                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Yield ➔</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: var(--primary);" id="kpi-yield">0.0</div>
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- Pipeline Kanban -->
+        <div class="card">
+            <div class="card-header" style="margin-bottom: 0.5rem;">
+                <h2>Production Pipeline</h2>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Tap card to expand</span>
+            </div>
+            <!-- Filter by Strain at top of Pipeline -->
+            <div style="margin-bottom: 0.7rem;">
+                <div style="font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.3rem;">Filter by Strain:</div>
+                <div class="btn-select-group" id="pipelineFilterBar" style="overflow-x: auto; padding-bottom: 0.2rem; flex-wrap: nowrap; justify-content: flex-start; display: flex; gap: 0.35rem;">
+                    <button type="button" class="option-btn pipeline-filter-btn selected" data-strain="" style="font-size: 0.72rem; padding: 0.3rem 0.65rem; flex: none;">All</button>
+                </div>
+            </div>
+            <!-- Visual of Upcoming Tasks (close to next stage / ready to advance / shake due) -->
+            <div id="upcomingTasksBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; gap: 0.4rem;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Upcoming Stage & Care Tasks</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.68rem; color: var(--text-muted);" id="upcomingTasksCount">0 due soon</span>
+                        <a href="upcoming.html" style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-decoration: underline; white-space: nowrap;">All Upcoming ➔</a>
+                    </div>
+                </div>
+                <div id="upcomingTasksList" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+            </div>
+            <!-- Last 5 Activities Feed -->
+            <div id="recentActivitiesBox" style="background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; margin-bottom: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem; gap: 0.4rem;">
+                    <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Last 5 Activities</span>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 0.68rem; color: var(--text-muted);" id="recentActivitiesCount">Recent</span>
+                        <a href="activities.html" style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-decoration: underline; white-space: nowrap;">All Activities ➔</a>
+                    </div>
+                </div>
+                <div id="recentActivitiesList" style="display: flex; flex-direction: column; gap: 0.35rem;"></div>
+            </div>
+            <div class="pipeline-container" id="pipelineContainer">
+                <div class="pipeline-stage" id="stage-grain">
+                    <div class="stage-header-row">
+                        <h4>Grain Spawn</h4>
+                        <span class="stage-qty-pill" id="stage-count-grain">0</span>
+                    </div>
+                    <div class="stage-items" data-stage="Grain Spawn"></div>
+                </div>
+                <div class="pipeline-stage" id="stage-bulk">
+                    <div class="stage-header-row">
+                        <h4>Bulk Substrate</h4>
+                        <span class="stage-qty-pill" id="stage-count-bulk">0</span>
+                    </div>
+                    <div class="stage-items" data-stage="Bulk Substrate"></div>
+                </div>
+                <div class="pipeline-stage" id="stage-fruiting">
+                    <div class="stage-header-row">
+                        <h4>Fruiting</h4>
+                        <span class="stage-qty-pill" id="stage-count-fruiting">0</span>
+                    </div>
+                    <div class="stage-items" data-stage="Fruiting"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Harvests & Flush History Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Harvests & Flush History</h2>
+                <a href="harvest.html" class="btn" style="padding: 0.3rem 0.65rem; font-size: 0.75rem; text-decoration: none;">+ Log Harvest</a>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Batch ID</th>
+                            <th>Strain</th>
+                            <th>Flush</th>
+                            <th>Weight</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardHarvestBody">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading harvests...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Liquid Culture Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Liquid Culture</h2>
+                <a href="new-culture.html" class="btn btn-accent" style="padding: 0.3rem 0.6rem; font-size: 0.75rem; text-decoration: none;">+ Add</a>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Culture ID</th>
+                            <th>Date</th>
+                            <th>Strain</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cultureTableBody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading cultures...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Batches Log -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Batches Log</h2>
+            </div>
+            <div class="table-controls">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search batch ID, strain..." oninput="renderTable()">
+                <div style="display: flex; gap: 0.5rem;">
+                    <select class="filter-select" id="filterStrain" onchange="renderTable()">
+                        <option value="">All Strains</option>
+                    </select>
+                    <select class="filter-select" id="filterStatus" onchange="renderTable()">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Harvested">Harvested</option>
+                        <option value="Contaminated">Contam</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Batch ID</th>
+                            <th>Date</th>
+                            <th>Strain</th>
+                            <th>Stage</th>
+                            <th>Qty</th>
+                            <th>Yield</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batchTableBody">
+                        <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Loading cloud data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Strain Summary & Inventory -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Strain Summary & Inventory</h2>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Strain</th>
+                            <th>Active Batches</th>
+                            <th>Total Containers</th>
+                            <th>Stage Breakdown</th>
+                            <th>Total Yield</th>
+                        </tr>
+                    </thead>
+                    <tbody id="strainSummaryTableBody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Calculating strain totals...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Strain Breakdown -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Strain Breakdown</h2>
+            </div>
+            <div style="position: relative; height: 220px; display: flex; justify-content: center; align-items: center;">
+                <canvas id="strainChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let batches = [];
+        let cultures = [];
+        let strainChartInstance = null;
+
+        function setSyncState(state, message) {
+            const dot = document.getElementById('syncDot');
+            const text = document.getElementById('syncStatus');
+            dot.className = 'sync-dot ' + state;
+            text.innerText = message;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadBatches();
+            loadCultures();
+            loadDashboardHarvests();
+        });
+
+        async function loadDashboardHarvests() {
+            const tbody = document.getElementById('dashboardHarvestBody');
+            if (!tbody) return;
+
+            let records = [];
+            try {
+                const { data, error } = await _supabase
+                    .from('harvests')
+                    .select('*')
+                    .order('harvest_date', { ascending: false })
+                    .limit(10);
+                if (!error && data) records = data;
+            } catch (e) {}
+
+            try {
+                const localList = JSON.parse(localStorage.getItem('garnish_farms_harvest_history_v1') || '[]');
+                const cloudKeys = new Set(records.map(r => `${r.batch_id}|${r.harvest_date}|${r.flush_number}|${r.weight_lbs}`));
+                const uniqueLocal = localList.filter(r => !cloudKeys.has(`${r.batch_id}|${r.harvest_date}|${r.flush_number}|${r.weight_lbs}`));
+                records = [...records, ...uniqueLocal].sort((a, b) => (b.harvest_date || '').localeCompare(a.harvest_date || ''));
+            } catch (e) {}
+
+            if (records.length === 0) {
+                const legacy = batches.filter(b => Number(b.harvestWeight || 0) > 0);
+                if (legacy.length > 0) {
+                    records = legacy.map(b => ({
+                        harvest_date: b.date,
+                        batch_id: b.batchId,
+                        strain: b.strain,
+                        flush_number: 1,
+                        weight_lbs: b.harvestWeight,
+                        notes: b.notes || ''
+                    }));
+                }
+            }
+
+            if (records.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No harvests logged yet. Tap "+ Log Harvest" to record a flush.</td></tr>`;
+                return;
+            }
+
+            const flushText = (n) => Number(n) === 1 ? '1st' : (Number(n) === 2 ? '2nd' : (Number(n) === 3 ? '3rd' : `${n}th+`));
+
+            tbody.innerHTML = records.slice(0, 8).map(r => `
+                <tr>
+                    <td>${escapeAttr(r.harvest_date)}</td>
+                    <td><strong>${escapeAttr(r.batch_id)}</strong></td>
+                    <td>${escapeAttr(r.strain)}</td>
+                    <td><span class="badge badge-active">${flushText(r.flush_number)} Flush</span></td>
+                    <td><strong>${Number(r.weight_lbs || 0).toFixed(2)} lbs</strong></td>
+                    <td style="color: var(--text-muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis;">${escapeAttr(r.notes || '—')}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadBatches() {
+            setSyncState('', 'Syncing...');
+            try {
+                const { data, error } = await _supabase
+                    .from('batches')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                batches = (data || []).map(b => ({
+                    dbId: b.id,
+                    batchId: b.batch_id,
+                    date: b.date,
+                    strain: b.strain,
+                    stage: b.stage,
+                    quantity: b.quantity,
+                    container: b.container,
+                    substrate: b.substrate,
+                    harvestWeight: b.harvest_weight,
+                    status: b.status,
+                    notes: b.notes
+                }));
+
+                setSyncState('connected', 'Cloud Synced');
+                populateStrainFilter();
+                renderAll();
+            } catch (err) {
+                setSyncState('error', 'Sync Error');
+            }
+        }
+
+        async function loadCultures() {
+            try {
+                const { data, error } = await _supabase
+                    .from('cultures')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (!error) {
+                    cultures = (data || []).map(c => ({
+                        dbId: c.id,
+                        cultureId: c.culture_id,
+                        date: c.date,
+                        strain: c.strain,
+                        status: c.status,
+                        notes: c.notes
+                    }));
+                }
+                renderCulturesTable();
+            } catch (err) {
+                cultures = [];
+            }
+        }
+
+        function renderAll() {
+            renderKPIs();
+            renderPipeline();
+            renderTable();
+            renderChart();
+            renderStrainSummary();
+            renderCulturesTable();
+        }
+
+        function renderKPIs() {
+            const active = batches.filter(b => b.status === 'Active');
+            const totalJars = active.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
+            const totalBags = active.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
+            const totalFruiting = active.filter(b => b.stage === 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
+            const totalYield = batches.reduce((sum, b) => sum + Number(b.harvestWeight || 0), 0);
+
+            document.getElementById('kpi-active').innerText = active.length;
+            document.getElementById('kpi-jars').innerText = totalJars;
+            document.getElementById('kpi-bags').innerText = totalBags;
+            const elFruitKpi = document.getElementById('kpi-fruiting');
+            if (elFruitKpi) elFruitKpi.innerText = totalFruiting;
+            document.getElementById('kpi-yield').innerText = totalYield.toFixed(1);
+        }
+
+        
+        const SHAKEN_BATCHES_KEY = 'garnish_farms_shaken_batches_v1';
+
+        function getShakenMap() {
+            try {
+                return JSON.parse(localStorage.getItem(SHAKEN_BATCHES_KEY) || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function isBatchShaken(item) {
+            const map = getShakenMap();
+            const record = map[String(item.dbId)];
+            if (!record) return false;
+            // If batch date changed to a newer date after shaking, reset shaken state
+            return record.batchDate === item.date;
+        }
+
+        async function markBatchShaken(dbId) {
+            const batch = batches.find(b => b.dbId === dbId);
+            if (!batch) return;
+
+            const map = getShakenMap();
+            const todayStr = new Date().toISOString().split('T')[0];
+            map[String(dbId)] = {
+                batchDate: batch.date,
+                shakenDate: todayStr
+            };
+            localStorage.setItem(SHAKEN_BATCHES_KEY, JSON.stringify(map));
+
+            // Also append a note in Supabase if not already noted for this shake
+            const shakeNote = `[Shaken ${todayStr}]`;
+            if (!batch.notes || !batch.notes.includes(shakeNote)) {
+                const updatedNotes = batch.notes ? `${batch.notes} ${shakeNote}` : shakeNote;
+                await _supabase.from('batches').update({ notes: updatedNotes }).eq('id', dbId);
+                batch.notes = updatedNotes;
+            }
+
+            renderPipeline();
+        }
+
+
+        const STAGE_CLOCK_KEY = 'garnish_farms_stage_clock_v1';
+
+        function getStageClockMap() {
+            try {
+                return JSON.parse(localStorage.getItem(STAGE_CLOCK_KEY) || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function setStageClockDate(dbId, stageName, isoDateStr) {
+            const map = getStageClockMap();
+            const key = `${dbId}::${stageName}`;
+            map[key] = isoDateStr;
+            localStorage.setItem(STAGE_CLOCK_KEY, JSON.stringify(map));
+        }
+
+        function getStageClockFromNotes(notesStr, stageName) {
+            if (!notesStr || !stageName) return null;
+            const stageCode = stageName === 'Bulk Substrate' ? 'SUB' : (stageName === 'Fruiting' ? 'FRT' : 'GRN');
+            const match = String(notesStr).match(new RegExp(`\\[Stage:${stageCode}:(\\d{4}-\\d{2}-\\d{2})\\]`));
+            return match ? match[1] : null;
+        }
+
+        function getEffectiveStageDate(item) {
+            const map = getStageClockMap();
+            const key = `${item.dbId}::${item.stage}`;
+            const noteDate = getStageClockFromNotes(item.notes, item.stage);
+            if (noteDate) {
+                if (!map[key]) {
+                    setStageClockDate(item.dbId, item.stage, noteDate);
+                }
+                return noteDate;
+            }
+            return map[key] || item.date;
+        }
+
+        function getDaysActive(dateString) {
+            if (!dateString) return 0;
+            const parts = String(dateString).split('-');
+            let initiated;
+            if (parts.length === 3) {
+                initiated = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            } else {
+                initiated = new Date(dateString);
+            }
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const diffTime = today - initiated;
+            return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function formatStrainCode(strain) {
+            const cleaned = String(strain || '').trim();
+            if (!cleaned) return 'BATCH';
+            const lower = cleaned.toLowerCase();
+            if (lower.includes('blue oyster') || lower === 'bo') return 'BO';
+            if (lower.includes("lion's mane") || lower.includes('lions mane') || lower === 'li' || lower === 'lm') return 'LI';
+            if (lower.includes('reishi')) return 'RE';
+            if (lower.includes('chestnut')) return 'CH';
+            if (lower.includes('shiitake')) return 'SH';
+            if (lower.includes('pink oyster')) return 'PO';
+            if (lower.includes('pearl oyster')) return 'OY';
+
+            const words = cleaned.replace(/[^a-zA-Z0-9\s]/g, ' ').trim().split(/\s+/).filter(Boolean);
+            if (words.length >= 2) {
+                return (words[0][0] + words[1][0]).toUpperCase();
+            }
+            return words[0].slice(0, 2).toUpperCase();
+        }
+
+        function formatMMDDYY(dateStr) {
+            if (!dateStr) return '';
+            const isoMatch = String(dateStr).match(/(\d{4})-(\d{2})-(\d{2})/);
+            if (isoMatch) {
+                const yy = isoMatch[1].slice(2);
+                const mm = isoMatch[2];
+                const dd = isoMatch[3];
+                return `${mm}${dd}${yy}`;
+            }
+            const slashMatch = String(dateStr).match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
+            if (slashMatch) {
+                const mm = slashMatch[1].padStart(2, '0');
+                const dd = slashMatch[2].padStart(2, '0');
+                const yy = slashMatch[3].length === 4 ? slashMatch[3].slice(2) : slashMatch[3].padStart(2, '0');
+                return `${mm}${dd}${yy}`;
+            }
+            return '';
+        }
+
+        function formatDisplayBatchId(batchId, strain, dateStr) {
+            const strainCode = formatStrainCode(strain);
+            const mmddyy = formatMMDDYY(dateStr);
+            if (mmddyy) {
+                return `${strainCode}-${mmddyy}`;
+            }
+            const raw = String(batchId || '').trim();
+            const embeddedDate = raw.match(/(\d{6})/);
+            if (embeddedDate) {
+                return `${strainCode}-${embeddedDate[1]}`;
+            }
+            return raw ? `${strainCode}-${raw}` : strainCode;
+        }
+
+        function jumpToUpcomingBatch(dbId, strain, stage) {
+            const cardKey = `${stage}::${strain}`;
+            expandedPipelineCards.add(cardKey);
+            if (selectedPipelineStrainFilter && selectedPipelineStrainFilter !== strain) {
+                setPipelineFilter('');
+            } else {
+                renderPipeline();
+            }
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.pipeline-strain-card');
+                for (const c of cards) {
+                    if (c.getAttribute('data-stage') === stage && c.getAttribute('data-strain') === strain) {
+                        c.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        c.style.outline = '2px solid var(--accent)';
+                        setTimeout(() => { c.style.outline = ''; }, 1400);
+                        break;
+                    }
+                }
+            }, 80);
+        }
+
+        function renderTimeline30Bar(days, targetDays) {
+            const safeDays = Math.max(0, Number(days || 0));
+            const safeTarget = Math.max(1, Number(targetDays || 14));
+            const horizon = 30;
+            const targetPct = Math.min(100, Math.round((safeTarget / horizon) * 100));
+            const currentPct = Math.min(100, Math.round((safeDays / horizon) * 100));
+            const pastTarget = safeDays > safeTarget;
+
+            const greenWidth = pastTarget ? targetPct : currentPct;
+            const yellowWidth = pastTarget ? Math.max(0, currentPct - targetPct) : 0;
+            const statusText = pastTarget
+                ? `Day ${safeDays} / ${safeTarget}d target (+${safeDays - safeTarget}d past)`
+                : `Day ${safeDays} / ${safeTarget}d target (${safeTarget - safeDays}d left)`;
+
+            return `
+                <div class="day-bar-wrap" style="margin-top: 0.28rem;">
+                    <div class="day-bar-meta" style="font-size: 0.6rem; margin-bottom: 0.14rem;">
+                        <span>${escapeAttr(statusText)}</span>
+                        <span>30d timeline</span>
+                    </div>
+                    <div style="position: relative; width: 100%; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; display: flex;">
+                        <div style="width: ${greenWidth}%; height: 100%; background-color: #16a34a; transition: width 0.25s ease;"></div>
+                        <div style="width: ${yellowWidth}%; height: 100%; background-color: #eab308; transition: width 0.25s ease;"></div>
+                        <div title="Target Day ${safeTarget}" style="position: absolute; left: ${targetPct}%; top: 0; bottom: 0; width: 2px; background-color: #1f2937; opacity: 0.65;"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderUpcomingTasks(filteredActive) {
+            const listEl = document.getElementById('upcomingTasksList');
+            const countEl = document.getElementById('upcomingTasksCount');
+            if (!listEl) return;
+
+            const stageTargets = { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 10 };
+            const nextStageMap = {
+                'Grain Spawn': 'Bulk Substrate',
+                'Bulk Substrate': 'Fruiting',
+                'Fruiting': 'Harvest'
+            };
+
+            const tasks = [];
+            filteredActive.forEach(item => {
+                const targetDays = stageTargets[item.stage] || 14;
+                const stageDate = getEffectiveStageDate(item);
+                const days = Math.max(0, getDaysActive(stageDate));
+                const remaining = targetDays - days;
+                const alreadyShaken = item.stage === 'Grain Spawn' && isBatchShaken(item);
+                const shakeDue = item.stage === 'Grain Spawn' && days >= 14 && !alreadyShaken;
+
+                if (remaining <= 4 || shakeDue) {
+                    const nextLabel = nextStageMap[item.stage] || 'Next Stage';
+                    const statusLabel = remaining <= 0
+                        ? `Ready ➔ ${nextLabel}`
+                        : `${remaining}d left ➔ ${nextLabel}`;
+                    tasks.push({
+                        item,
+                        days,
+                        targetDays,
+                        remaining,
+                        statusLabel,
+                        nextLabel,
+                        shakeDue
+                    });
+                }
+            });
+
+            tasks.sort((a, b) => a.remaining - b.remaining);
+
+            if (countEl) {
+                countEl.innerText = `${tasks.length} task${tasks.length === 1 ? '' : 's'}`;
+            }
+
+            if (tasks.length === 0) {
+                listEl.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 0.3rem 0;">No batches due within 4 days.</div>`;
+                return;
+            }
+
+            // Group upcoming tasks by strain
+            const byStrain = {};
+            tasks.forEach(t => {
+                const s = t.item.strain || 'Other';
+                if (!byStrain[s]) byStrain[s] = [];
+                byStrain[s].push(t);
+            });
+
+            listEl.innerHTML = Object.entries(byStrain).map(([strainName, strainTasks]) => {
+                const rowsHtml = strainTasks.map(t => {
+                    const shakeTag = t.shakeDue
+                        ? `<span style="background: #fef3c7; color: #b45309; padding: 0.06rem 0.28rem; border-radius: 4px; font-size: 0.6rem; font-weight: 700; margin-left: 0.25rem;">⚠️ Shake</span>`
+                        : '';
+
+                    const stageActionLink = t.item.stage === 'Fruiting'
+                        ? `<a href="harvest.html?id=${t.item.dbId}" style="font-weight: 700; font-size: 0.68rem; color: #b45309; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`
+                        : `<a href="#stage-${t.item.stage === 'Grain Spawn' ? 'bulk' : 'fruiting'}" class="upcoming-jump-link" data-dbid="${t.item.dbId}" data-strain="${escapeAttr(t.item.strain)}" data-stage="${escapeAttr(t.item.stage)}" style="font-weight: 700; font-size: 0.68rem; color: ${t.remaining <= 0 ? '#b45309' : 'var(--primary)'}; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`;
+
+                    return `
+                        <div style="background: #f9fbf8; border: 1px solid var(--border); border-radius: 6px; padding: 0.42rem 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.73rem;">
+                                <a href="#pipeline-${t.item.dbId}" class="upcoming-jump-link" data-dbid="${t.item.dbId}" data-strain="${escapeAttr(t.item.strain)}" data-stage="${escapeAttr(t.item.stage)}" style="color: var(--text-main); text-decoration: none;">
+                                    <strong>${escapeAttr(formatDisplayBatchId(t.item.batchId, t.item.strain, t.item.date))}</strong> • ${escapeAttr(t.item.stage)} (${t.item.quantity} ${escapeAttr(t.item.container || '')})${shakeTag}
+                                </a>
+                                ${stageActionLink}
+                            </div>
+                            ${renderTimeline30Bar(t.days, t.targetDays)}
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.55rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--primary);">${escapeAttr(strainName)}</span>
+                            <span style="font-size: 0.65rem; font-weight: 600; color: var(--text-muted);">${strainTasks.length} item${strainTasks.length === 1 ? '' : 's'}</span>
+                        </div>
+                        ${rowsHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let selectedPipelineStrainFilter = '';
+        let expandedPipelineCards = new Set();
+
+        function escapeAttr(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function renderRecentActivities(filteredActive) {
+            const listEl = document.getElementById('recentActivitiesList');
+            const countEl = document.getElementById('recentActivitiesCount');
+            if (!listEl) return;
+
+            const sourceBatches = selectedPipelineStrainFilter
+                ? batches.filter(b => b.strain === selectedPipelineStrainFilter)
+                : batches;
+
+            const activities = [];
+
+            sourceBatches.forEach(b => {
+                const notesStr = String(b.notes || '');
+                const subMatch = notesStr.match(/\[Stage:SUB:(\d{4}-\d{2}-\d{2})\]/);
+                const frtMatch = notesStr.match(/\[Stage:FRT:(\d{4}-\d{2}-\d{2})\]/);
+                const shakeMatches = [...notesStr.matchAll(/\[Shaken (\d{4}-\d{2}-\d{2})\]/g)];
+
+                if (frtMatch) {
+                    activities.push({
+                        date: frtMatch[1],
+                        label: `Moved to Fruiting`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: `${b.quantity} ${b.container || ''}`.trim()
+                    });
+                }
+                if (subMatch) {
+                    activities.push({
+                        date: subMatch[1],
+                        label: `Moved to Bulk Substrate`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: `${b.quantity} ${b.container || ''}`.trim()
+                    });
+                }
+                shakeMatches.forEach(m => {
+                    activities.push({
+                        date: m[1],
+                        label: `Grain Shaken`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: `${b.quantity} ${b.container || ''}`.trim()
+                    });
+                });
+
+                if (Number(b.harvestWeight || 0) > 0) {
+                    activities.push({
+                        date: b.date,
+                        label: `Harvested ${Number(b.harvestWeight).toFixed(1)} lbs`,
+                        batchId: b.batchId,
+                        strain: b.strain,
+                        meta: b.stage || ''
+                    });
+                }
+
+                activities.push({
+                    date: b.date,
+                    label: `Logged batch (${b.stage || 'Grain Spawn'})`,
+                    batchId: b.batchId,
+                    strain: b.strain,
+                    meta: `${b.quantity} ${b.container || ''}`.trim()
+                });
+            });
+
+            activities.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+            const topFive = activities.slice(0, 5);
+
+            if (countEl) {
+                countEl.innerText = `${topFive.length} shown`;
+            }
+
+            if (topFive.length === 0) {
+                listEl.innerHTML = `<div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 0.25rem 0;">No recent activity logged yet.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = topFive.map(act => `
+                <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.55rem; display: flex; justify-content: space-between; align-items: center; gap: 0.4rem; font-size: 0.72rem;">
+                    <div style="min-width: 0;">
+                        <strong>${escapeAttr(formatDisplayBatchId(act.batchId, act.strain, act.date))}</strong> • ${escapeAttr(act.strain)} — <span style="color: var(--primary); font-weight: 600;">${escapeAttr(act.label)}</span>
+                    </div>
+                    <span style="font-size: 0.65rem; color: var(--text-muted); white-space: nowrap;">${escapeAttr(act.date || '')}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderPipeline() {
+            const activeBatches = batches.filter(b => b.status === 'Active');
+            const filteredActive = selectedPipelineStrainFilter
+                ? activeBatches.filter(b => b.strain === selectedPipelineStrainFilter)
+                : activeBatches;
+            renderUpcomingTasks(filteredActive);
+
+            renderRecentActivities(filteredActive);
+
+            const stageMeta = [
+                { name: 'Grain Spawn', countId: 'stage-count-grain' },
+                { name: 'Bulk Substrate', countId: 'stage-count-bulk' },
+                { name: 'Fruiting', countId: 'stage-count-fruiting' }
+            ];
+
+            stageMeta.forEach(({ name: stage, countId }) => {
+                const container = document.querySelector(`.stage-items[data-stage="${stage}"]`);
+                const countBadge = document.getElementById(countId);
+                if (!container) return;
+
+                const stageBatches = filteredActive.filter(b => b.stage === stage);
+                const stageTotal = stageBatches.reduce((sum, b) => sum + Number(b.quantity || 0), 0);
+                if (countBadge) countBadge.innerText = `${stageTotal} • ${stageBatches.length} batch${stageBatches.length === 1 ? '' : 'es'}`;
+
+                if (stageBatches.length === 0) {
+                    container.innerHTML = `<div style="font-size: 0.7rem; color: var(--text-muted); text-align: center; padding: 0.4rem 0;">No active batches</div>`;
+                    return;
+                }
+
+                const strainMap = {};
+                stageBatches.forEach(b => {
+                    if (!strainMap[b.strain]) {
+                        strainMap[b.strain] = { strain: b.strain, totalQty: 0, jars: 0, bags: 0, items: [] };
+                    }
+                    const q = Number(b.quantity || 0);
+                    strainMap[b.strain].totalQty += q;
+                    if (b.container === 'Jar') strainMap[b.strain].jars += q;
+                    if (b.container === 'Bag') strainMap[b.strain].bags += q;
+                    strainMap[b.strain].items.push(b);
+                });
+
+                const groups = Object.values(strainMap);
+
+                container.innerHTML = groups.map(g => {
+                    const cardKey = `${stage}::${g.strain}`;
+                    const isExpanded = expandedPipelineCards.has(cardKey);
+                    const hasShakeDue = stage === 'Grain Spawn' && g.items.some(item => getDaysActive(getEffectiveStageDate(item)) >= 14 && !isBatchShaken(item));
+
+                    let containerLabel = [];
+                    if (g.jars > 0) containerLabel.push(`${g.jars} Jar${g.jars === 1 ? '' : 's'}`);
+                    if (g.bags > 0) containerLabel.push(`${g.bags} Bag${g.bags === 1 ? '' : 's'}`);
+                    const breakdownText = containerLabel.length ? ` (${containerLabel.join(', ')})` : '';
+
+                    const shakeAlert = hasShakeDue
+                        ? `<span style="background: #fef3c7; color: #b45309; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700; margin-left: 0.35rem;">⚠️ Shake Due</span>`
+                        : '';
+
+                    const expandedHtml = isExpanded ? `
+                        <div class="expanded-batches" onclick="event.stopPropagation()">
+                            ${g.items.map(item => {
+                                const days = Math.max(0, getDaysActive(getEffectiveStageDate(item)));
+                                const stageTargets = { 'Grain Spawn': 14, 'Bulk Substrate': 14, 'Fruiting': 10 };
+                                const targetDays = stageTargets[stage] || 14;
+                                const pct = Math.min(100, Math.round((days / targetDays) * 100));
+                                const barColor = days >= targetDays ? '#d97706' : '#4c9a2a';
+
+                                const alreadyShaken = stage === 'Grain Spawn' && isBatchShaken(item);
+                                const itemShake = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
+                                    ? `<span style="background: #fef3c7; color: #b45309; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">⚠️ Shake Due</span>`
+                                    : (alreadyShaken
+                                        ? `<span style="background: #e6f4ea; color: #137333; padding: 0.08rem 0.3rem; border-radius: 4px; font-size: 0.62rem; font-weight: 700;">Shaken ✓</span>`
+                                        : '');
+
+                                const shakeBtn = (stage === 'Grain Spawn' && days >= 14 && !alreadyShaken)
+                                    ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
+                                    : '';
+
+                                const yieldTag = Number(item.harvestWeight || 0) > 0
+                                    ? ` • <strong>${Number(item.harvestWeight).toFixed(1)} lbs</strong>`
+                                    : '';
+
+                                const actionBtn = stage === 'Fruiting'
+                                    ? `<a href="harvest.html?id=${item.dbId}" class="btn" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: #d97706;">Harvest ➔</a>`
+                                    : `<button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
+
+                                return `
+                                    <div class="sub-batch-row" style="flex-direction: column; align-items: stretch;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
+                                            <div>
+                                                <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date))} ${itemShake}</div>
+                                                <div style="font-size: 0.68rem; color: var(--text-muted);">${escapeAttr(item.date)} • ${item.quantity} ${escapeAttr(item.container || '')}${yieldTag}</div>
+                                            </div>
+                                            <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
+                                                ${shakeBtn}
+                                                <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Set Days</button>
+                                                <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Edit</a>
+                                                ${actionBtn}
+                                            </div>
+                                        </div>
+                                        <div class="day-bar-wrap">
+                                            <div class="day-bar-meta">
+                                                <span>Day ${days}</span>
+                                                <span>Target: ${targetDays}d</span>
+                                            </div>
+                                            <div class="day-bar-track">
+                                                <div class="day-bar-fill" style="width: ${pct}%; background-color: ${barColor};"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                            <div style="text-align: right; margin-top: 0.15rem;">
+                                <button type="button" class="filter-log-link" data-strain="${escapeAttr(g.strain)}" style="background: none; border: none; color: var(--primary); font-size: 0.7rem; font-weight: 600; cursor: pointer; text-decoration: underline;">Filter full log ↓</button>
+                            </div>
+                        </div>
+                    ` : '';
+
+
+                    // Stage-only summary: container quantities in this stage + number of batches in this stage
+                    const batchCount = g.items.length;
+                    const batchLabel = `${batchCount} batch${batchCount === 1 ? '' : 'es'}`;
+
+                    return `
+                        <div class="batch-card pipeline-strain-card" data-strain="${escapeAttr(g.strain)}" data-stage="${escapeAttr(stage)}">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.3rem;">
+                                <div>
+                                    <div class="batch-id">${escapeAttr(g.strain)}${shakeAlert}</div>
+                                    <div class="batch-strain" style="margin-top: 0.1rem;">Stage Qty: <strong>${g.totalQty}</strong>${breakdownText} • <strong>${batchLabel}</strong></div>
+                                </div>
+                                <span style="font-size: 0.72rem; color: var(--accent); font-weight: 700; margin-top: 0.1rem;">${isExpanded ? 'Hide ▲' : 'Details ▼'}</span>
+                            </div>
+                            ${expandedHtml}
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function togglePipelineCard(strain, stage) {
+            const key = `${stage}::${strain}`;
+            if (expandedPipelineCards.has(key)) {
+                expandedPipelineCards.delete(key);
+            } else {
+                expandedPipelineCards.add(key);
+            }
+            renderPipeline();
+        }
+
+        function filterTableByStrain(strain) {
+            document.getElementById('filterStrain').value = strain;
+            document.getElementById('filterStatus').value = 'Active';
+            document.getElementById('searchInput').value = '';
+            renderTable();
+            document.querySelector('.table-controls').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setPipelineFilter(strain) {
+            selectedPipelineStrainFilter = strain;
+            document.querySelectorAll('.pipeline-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-strain') === strain) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+            renderPipeline();
+        }
+
+        function formatLocalIsoDateOffset(daysAgo) {
+            const d = new Date();
+            const localDate = new Date(d.getFullYear(), d.getMonth(), d.getDate() - Number(daysAgo || 0));
+            return `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
+        }
+
+        async function setStageDays(dbId, dayCount) {
+            const batch = batches.find(b => b.dbId === dbId);
+            if (!batch) return;
+            const parsedDays = Math.max(0, Math.floor(Number(dayCount)));
+            if (Number.isNaN(parsedDays)) return;
+
+            const targetStartDate = formatLocalIsoDateOffset(parsedDays);
+            const stageCode = batch.stage === 'Bulk Substrate' ? 'SUB' : (batch.stage === 'Fruiting' ? 'FRT' : 'GRN');
+            const stageTag = `[Stage:${stageCode}:${targetStartDate}]`;
+
+            let updatedNotes = batch.notes || '';
+            if (updatedNotes.includes(`[Stage:${stageCode}:`)) {
+                updatedNotes = updatedNotes.replace(new RegExp(`\\[Stage:${stageCode}:\\d{4}-\\d{2}-\\d{2}\\]`), stageTag);
+            } else {
+                updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
+            }
+
+            batch.notes = updatedNotes;
+            setStageClockDate(dbId, batch.stage, targetStartDate);
+            renderAll();
+
+            try {
+                await _supabase.from('batches').update({ notes: updatedNotes }).eq('id', dbId);
+            } catch (e) {}
+        }
+
+        function setStageDaysPrompt(dbId) {
+            const batch = batches.find(b => b.dbId === dbId);
+            if (!batch) return;
+            const currentDays = Math.max(0, getDaysActive(getEffectiveStageDate(batch)));
+            const input = prompt(`Set how many days ${formatDisplayBatchId(batch.batchId, batch.strain, batch.date)} has been in ${batch.stage} (0 = today):`, String(currentDays));
+            if (input === null) return;
+            const trimmed = input.trim();
+            if (trimmed === '' || Number.isNaN(Number(trimmed))) {
+                alert('Please enter a whole number of days (0 or greater).');
+                return;
+            }
+            setStageDays(dbId, Number(trimmed));
+        }
+
+        async function advanceStage(dbId) {
+            const stages = ['Grain Spawn', 'Bulk Substrate', 'Fruiting', 'Harvested'];
+            const batch = batches.find(b => b.dbId === dbId);
+            if (!batch) return;
+
+            if (batch.stage === 'Fruiting') {
+                window.location.href = `harvest.html?id=${dbId}`;
+                return;
+            }
+
+            const currentIndex = stages.indexOf(batch.stage);
+            if (currentIndex >= 0 && currentIndex < stages.length - 1) {
+                const nextStage = stages[currentIndex + 1];
+                const now = new Date();
+                const todayLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+                const stageCode = nextStage === 'Bulk Substrate' ? 'SUB' : (nextStage === 'Fruiting' ? 'FRT' : 'GRN');
+                const stageTag = `[Stage:${stageCode}:${todayLocal}]`;
+                let updatedNotes = batch.notes || '';
+                if (updatedNotes.includes(`[Stage:${stageCode}:`)) {
+                    updatedNotes = updatedNotes.replace(new RegExp(`\\[Stage:${stageCode}:\\d{4}-\\d{2}-\\d{2}\\]`), stageTag);
+                } else {
+                    updatedNotes = updatedNotes ? `${updatedNotes} ${stageTag}` : stageTag;
+                }
+
+                const updatePayload = { stage: nextStage, notes: updatedNotes };
+                if (nextStage === 'Bulk Substrate' && batch.container === 'Jar') {
+                    updatePayload.container = 'Bag';
+                }
+
+                const { error } = await _supabase
+                    .from('batches')
+                    .update(updatePayload)
+                    .eq('id', dbId);
+
+                if (!error) {
+                    setStageClockDate(dbId, nextStage, todayLocal);
+                    await loadBatches();
+                }
+            }
+        }
+
+        // Event delegation for filter pills & expandable strain cards (handles apostrophes like Lion's Mane safely)
+        document.addEventListener('click', (e) => {
+            const filterBtn = e.target.closest('.pipeline-filter-btn');
+            if (filterBtn) {
+                setPipelineFilter(filterBtn.getAttribute('data-strain') || '');
+                return;
+            }
+            const logLink = e.target.closest('.filter-log-link');
+            if (logLink) {
+                filterTableByStrain(logLink.getAttribute('data-strain') || '');
+                return;
+            }
+            const jumpLink = e.target.closest('.upcoming-jump-link');
+            if (jumpLink) {
+                e.preventDefault();
+                jumpToUpcomingBatch(
+                    Number(jumpLink.getAttribute('data-dbid')),
+                    jumpLink.getAttribute('data-strain') || '',
+                    jumpLink.getAttribute('data-stage') || ''
+                );
+                return;
+            }
+            const card = e.target.closest('.pipeline-strain-card');
+            if (card && !e.target.closest('button') && !e.target.closest('a')) {
+                togglePipelineCard(card.getAttribute('data-strain') || '', card.getAttribute('data-stage') || '');
+            }
+        });
+
+        function renderTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const strainFilter = document.getElementById('filterStrain').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+
+            const filtered = batches.filter(b => {
+                const displayId = formatDisplayBatchId(b.batchId, b.strain, b.date); const matchSearch = b.batchId.toLowerCase().includes(search) || displayId.toLowerCase().includes(search) || b.strain.toLowerCase().includes(search);
+                const matchStrain = strainFilter === '' || b.strain === strainFilter;
+                const matchStatus = statusFilter === '' || b.status === statusFilter;
+                return matchSearch && matchStrain && matchStatus;
+            });
+
+            const tbody = document.getElementById('batchTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(b => {
+                const badgeClass = b.status === 'Active' ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
+                return `
+                    <tr>
+                        <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date))}</strong></td>
+                        <td>${b.date}</td>
+                        <td>${b.strain}</td>
+                        <td>${b.stage}</td>
+                        <td>${b.quantity}</td>
+                        <td>${b.harvestWeight || 0} lbs</td>
+                        <td><span class="badge ${badgeClass}">${b.status}</span></td>
+                        <td>
+                            <a href="new-batch.html?id=${b.dbId}" class="btn btn-outline" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; text-decoration: none;">Edit</a>
+                            <button class="btn btn-outline" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; color: #c5221f; border-color: #c5221f;" onclick="deleteBatch(${b.dbId}, '${b.batchId}')">Del</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderCulturesTable() {
+            const tbody = document.getElementById('cultureTableBody');
+            if (!tbody) return;
+            if (cultures.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No cultures logged.</td></tr>`;
+                return;
+            }
+
+           tbody.innerHTML = cultures.map(c => {
+                const badgeClass = c.status === 'Active' ? 'badge-active' : (c.status === 'Depleted' ? 'badge-harvested' : 'badge-contaminated');
+                return `
+                    <tr>
+                        <td><strong>${c.cultureId}</strong></td>
+                        <td>${c.date}</td>
+                        <td>${c.strain}</td>
+                        <td><span class="badge ${badgeClass}">${c.status}</span></td>
+                        <td>
+                            <button class="btn btn-outline" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; color: #c5221f; border-color: #c5221f;" onclick="deleteCulture(${c.dbId}, '${c.cultureId}')">Del</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function populateStrainFilter() {
+            const currentVal = document.getElementById('filterStrain').value;
+            const strains = [...new Set(batches.map(b => b.strain))];
+            const select = document.getElementById('filterStrain');
+            select.innerHTML = `<option value="">All Strains</option>` + strains.map(s => `<option value="${s}">${s}</option>`).join('');
+            select.value = currentVal;
+
+            const filterBar = document.getElementById('pipelineFilterBar');
+            if (filterBar) {
+                let html = `<button type="button" class="option-btn pipeline-filter-btn ${selectedPipelineStrainFilter === '' ? 'selected' : ''}" data-strain="" style="font-size: 0.72rem; padding: 0.3rem 0.65rem; flex: none;">All</button>`;
+                html += strains.map(s => `
+                    <button type="button" class="option-btn pipeline-filter-btn ${selectedPipelineStrainFilter === s ? 'selected' : ''}" data-strain="${escapeAttr(s)}" style="font-size: 0.72rem; padding: 0.3rem 0.65rem; flex: none;">${escapeAttr(s)}</button>
+                `).join('');
+                filterBar.innerHTML = html;
+            }
+        }
+
+        function renderStrainSummary() {
+            const tbody = document.getElementById('strainSummaryTableBody');
+            if (!tbody) return;
+
+            const strainMap = {};
+
+            batches.forEach(b => {
+                if (!strainMap[b.strain]) {
+                    strainMap[b.strain] = {
+                        strain: b.strain,
+                        activeBatches: 0,
+                        totalContainers: 0,
+                        stages: { 'Grain Spawn': 0, 'Bulk Substrate': 0, 'Fruiting': 0 },
+                        totalYield: 0
+                    };
+                }
+
+                if (b.status === 'Active') {
+                    strainMap[b.strain].activeBatches += 1;
+                    strainMap[b.strain].totalContainers += Number(b.quantity || 0);
+                    if (strainMap[b.strain].stages[b.stage] !== undefined) {
+                        strainMap[b.strain].stages[b.stage] += Number(b.quantity || 0);
+                    }
+                }
+                
+                strainMap[b.strain].totalYield += Number(b.harvestWeight || 0);
+            });
+
+            const strains = Object.values(strainMap);
+
+            if (strains.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No strain data available.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = strains.map(s => `
+                <tr>
+                    <td><strong>${s.strain}</strong></td>
+                    <td>${s.activeBatches}</td>
+                    <td><strong>${s.totalContainers}</strong></td>
+                    <td style="font-size: 0.75rem; color: var(--text-muted);">
+                        Grain: ${s.stages['Grain Spawn']} | Sub: ${s.stages['Bulk Substrate']} | Fruit: ${s.stages['Fruiting']}
+                    </td>
+                    <td>${s.totalYield.toFixed(1)} lbs</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('strainChart').getContext('2d');
+            const strainCounts = {};
+            batches.forEach(b => {
+                strainCounts[b.strain] = (strainCounts[b.strain] || 0) + Number(b.quantity);
+            });
+
+            const labels = Object.keys(strainCounts);
+            const data = Object.values(strainCounts);
+
+            if (strainChartInstance) strainChartInstance.destroy();
+
+            strainChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels.length ? labels : ['No Data'],
+                    datasets: [{
+                        data: data.length ? data : [1],
+                        backgroundColor: labels.length ? ['#2d5a27', '#4c9a2a', '#85bb65', '#a3d977', '#c2f088', '#1e3d1a', '#3e6837', '#62905c'] : ['#e5e7eb'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                    }
+                }
+            });
+        }
+
+        async function deleteBatch(dbId, batchId) {
+            if (confirm(`Delete batch ${batchId}?`)) {
+                await _supabase.from('batches').delete().eq('id', dbId);
+                loadBatches();
+            }
+        }
+
+        async function deleteCulture(dbId, cultureId) {
+            if (confirm(`Delete culture ${cultureId}?`)) {
+                await _supabase.from('cultures').delete().eq('id', dbId);
+                loadCultures();
+            }
+        }
+
+        function exportCSV() {
+            let csv = 'Batch ID,Date,Strain,Stage,Quantity,Container,Substrate,Harvest Weight (lbs),Status,Notes\n';
+            batches.forEach(b => {
+                csv += `"${b.batchId}","${b.date}","${b.strain}","${b.stage}",${b.quantity},"${b.container}","${b.substrate}",${b.harvestWeight || 0},"${b.status}","${b.notes || ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', 'garnish_farms_production_log.csv');
+            a.click();
+        }
+    </script>
 </body>
 </html>
