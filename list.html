@@ -489,13 +489,11 @@ header.gf-site-header > div:nth-child(2):not(.header-production-actions) > .stat
    const listEl=document.getElementById('containerCardsList'),countEl=document.getElementById('containerCount');
    if(!listEl||!window.supabase)return;
    listEl.innerHTML='<div style="padding:1rem;text-align:center;color:var(--text-muted)">Loading individual production records…</div>';
-   const [{data:parents,error:pe},{data:children,error:ce}]=await Promise.all([window.GFData.repositories.batches.list({ orderBy: 'created_at', ascending: false }),window.GFData.repositories.items.list({ orderBy: 'container_id' })]);
-   if(pe){listEl.innerHTML='<div class="empty">Could not load batches: '+esc(pe.message)+'</div>';return;}
-   const ps=parents||[],cs=ce?[]:(children||[]),parentMap=new Map(ps.map(p=>[String(p.id),p]));
-   const childParents=new Set(cs.map(x=>String(x.batch_id)));
-   let units=cs.map(x=>{const p=parentMap.get(String(x.batch_id))||{};return {...p,...x,parentId:x.batch_id,parentBatchId:p.batch_id||x.container_id,container_id:x.container_id||x.item_id||'',strain:x.strain||p.strain,stage:x.stage||p.stage,status:x.status||p.status,date:x.date||p.date,container:x.container||p.container,substrate:x.substrate||p.substrate,notes:x.notes||p.notes,quantity:1};});
-   ps.filter(p=>!childParents.has(String(p.id))).forEach(p=>{const q=Math.max(1,Number(p.quantity)||1);for(let i=1;i<=q;i++)units.push({...p,parentId:p.id,parentBatchId:p.batch_id,container_id:q>1?`${p.batch_id}-${i}`:p.batch_id,quantity:1,unitIndex:i,unitTotal:q});});
-   const siblingGroups=new Map();units.forEach(x=>{const k=String(x.parentId);if(!siblingGroups.has(k))siblingGroups.set(k,[]);siblingGroups.get(k).push(x);});siblingGroups.forEach(g=>g.forEach((x,i)=>{x.unitIndex=x.unitIndex||i+1;x.unitTotal=x.unitTotal||g.length;}));
+   let snapshot;
+   try { snapshot = await window.GFData.getProductionSnapshot({ orderBy: 'created_at', itemOrderBy: 'container_id' }); }
+   catch(error){listEl.innerHTML='<div class="empty">Could not load production records: '+esc(error.message||error)+'</div>';return;}
+   let units=snapshot.containers.slice();
+   units.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(a.container_id).localeCompare(String(b.container_id)));
    const all=listType==='all';
    if(!all) units=units.filter(isActive).filter(x=>stageType(x)===listType);
    if(selectedStrain) units=units.filter(x=>norm(x.strain)===norm(selectedStrain));

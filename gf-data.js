@@ -198,6 +198,60 @@
     const rollback = await deleteBatch(parentResult.data.id);
     return { data: null, error: Object.assign(new Error(`Container creation failed: ${childResult.error.message || childResult.error}. Parent rollback ${rollback.error ? 'also failed: ' + rollback.error.message : 'succeeded'}.`), { cause: childResult.error, rollbackError: rollback.error || null }) };
   }
+  // One canonical production read for every page. Parent batches remain the editable
+  // batch-level records; containers are the operational units used for inventory,
+  // stage counts, strain pages, and per-container timelines.
+  async function getProductionSnapshot(options = {}) {
+    const [parentResult, itemResult] = await Promise.all([
+      listBatches({ orderBy: options.orderBy || 'created_at', ascending: !!options.ascending }),
+      listBatchItems({ orderBy: options.itemOrderBy || 'container_id' })
+    ]);
+    if (parentResult.error) throw parentResult.error;
+    if (itemResult.error) throw itemResult.error;
+    const parents = Array.isArray(parentResult.data) ? parentResult.data : [];
+    const items = Array.isArray(itemResult.data) ? itemResult.data : [];
+    const parentById = new Map(parents.map(parent => [String(parent.id), parent]));
+    const childrenByParent = new Map();
+    items.forEach(item => {
+      const key = String(item.batch_id);
+      if (!childrenByParent.has(key)) childrenByParent.set(key, []);
+      childrenByParent.get(key).push(item);
+    });
+    const containers = [];
+    items.forEach(item => {
+      const parent = parentById.get(String(item.batch_id)) || {};
+      const siblings = childrenByParent.get(String(item.batch_id)) || [item];
+      containers.push({
+        ...parent, ...item,
+        id: item.id, itemId: item.id, parentId: parent.id ?? item.batch_id,
+        parentBatchId: parent.batch_id || item.container_id || item.item_id || '',
+        dbId: parent.id ?? item.batch_id,
+        container_id: item.container_id || item.item_id || parent.batch_id || '',
+        strain: item.strain || parent.strain || '',
+        stage: item.stage || parent.stage || 'Grain Spawn',
+        status: item.status || parent.status || 'Active',
+        date: item.date || parent.date || '',
+        container: item.container || parent.container || '',
+        substrate: item.substrate || parent.substrate || '',
+        notes: item.notes || parent.notes || '',
+        quantity: 1,
+        unitIndex: siblings.findIndex(sibling => String(sibling.id) === String(item.id)) + 1,
+        unitTotal: siblings.length,
+        isContainerRecord: true
+      });
+    });
+    // Legacy parent rows without child records still appear as individual units.
+    parents.filter(parent => !childrenByParent.has(String(parent.id))).forEach(parent => {
+      const quantity = Math.max(1, Number(parent.quantity) || 1);
+      for (let index = 1; index <= quantity; index++) containers.push({
+        ...parent, id: `${parent.id}:legacy:${index}`, itemId: null,
+        parentId: parent.id, dbId: parent.id, parentBatchId: parent.batch_id || '',
+        container_id: quantity > 1 ? `${parent.batch_id || parent.id}-${index}` : (parent.batch_id || String(parent.id)),
+        quantity: 1, unitIndex: index, unitTotal: quantity, isContainerRecord: false
+      });
+    });
+    return { parents, items, containers };
+  }
   function isActive(row) { return !['inactive','harvested','contaminated','archived','discarded','deleted'].includes(norm(row?.status)); }
   function stage(row) {
     const value = norm(row?.stage), container = norm(row?.container);
@@ -205,5 +259,5 @@
     if (value.includes('bulk') || value.includes('substrate') || container.includes('bag') || container.includes('block')) return 'Bulk Substrate';
     return 'Grain Spawn';
   }
-  window.GFData = Object.freeze({ ready: true, getAuthState, onAuthStateChange, signInWithPassword, signOut, getCurrentUser, read, invalidate, getHarvests, insertHarvest, updateBatch, getBatches, getBatchItems, getCultures, repositories: Object.freeze({ batches: Object.freeze({ list: listBatches, get: getBatch, create: createBatch, update: updateBatchRecord, remove: deleteBatch, createWithItems: createBatchWithItems }), items: Object.freeze({ list: listBatchItems, create: createBatchItems, update: updateBatchItem, saveLifecycle: saveItemLifecycle, remove: deleteBatchItem }), cultures: Object.freeze({ list: listCultures, create: createCulture, remove: deleteCulture }), harvests: Object.freeze({ list: getHarvests, create: insertHarvest }) }), isActive, stage, normalize: norm, project: Object.freeze({ url: SUPABASE_URL }) });
+  window.GFData = Object.freeze({ ready: true, getAuthState, onAuthStateChange, signInWithPassword, signOut, getCurrentUser, read, invalidate, getHarvests, insertHarvest, updateBatch, getBatches, getBatchItems, getCultures, getProductionSnapshot, repositories: Object.freeze({ batches: Object.freeze({ list: listBatches, get: getBatch, create: createBatch, update: updateBatchRecord, remove: deleteBatch, createWithItems: createBatchWithItems }), items: Object.freeze({ list: listBatchItems, create: createBatchItems, update: updateBatchItem, saveLifecycle: saveItemLifecycle, remove: deleteBatchItem }), cultures: Object.freeze({ list: listCultures, create: createCulture, remove: deleteCulture }), harvests: Object.freeze({ list: getHarvests, create: insertHarvest }) }), isActive, stage, normalize: norm, project: Object.freeze({ url: SUPABASE_URL }) });
 })();

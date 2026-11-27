@@ -59,25 +59,16 @@
       throw error;
     }
     status('', 'Syncing…');
-    const [parentResult, childResult, harvestResult] = await Promise.all([
-      window.GFData.getBatches({ columns: 'id,quantity,container,stage,status,harvest_weight' }),
-      window.GFData.getBatchItems({ columns: 'id,batch_id,container_id,container,stage,status' }),
+    const [snapshot, harvestResult] = await Promise.all([
+      window.GFData.getProductionSnapshot({ orderBy: 'created_at' }),
       window.GFData.getHarvests({ columns: 'weight_lbs', orderBy: false })
     ]);
-    if (parentResult.error) throw parentResult.error;
-    if (childResult.error) throw childResult.error;
-    const parents = parentResult.data || [];
-    const children = childResult.data || [];
-    const childParentIds = new Set(children.map(row => String(row.batch_id)));
-    const units = children.filter(active);
-    parents.filter(row => !childParentIds.has(String(row.id)) && active(row)).forEach(row => {
-      const quantity = Math.max(1, Number(row.quantity) || 1);
-      for (let i = 0; i < quantity; i++) units.push(row);
-    });
-    const jars = units.filter(row => stage(row) === 'Grain Spawn' && norm(row.container).includes('jar')).length;
-    const bags = units.filter(row => stage(row) === 'Bulk Substrate' && (norm(row.container).includes('bag') || norm(row.container).includes('block'))).length;
+    const parents = snapshot.parents || [];
+    const units = (snapshot.containers || []).filter(active);
+    const jars = units.filter(row => stage(row) === 'Grain Spawn').length;
+    const bags = units.filter(row => stage(row) === 'Bulk Substrate').length;
     const fruiting = units.filter(row => stage(row) === 'Fruiting').length;
-    const activeParents = new Set(units.map(row => String(row.batch_id ?? row.id))).size;
+    const activeParents = new Set(units.map(row => String(row.parentId ?? row.batch_id ?? row.id))).size;
     set('kpi-active', activeParents);
     set('kpi-jars', jars);
     set('kpi-bags', bags);

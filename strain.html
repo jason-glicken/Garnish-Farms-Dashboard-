@@ -112,22 +112,13 @@ async function init(){
  const norm=v=>String(v||'').trim().toLowerCase().replace(/[’']/g,"'").replace(/[_-]+/g,' ').replace(/\s+/g,' ');
  try {
    // Fetch broadly, then match client-side so minor capitalization/spacing differences do not blank a strain page.
-   const [{data:allParents,error:parentError},{data:allHarvests,error:harvestError}] = await Promise.all([
-     window.GFData.repositories.batches.list({ orderBy: 'created_at', ascending: false }),
+   const [snapshot, harvestResult] = await Promise.all([
+     window.GFData.getProductionSnapshot({ orderBy: 'created_at' }),
      window.GFData.getHarvests({ orderBy: 'harvest_date', ascending: false })
    ]);
-   if(parentError) throw parentError;
-   const parents=(allParents||[]).filter(b=>norm(b.strain)===norm(strain));
-   const harvests=(allHarvests||[]).filter(h=>norm(h.strain)===norm(strain));
-   const childResult = await window.GFData.repositories.items.list();
-   if (childResult.error) throw childResult.error;
-   const childRows=(childResult.data||[]).filter(x=>norm(x.strain)===norm(strain)||parents.some(p=>String(p.id)===String(x.batch_id)));
-   const parentById=new Map(parents.map(b=>[String(b.id),b]));
-   let all;
-   if(childRows.length){
-     const grouped=new Map();childRows.forEach(x=>{const k=String(x.batch_id);if(!grouped.has(k))grouped.set(k,[]);grouped.get(k).push(x)});
-     all=childRows.map(x=>{const parent=parentById.get(String(x.batch_id))||{};const siblings=grouped.get(String(x.batch_id))||[];return {...parent,...x,id:x.id,parentId:x.batch_id,batch_id:parent.batch_id||x.container_id,quantity:1,unitIndex:siblings.findIndex(y=>String(y.id)===String(x.id))+1,unitTotal:siblings.length,container_id:x.container_id||x.item_id||x.batch_id,date:x.date||parent.date,stage:x.stage||parent.stage,status:x.status||parent.status,notes:x.notes||parent.notes,strain:x.strain||parent.strain};});
-   } else { all=parents.map(b=>({...b,parentId:b.id})); }
+   if(harvestResult.error) throw harvestResult.error;
+   const all=snapshot.containers.filter(item=>norm(item.strain)===norm(strain));
+   const harvests=(harvestResult.data||[]).filter(h=>norm(h.strain)===norm(strain));
    const active=all.filter(b=>isActiveStatus(b.status));
    const jars=active.filter(b=>canonicalStage(b.stage,b.container)==='Grain Spawn');
    const bags=active.filter(b=>canonicalStage(b.stage,b.container)==='Bulk Substrate');

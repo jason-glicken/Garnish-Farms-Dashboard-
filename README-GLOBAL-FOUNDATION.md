@@ -22,3 +22,6 @@ The shared header now checks whether a Supabase Auth session exists and reports 
 
 ## Version 59 — existing-account authentication
 Adds an email/password login page using the existing Supabase Auth user, page access guard, and shared-header sign-out. No account creation, password reset, database migration, database mutation, or deployment is performed. See VERSION-59-README.txt and VERIFICATION-V9.txt.
+
+## Version 60 — canonical production snapshot
+All dashboard views now have a shared `GFData.getProductionSnapshot()` service. It fetches parent batches and child `batch_items` together, joins each child to its parent, returns normalized one-record-per-container rows, and expands legacy parent-only quantities when child rows do not exist. Home KPIs, strain pages, and Jars/Bags/Fruiting lists consume this same normalized result. Parent batch records remain available separately for batch-level editing.
