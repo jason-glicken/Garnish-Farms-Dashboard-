@@ -1,55 +1,27 @@
-# Garnish Farms Mushroom Dashboard
+# Garnish Farms — Fresh Modular Rebuild
 
-## One shared header
-Every page loads the same component:
-- `shared-header.html` — canonical Home header markup
-- `shared-header.css` — header styles extracted from the Home design
-- `shared-header.js` — loads the shared markup/styles, sets active navigation, and refreshes inventory and sync status
+This is a clean replacement application. It does not copy the legacy page implementations.
 
-Each page contains only a `gf-shared-header` mount point. Do not duplicate header markup or styling in page files. Change the three shared files to update the header everywhere.
+## Architecture
+- `gf-data.js`: one Supabase client, auth, shared read/write repository, parent/child normalization.
+- `production.js`: pure production-domain functions (stage normalization, lifecycle dates, timelines, counts, forecast, task generation, navigation targets).
+- `ui.js`: shared header, shared container cards, timeline renderer, formatting and reusable UI.
+- `views/*.js`: page-specific presentation and interaction only. Views consume the same `GF.store` snapshot and `GF.production` functions.
+- HTML entrypoints are thin shells. `index.html?page=...` routes to views; named HTML pages are direct links for familiar URLs.
 
-The shared data loader uses the same Supabase project, `batches` table, query ordering, active-status exclusions, and KPI calculations as Home's `renderKPIs()`.
+## Pages
+Home / Production at a Glance, Strain Summary, All Batches, Jars, Bags, Fruiting, Container Management, Batch Details, New Batch, New Culture, Harvest, Yield, Upcoming Tasks, Calendar, Activities, Settings.
+
+## Database safety
+Uses existing `batches`, `batch_items`, `harvests`, and `cultures` tables. No SQL migrations or schema changes are included. The client uses the existing Supabase project URL and publishable key. Writes are limited to existing columns/tables. Deleting records is deliberately not included in this first rebuild.
+
+## Important behavior
+- `batch_items` are individual containers; `batches` are parent batches.
+- Parent batches without child rows remain visible as legacy inventory placeholders. They are not silently inserted or migrated.
+- Container lifecycle dates are only shown when recorded. Missing historical transitions are not invented.
+- Actual timelines preserve completed stage segments; targeted timelines use each record's `target_days` when available, then farm defaults.
+- Links carry record IDs and open the relevant container/batch in context.
+- Settings are browser-local and do not change database schema.
 
 ## Deploy
-Upload the contents of this folder to the root of the `main` branch. Keep all HTML pages and the three `shared-header.*` files together at the same level.
-
-
-## Shared architecture (foundation pass)
-
-- `shared-header.html` is the single header markup source.
-- `shared-header.css` is the single header stylesheet; page-local copies of the old header CSS have been removed.
-- `shared-header.js` mounts the shared header and reads KPI data through the shared data layer.
-- `gf-data.js` owns the shared Supabase client, cached table readers, status/stage normalization, and parent/child inventory assembly.
-- The strain Production at a Glance page now consumes `GFData.inventory()` rather than maintaining its own separate parent/child merge implementation.
-
-This is a staged migration: several other page-specific data operations remain in their existing page scripts and can be migrated onto `GFData` in subsequent passes. No database rows, IDs, or schema were changed.
-
-## Owner sign-in (authentication foundation)
-
-- `login.html` provides the mobile-friendly email/password sign-in screen.
-- `gf-auth.js` creates the shared persistent Supabase browser session, gates dashboard pages, and handles sign-out.
-- All dashboard pages load the auth gate before their page scripts. The shared header includes Sign out.
-- The account is restricted in the interface to the configured owner email. This is a user-experience gate only until owner-only database RLS policies are installed and verified.
-- Do not remove existing database policies until the owner has deployed this build and confirmed sign-in on the live dashboard.
-
-This release does not change database schema, production rows, or RLS policies.
-
-## Header sign-out placement
-- Sign out is a lightweight text link directly before the sync dot/status beneath the dashboard title.
-- Settings and Home remain in the upper-right header actions.
-- The link uses the existing Supabase sign-out handler.
-
-
-## Maitake strain option fix
-- Added Maitake (Grifola frondosa) to the New Batch and New Culture strain selectors.
-- Explicitly maps Maitake to the canonical `MA` strain code when generating IDs.
-- No database records or schema were changed.
-
-
-## Permanent deletion controls (Clean 13 follow-up)
-
-- Batch details includes a clearly marked **Delete batch** action. Confirmation identifies the batch and warns that all linked containers will be permanently deleted.
-- Each individual container has a **Remove container** action. Confirmation identifies the selected container and explains that other containers remain.
-- Removing the final container deletes the now-empty parent batch as well.
-- The `batch_items.batch_id` foreign key in the existing V36 migration is `ON DELETE CASCADE`; deleting a parent batch therefore removes its linked containers in the same database operation.
-- No schema migration or existing production-data change is required to use these controls. Deletion still depends on the deployed Supabase owner-only RLS permissions.
+Upload the contents of this folder to the site root. Test sign-in and read/write workflows on the live Supabase project before relying on them operationally. No authenticated end-to-end browser test was available during packaging.

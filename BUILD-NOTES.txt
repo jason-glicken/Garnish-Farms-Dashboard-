@@ -1,0 +1,7 @@
+GARNISH FARMS FRESH MODULAR REBUILD
+Architecture: shared data repository + shared production domain + shared UI + focused page views.
+Existing tables used: batches, batch_items, harvests, cultures.
+No SQL migrations included. No database reset.
+Legacy parents with no child rows remain visible as non-editable placeholders.
+Historical lifecycle dates are never fabricated.
+Authenticated live browser testing was not available during packaging.
