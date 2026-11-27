@@ -1,17 +1,26 @@
-# Garnish Farms Dashboard — V6
+# Garnish Farms Dashboard — Header Restoration Build
 
-Frontend-only dashboard package. Uses the existing Supabase project and current data tables; it does not include database migrations or destructive data operations.
+This build starts from Garnish-Farms-Clean-Rebuild V6, preserving its production and Supabase implementation.
 
-## Global navigation and strain filtering
-- The strain ribbon is available on every dashboard page.
-- Selecting a strain filters the current page's records and keeps that page's navigation tab selected.
-- The selected strain chip stays highlighted until changed or cleared.
-- The **All strains** chip clears the filter.
-- On an individual strain detail page, selecting another strain opens that strain's detail page.
-- Page navigation preserves an active strain filter, so moving from Jars to Bags, for example, keeps the chosen strain filter.
+## Header layout
+1. Brand, cloud sync status, Settings and Home.
+2. Batches / Jars / Bags / Fruiting count cards.
+3. New Batch / Harvest / Total Farm Yield actions.
+4. Strain ribbon.
+5. Main page navigation.
 
-## Install
-Upload the contents of this folder to the existing GitHub Pages repository root, replacing files with matching names. Do not delete unrelated old files as part of this update. Keep the existing Supabase project and credentials in `gf3-data.js` unchanged.
+The same `GFUI.header(data)` function is called centrally by the app renderer for every page. Sign out is now inside Settings.
 
-## Safety
-No SQL, schema changes, database resets, or production-record modifications are included.
+## Body
+The redundant body-level "Showing strain · Clear strain filter" banner/link has been removed. Strain selection and clearing remain in the shared strain ribbon. Record, batch, and strain-detail links that are part of actual data remain intact.
+
+## Preservation
+No database schema, Supabase configuration, production stage calculations, batch logic, or record data files were intentionally changed. The build uses the V6 application/data/production files, with only `gf3-ui.js` and `gf3-app.js` changed.
+
+## Verification
+JavaScript syntax and archive integrity were checked. This package has not been deployed or visually tested against live Supabase data. Verify the header on Home, All Batches, Jars, Bags, Fruiting, Upcoming, Calendar, Yield, Cultures, Activities, Settings, and strain detail pages after deployment.
+
+## Central CSS design system
+`gf3-styles.css` is the single visual source of truth. Page renderers use shared classes. The only remaining inline `style` attributes supply data-only CSS custom properties for chart/visualization values; all presentation declarations for those values are in the central stylesheet. No page-specific stylesheet was added.
+
+The previous visual behavior was preserved rather than redesigning page components. This is a first consolidation step: the existing stylesheet still contains legacy cascade sections, so future cleanup should consolidate duplicate selectors deliberately and verify screenshots before removing old declarations.

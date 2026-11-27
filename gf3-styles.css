@@ -115,3 +115,63 @@
 .page-nav a.active{background:#2d5a27;color:#fff;border-color:#2d5a27;box-shadow:0 1px 3px #244b2922}
 .active-filter-note{margin:0 2px 12px;padding:8px 11px;border:1px solid #d7e6d2;border-radius:10px;background:#f0f7ed;color:#315b2b;font-size:13px;font-weight:650}
 .active-filter-note a{margin-left:5px;color:#2458bd;font-weight:700}
+
+/* ==========================================================================
+   GARNISH FARMS CENTRAL DESIGN SYSTEM
+   All visual declarations live here. Markup may supply data-only CSS custom
+   properties for variable chart widths/colors, never presentation rules.
+   ========================================================================== */
+
+/* Design tokens */
+:root {
+  --gf-color-brand: #2d5a27;
+  --gf-color-brand-deep: #244b29;
+  --gf-color-surface: #fff;
+  --gf-color-canvas: #f4f7f2;
+  --gf-color-text: #202a25;
+  --gf-color-muted: #788078;
+  --gf-color-border: #e1e6e1;
+  --gf-radius-card: 18px;
+  --gf-radius-control: 12px;
+  --gf-space-page: 14px;
+  --gf-card-shadow: 0 2px 10px #1d39200b;
+}
+
+/* Central strain palette */
+.strain-nav a[data-strain-index="0"] { --c:#2458bd; --bgc:#eef4ff; }
+.strain-nav a[data-strain-index="1"] { --c:#59616d; --bgc:#f1f3f6; }
+.strain-nav a[data-strain-index="2"] { --c:#7139b8; --bgc:#f5efff; }
+.strain-nav a[data-strain-index="3"] { --c:#286744; --bgc:#edf8f1; }
+.strain-nav a[data-strain-index="4"] { --c:#b92b68; --bgc:#fff0f6; }
+.strain-nav a[data-strain-index="5"] { --c:#79513b; --bgc:#faf2ed; }
+.strain-nav a[data-strain-index="6"] { --c:#916719; --bgc:#fff8e7; }
+.strain-nav a[data-strain-index="7"] { --c:#80603d; --bgc:#f7f1e8; }
+.strain-nav a[data-strain-index="8"] { --c:#9a3412; --bgc:#fff2e9; }
+
+/* Data-driven charts: CSS controls presentation; markup supplies values. */
+.tl-stage { flex: 0 0 var(--segment-width, 0%); background: var(--segment-bg, transparent); }
+.tl-stage > i { width: var(--fill-width, 0%); background: var(--fill-color, transparent); }
+.record { border-left-color: var(--stage-color, var(--grain)); }
+.record[data-stage="Grain Spawn"] { --stage-color: var(--grain); }
+.record[data-stage="Bulk Substrate"] { --stage-color: var(--bulk); }
+.record[data-stage="Fruiting"] { --stage-color: var(--fruit); }
+.record[data-stage="Harvested"] { --stage-color: #89938b; }
+.mini-breakdown > i { width: var(--bar-width, 0%); }
+.donut-chart { background: conic-gradient(var(--donut-stops, #e5e7eb 0 100%)); }
+.mix-legend i { background: var(--legend-color, #94a3b8); }
+.actual-bar { left: var(--actual-left, 0%); width: var(--actual-width, 0%); background: var(--stage-color, var(--grain)); }
+.target-bar { left: var(--target-left, 0%); width: var(--target-width, 0%); border-color: var(--stage-color, var(--grain)); }
+
+/* Shared interaction states */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #4d7c46;
+  outline-offset: 2px;
+}
+button, .btn, .kpi, .yield-pill, .page-nav a, .strain-nav a {
+  -webkit-tap-highlight-color: transparent;
+}
+.panel, .record, .form-card, .stat, .strain-summary,
+.spacing-card, .batch-group, .forecast-row, .task-row {
+  color: var(--gf-color-text);
+}
