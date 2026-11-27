@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Garnish Farms - Mushrooms</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="gf-auth.js?v=1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -455,16 +455,53 @@
         .calendar-empty { color:var(--text-muted); font-size:.78rem; padding:.8rem .3rem; }
         @media (max-width:420px) { .calendar-day { min-height:49px; padding:2px; } .calendar-event { font-size:.48rem; } .calendar-day-view { padding:.65rem; } }
 
-    .strain-nav-card{width:100%;min-width:0;margin-top:.25rem;padding:.45rem .5rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:9px;overflow:hidden}.strain-nav-scroll{display:flex;gap:.35rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.1rem 0}.strain-nav-scroll a{flex:0 0 auto;border-radius:999px!important;text-decoration:none!important;font-weight:700!important;font-size:.64rem!important;padding:.18rem .38rem!important;line-height:1.2!important}
-.header-action-card{min-height:28px;padding:.18rem .22rem!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.08rem;text-align:center;font-size:.58rem;font-weight:700;line-height:1.15;}
-.header-action-card strong{font-size:.66rem;color:var(--primary);font-weight:800;}
-@media(max-width:520px){header{padding:.45rem .55rem;gap:.3rem}.logo-area h1{font-size:1.02rem!important}.header-action-card{font-size:.54rem;min-height:26px;padding:.15rem .12rem!important}.header-action-card strong{font-size:.61rem!important}.strain-nav-scroll a{font-size:.6rem!important;padding:.16rem .32rem!important}}
-
-</style>
-<style>.gf-record-link{cursor:pointer;text-decoration:underline;text-decoration-color:#9ab39a;text-underline-offset:2px}.gf-record-link:focus-visible{outline:2px solid #6b8f5e;outline-offset:2px}</style></head>
+    </style>
+</head>
 <body>
 
-    <div id="gf-shared-header" aria-label="Garnish Farms site header"></div>
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <a href="index.html" class="logo-area" style="text-align: left; text-decoration: none; display: block;">
+                <h1 style="font-size: 1.15rem;">Garnish Farms - Mushrooms</h1>
+                <p style="justify-content: flex-start;"><span class="sync-dot" id="syncDot"></span><span id="syncStatus">Connecting...</span></p>
+            </a>
+            <div class="header-actions" style="width: auto; justify-content: flex-end;">
+                <a href="settings.html" class="btn btn-outline" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; text-decoration: none;">Settings</a>
+            </div>
+        </div>
+        <!-- Compact KPI Counters in Header -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.35rem; width: 100%; margin-top: 0.4rem; text-align: center;">
+            <a href="list.html?type=all" class="stat-link-card" style="padding:.35rem .25rem;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+                <div style="font-size:.6rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;">Batches</div>
+                <div style="font-size:.95rem;font-weight:700;color:var(--primary);" id="kpi-active">0</div>
+            </a>
+            <a href="list.html?type=jars" class="stat-link-card" style="padding: 0.35rem 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div style="font-size: 0.58rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Jars</div>
+                <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 0.2rem;"><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg><span>=</span><span id="kpi-jars">0</span></div>
+            </a>
+            <a href="list.html?type=bags" class="stat-link-card" style="padding: 0.35rem 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div style="font-size: 0.58rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Bags</div>
+                <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 0.2rem;"><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg><span>=</span><span id="kpi-bags">0</span></div>
+            </a>
+            <a href="list.html?type=fruiting" class="stat-link-card" style="padding: 0.35rem 0.25rem; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Fruiting</div>
+                <div style="font-size: 0.92rem; font-weight: 700; color: var(--primary); display:inline-flex;align-items:center;gap:.2rem;"><span aria-label="Fruiting blocks" title="Fruiting blocks">🍄</span><span>=</span><span id="kpi-fruiting">0</span></div>
+            </a>
+        </div>
+
+        <div style="display:flex;gap:.4rem;align-items:center;justify-content:flex-start;width:100%;margin-top:.25rem;flex-wrap:wrap;">
+            <a href="new-batch.html" class="btn" style="padding:.32rem .58rem;font-size:.72rem;text-decoration:none;">+ New Batch</a>
+            <a href="harvest.html" class="btn btn-outline" style="padding:.32rem .58rem;font-size:.72rem;text-decoration:none;">Harvest</a>
+        </div>
+        <!-- Header Copy of Total Farm Yield Card -->
+        <a href="yield.html" id="headerTotalFarmYieldCard" style="width: 100%; margin-top: 0.35rem; background: var(--bg-light); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 0.65rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; text-decoration: none; color: inherit; text-align: left;">
+            <div>
+                <div style="font-size: 0.64rem; font-weight: 700; color: var(--primary); text-transform: uppercase;">Total Farm Yield</div>
+                <div style="font-size: 0.64rem; color: var(--text-muted);" id="header-total-farm-yield-meta">All Harvested Flushes & Batches</div>
+            </div>
+            <div style="font-size: 1rem; font-weight: 700; color: var(--primary); white-space: nowrap;" id="header-total-farm-yield-val">0.0 lbs</div>
+        </a>
+    <details open style="width:100%;margin-top:.18rem;font-size:.68rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#3b82f6;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#64748b;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#7c3aed;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#15803d;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#db2777;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#92400e;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#ca8a04;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#c2410c;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
 
     <main>
         <section id="strainBreakdownPanel" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:.65rem;margin-bottom:.75rem;">
@@ -505,8 +542,8 @@
         </section>
         <section class="card" id="productionRhythmPlanner" style="margin-top:.75rem;">
           <div class="card-header"><h2>Production Rhythm Planner</h2><span style="font-size:.68rem;color:var(--text-muted);">Set weekly goals · plan starts</span></div>
-          <p style="font-size:.7rem;color:var(--text-muted);margin:.1rem 0 .65rem;line-height:1.45;">Set a weekly fresh-harvest goal and expected harvest pounds per grow bag. One fruiting block counts as one bag. The planner works backward to estimate how many spawn jars and bags to start each week, compares that cadence with starts already recorded in the last 7 days, and shows current inventory by stage. These are planning estimates—not guaranteed harvest promises.</p>
-          <div style="display:flex;gap:.5rem;flex-wrap:wrap;font-size:.62rem;color:var(--text-muted);margin-bottom:.55rem;"><span><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg> Jars = spawn starts</span><span><svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg> Substrate blocks = bag starts</span><span>🍄 Fruiting = blocks entering fruiting</span></div>
+          <p style="font-size:.7rem;color:var(--text-muted);margin:.1rem 0 .65rem;line-height:1.45;">Set a weekly fresh-harvest goal and your estimated pounds per fruiting block. The planner works backward to estimate how many jars and substrate blocks to start each week, compares that cadence with starts already recorded in the last 7 days, and shows current stage inventory. These are planning estimates—not guaranteed harvest promises.</p>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;font-size:.62rem;color:var(--text-muted);margin-bottom:.55rem;"><span>🫙 Jars = spawn starts</span><span>🧱 Substrate blocks = bag starts</span><span>🍄 Fruiting = blocks entering fruiting</span></div>
           <div id="productionRhythmPlannerList" style="display:grid;gap:.6rem;"><div style="font-size:.75rem;color:var(--text-muted);">Loading production data…</div></div>
           <div style="font-size:.62rem;color:var(--text-muted);margin-top:.6rem;">Planner goals are saved in this browser on this device. Stage lead times use your configured targets until enough recorded transitions are available. One spawn unit per substrate block is the default assumption and can be changed per strain.</div>
         </section>
@@ -659,8 +696,6 @@
     </main>
 
     <script>
-function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg>`:kind==='bag'?`<svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg>`:'🍄';}
-
         const SUPABASE_URL = 'https://odtalucpwmxcydxbypke.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_FjnWmIJaLHxxf0nIOB1SSQ_gOMJxbrm';
         const { createClient } = supabase;
@@ -675,13 +710,8 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         function setSyncState(state, message) {
             const dot = document.getElementById('syncDot');
             const text = document.getElementById('syncStatus');
-            if (dot) {
-                dot.className = 'sync-dot ' + state;
-                // Remove legacy inline gray styling so the connected/error CSS color can show.
-                dot.style.removeProperty('background');
-                dot.style.removeProperty('background-color');
-            }
-            if (text) text.innerText = message;
+            dot.className = 'sync-dot ' + state;
+            text.innerText = message;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -767,25 +797,6 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
 
         const CACHE_BATCHES_KEY = 'garnish_farms_batches_cache_v1';
 
-        // Canonicalize database and cached status values before Home-page filters run.
-        function normalizeBatchStatus(value) {
-            const raw = String(value ?? '').trim();
-            // Match the working Jars/Bags pages: a missing status is treated as Active.
-            if (!raw) return 'Active';
-            const key = raw.toLowerCase().replace(/[\s_-]+/g, ' ');
-            if (key === 'active' || key === 'in progress') return 'Active';
-            if (key === 'harvested' || key === 'complete' || key === 'completed') return 'Harvested';
-            if (key === 'contaminated') return 'Contaminated';
-            return raw;
-        }
-
-        function isActiveBatch(batch) {
-            // Match the working list/strain pages: exclude known terminal states,
-            // but do not hide valid records with a blank or unfamiliar status.
-            const status = normalizeBatchStatus(batch && batch.status).toLowerCase();
-            return !['inactive', 'harvested', 'contaminated', 'archived', 'discarded', 'deleted'].includes(status);
-        }
-
         function mapBatchRows(rows) {
             return (rows || []).map(b => ({
                 dbId: b.id,
@@ -797,7 +808,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 container: b.container,
                 substrate: b.substrate,
                 harvestWeight: b.harvest_weight,
-                status: normalizeBatchStatus(b.status),
+                status: b.status,
                 notes: b.notes
             }));
         }
@@ -820,20 +831,15 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                     localStorage.setItem(CACHE_BATCHES_KEY, JSON.stringify(batches));
                 } catch (e) {}
 
-                // A successful query with zero rows is not proof that production data loaded.
-                setSyncState(
-                    batches.length > 0 ? 'connected' : '',
-                    batches.length > 0 ? `Cloud Synced · ${batches.length} batches` : 'Connected · No batch records returned'
-                );
+                setSyncState('connected', 'Cloud Synced');
                 populateStrainFilter();
                 renderAll();
-                focusDashboardBatchFromUrl();
             } catch (err) {
                 let usedCache = false;
                 try {
                     const cached = JSON.parse(localStorage.getItem(CACHE_BATCHES_KEY) || 'null');
                     if (Array.isArray(cached) && cached.length > 0) {
-                        batches = cached.map(b => ({ ...b, status: normalizeBatchStatus(b.status) }));
+                        batches = cached;
                         usedCache = true;
                     }
                 } catch (e) {}
@@ -842,7 +848,6 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 setSyncState('error', usedCache ? `Cached (${msg})` : `Sync Error: ${msg}`);
                 populateStrainFilter();
                 renderAll();
-                focusDashboardBatchFromUrl();
             }
         }
 
@@ -881,7 +886,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         }
 
         function renderKPIs() {
-            const active = batches.filter(b => isActiveBatch(b));
+            const active = batches.filter(b => b.status === 'Active');
             const totalJars = active.filter(b => b.container === 'Jar' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
             const totalBags = active.filter(b => b.container === 'Bag' && b.stage !== 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
             const totalFruiting = active.filter(b => b.stage === 'Fruiting').reduce((sum, b) => sum + Number(b.quantity), 0);
@@ -1191,13 +1196,13 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             if (embeddedDate) {
                 return `${strainCode}-${embeddedDate[1]}`;
             }
-            return strainCode;
+            return raw ? `${strainCode}-${raw}` : strainCode;
         }
 
         function formatDisplayBatchId(batchId, strain, dateStr, quantity) {
             const base = getBaseBatchId(batchId, strain, dateStr);
             const qty = Math.max(1, Number(quantity || 1));
-            return `${base} (1-${qty})`;
+            return base;
         }
 
         function formatContainerUnitId(batchId, strain, dateStr, index) {
@@ -1220,79 +1225,26 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             return themes[code] || { bg: '#f8fafc', border: '#4c9a2a', badgeBg: '#e6f4ea', badgeText: '#137333' };
         }
 
-        function focusDashboardBatchFromUrl() {
-            const params = new URLSearchParams(window.location.search);
-            const rawId = params.get('focusBatch');
-            if (!rawId) return;
-            const item = batches.find(b => String(b.dbId || b.id) === String(rawId));
-            if (!item) return;
-            const stage = item.stage || 'Grain Spawn';
-            const strain = item.strain || '';
-            // Allow the dashboard to finish rendering before expanding and locating the live card.
-            setTimeout(() => jumpToUpcomingBatch(rawId, strain, stage), 180);
-        }
-
         function jumpToUpcomingBatch(dbId, strain, stage) {
-            const id = String(dbId || '');
-            const record = batches.find(b => String(b.dbId || b.id || '') === id);
-            const targetStage = stage || record?.stage || 'Grain Spawn';
-            const targetStrain = strain || record?.strain || '';
-            if (!id || !targetStrain) return;
-
-            // Remove a strain filter that could hide the target record.
-            if (selectedPipelineStrainFilter && selectedPipelineStrainFilter !== targetStrain) {
+            const cardKey = `${stage}::${strain}`;
+            expandedPipelineCards.add(cardKey);
+            if (selectedPipelineStrainFilter && selectedPipelineStrainFilter !== strain) {
                 setPipelineFilter('');
+            } else {
+                renderPipeline();
             }
-            expandedPipelineCards.add(`${targetStage}::${targetStrain}`);
-            renderPipeline();
-
-            // The pipeline card, its stage column, and the strain card are three
-            // independent collapsible levels. Open all three before scrolling.
-            requestAnimationFrame(() => {
-                const pipeline = document.getElementById('pipelineContainer');
-                const pipelineCard = pipeline?.closest('main > .card') || pipeline?.closest('.card');
-                const pipelineContent = pipelineCard?.querySelector('.dashboard-card-content');
-                if (pipelineContent?.classList.contains('is-collapsed')) {
-                    pipelineContent.classList.remove('is-collapsed');
-                    const toggle = pipelineCard.querySelector('.dashboard-collapse-toggle');
-                    if (toggle) { toggle.setAttribute('aria-expanded', 'true'); toggle.textContent = `Hide · ${dashboardCardCount(pipelineCard)}`; }
-                }
-
-                const stagePanel = document.getElementById(targetStage === 'Grain Spawn' ? 'stage-grain' : targetStage === 'Bulk Substrate' ? 'stage-bulk' : 'stage-fruiting');
-                const stageItems = stagePanel?.querySelector('.stage-items');
-                if (stageItems?.classList.contains('is-collapsed')) {
-                    stageItems.classList.remove('is-collapsed');
-                    const toggle = stagePanel.querySelector('.stage-collapse-toggle');
-                    if (toggle) { toggle.setAttribute('aria-expanded', 'true'); toggle.textContent = 'Hide'; }
-                }
-
-                requestAnimationFrame(() => {
-                    const strainCard = [...document.querySelectorAll('.pipeline-strain-card')].find(card =>
-                        card.getAttribute('data-stage') === targetStage && card.getAttribute('data-strain') === targetStrain
-                    );
-                    if (strainCard && !strainCard.querySelector('.expanded-batches')) {
-                        togglePipelineCard(targetStrain, targetStage);
-                    }
-                    requestAnimationFrame(() => {
-                        const targetRow = [...document.querySelectorAll('[data-batch-db-id]')].find(row =>
-                            String(row.getAttribute('data-batch-db-id')) === id
-                        );
-                        if (!targetRow) {
-                            console.warn('Garnish Farms: production card not found for ID', id);
-                            return;
-                        }
+            setTimeout(() => {
+                const cards = document.querySelectorAll('.pipeline-strain-card');
+                for (const c of cards) {
+                    if (c.getAttribute('data-stage') === stage && c.getAttribute('data-strain') === strain) {
+                        const targetRow = c.querySelector(`[data-batch-db-id="${Number(dbId)}"]`) || c;
                         targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        targetRow.style.outline = '3px solid var(--accent)';
-                        targetRow.style.outlineOffset = '3px';
-                        targetRow.style.backgroundColor = '#fffde7';
-                        setTimeout(() => {
-                            targetRow.style.outline = '';
-                            targetRow.style.outlineOffset = '';
-                            targetRow.style.backgroundColor = '';
-                        }, 2800);
-                    });
-                });
-            });
+                        targetRow.style.outline = '2px solid var(--accent)';
+                        setTimeout(() => { targetRow.style.outline = ''; }, 1600);
+                        break;
+                    }
+                }
+            }, 80);
         }
 
         function dateDiffDays(startDate, endDate) {
@@ -1468,7 +1420,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 const items=byDate[iso]||[];
                 const counts={jar:0,bag:0,fruit:0};
                 items.forEach(b=>{if(b.stage==='Grain Spawn')counts.jar+=Number(b.quantity||1);else if(b.stage==='Bulk Substrate')counts.bag+=Number(b.quantity||1);else counts.fruit+=Number(b.quantity||1);});
-                const icons=[[productionIcon('jar'),counts.jar,'jar'],[productionIcon('bag'),counts.bag,'bag'],[productionIcon('fruit'),counts.fruit,'fruit']].filter(x=>x[1]>0);
+                const icons=[['🫙',counts.jar,'jar'],['🧱',counts.bag,'bag'],['🍄',counts.fruit,'fruit']].filter(x=>x[1]>0);
                 html+=`<div class="calendar-day ${d.getMonth()!==strainCalendarMonth.getMonth()?'outside':''}" style="min-height:54px;cursor:default;"><span class="calendar-day-num">${d.getDate()}</span><div style="display:flex;flex-wrap:wrap;gap:2px;">${icons.map(([ico,n,kind])=>`<button type="button" data-strain-cal-date="${iso}" data-strain-cal-kind="${kind}" title="${n} ${kind} · open batch" style="border:0;border-radius:4px;background:#edf4ea;padding:1px 3px;font-size:.62rem;cursor:pointer;">${ico} ${n}</button>`).join('')}</div></div>`;
             }
             grid.innerHTML=html;
@@ -1483,11 +1435,11 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             const complete=e.target.closest('[data-calendar-complete]');
             if(complete){e.preventDefault();completeCalendarTask(complete.getAttribute('data-dbid'),complete.getAttribute('data-calendar-complete'));return;}
             const open=e.target.closest('[data-calendar-open]');
-            if(open){e.preventDefault();jumpToUpcomingBatch(open.getAttribute('data-dbid'),open.getAttribute('data-strain')||'',open.getAttribute('data-stage')||'');return;}
+            if(open){e.preventDefault();jumpToUpcomingBatch(Number(open.getAttribute('data-dbid')),open.getAttribute('data-strain')||'',open.getAttribute('data-stage')||'');return;}
             const strainDate=e.target.closest('[data-strain-cal-date]');
-            if(strainDate){const date=strainDate.getAttribute('data-strain-cal-date');const kind=strainDate.getAttribute('data-strain-cal-kind');const cfg=getAppSettings();const active=batches.filter(b=>isActiveBatch(b)&&b.strain===selectedPipelineStrainFilter);const matches=active.filter(b=>{const due=addLocalDays(getBatchStartDate(b),getStageTargetOffsetDays(b.stage,cfg.stageTargets||{}));const k=b.stage==='Grain Spawn'?'jar':(b.stage==='Bulk Substrate'?'bag':'fruit');return due===date&&k===kind;});if(matches[0])jumpToUpcomingBatch(matches[0].dbId,matches[0].strain,matches[0].stage);return;}
-            if(e.target.closest('#strainCalendarPrev')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()-1);renderStrainCalendar(batches.filter(b=>isActiveBatch(b)&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
-            if(e.target.closest('#strainCalendarNext')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()+1);renderStrainCalendar(batches.filter(b=>isActiveBatch(b)&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
+            if(strainDate){const date=strainDate.getAttribute('data-strain-cal-date');const kind=strainDate.getAttribute('data-strain-cal-kind');const cfg=getAppSettings();const active=batches.filter(b=>b.status==='Active'&&b.strain===selectedPipelineStrainFilter);const matches=active.filter(b=>{const due=addLocalDays(getBatchStartDate(b),getStageTargetOffsetDays(b.stage,cfg.stageTargets||{}));const k=b.stage==='Grain Spawn'?'jar':(b.stage==='Bulk Substrate'?'bag':'fruit');return due===date&&k===kind;});if(matches[0])jumpToUpcomingBatch(matches[0].dbId,matches[0].strain,matches[0].stage);return;}
+            if(e.target.closest('#strainCalendarPrev')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()-1);renderStrainCalendar(batches.filter(b=>b.status==='Active'&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
+            if(e.target.closest('#strainCalendarNext')){strainCalendarMonth.setMonth(strainCalendarMonth.getMonth()+1);renderStrainCalendar(batches.filter(b=>b.status==='Active'&&(!selectedPipelineStrainFilter||b.strain===selectedPipelineStrainFilter)));}
         });
 
         document.addEventListener('click', e => {
@@ -1497,17 +1449,17 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                 const p = taskCalendarSelectedDate.split('-').map(Number);
                 taskCalendarMonth = new Date(p[0],p[1]-1,1);
                 taskCalendarView = 'day';
-                renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
+                renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
             }
         });
         document.addEventListener('click', e => {
             if (e.target.closest('#calendarBackBtn')) {
                 taskCalendarView = 'month';
-                renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
+                renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter)));
             }
-            if (e.target.closest('#calendarPrevBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()-1); renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
-            if (e.target.closest('#calendarNextBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()+1); renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
-            if (e.target.closest('#calendarTodayBtn')) { const now=new Date(); taskCalendarView='month'; taskCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1); taskCalendarSelectedDate=localIsoDate(now); renderTaskCalendar(batches.filter(b=>isActiveBatch(b) && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarPrevBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()-1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarNextBtn')) { taskCalendarView='month'; taskCalendarMonth.setMonth(taskCalendarMonth.getMonth()+1); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
+            if (e.target.closest('#calendarTodayBtn')) { const now=new Date(); taskCalendarView='month'; taskCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1); taskCalendarSelectedDate=localIsoDate(now); renderTaskCalendar(batches.filter(b=>b.status==='Active' && (!selectedPipelineStrainFilter || b.strain===selectedPipelineStrainFilter))); }
         });
 
         function renderUpcomingTasks(filteredActive) {
@@ -1580,7 +1532,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                         : '';
 
                     const stageActionLink = t.item.stage === 'Fruiting'
-                        ? `<a href="harvest.html?id=${t.item.dbId}&return=index.html%23pipeline-${t.item.dbId}" style="font-weight: 700; font-size: 0.68rem; color: #b45309; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`
+                        ? `<a href="harvest.html?id=${t.item.dbId}" style="font-weight: 700; font-size: 0.68rem; color: #b45309; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`
                         : `<a href="#stage-${t.item.stage === 'Grain Spawn' ? 'bulk' : 'fruiting'}" class="upcoming-jump-link" data-dbid="${t.item.dbId}" data-strain="${escapeAttr(t.item.strain)}" data-stage="${escapeAttr(t.item.stage)}" style="font-weight: 700; font-size: 0.68rem; color: ${t.remaining <= 0 ? '#b45309' : 'var(--primary)'}; text-decoration: underline; white-space: nowrap;">${escapeAttr(t.statusLabel)} ↗</a>`;
 
                     const rowTheme = getStrainCardTheme(t.item.strain);
@@ -1711,7 +1663,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         }
 
         function renderPipeline() {
-            const activeBatches = batches.filter(b => isActiveBatch(b));
+            const activeBatches = batches.filter(b => b.status === 'Active');
             const filteredActive = selectedPipelineStrainFilter
                 ? activeBatches.filter(b => b.strain === selectedPipelineStrainFilter)
                 : activeBatches;
@@ -1792,7 +1744,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                                 : '');
 
                         const shakeBtn = (stage === 'Grain Spawn' && days >= shakeThreshold && !alreadyShaken)
-                            ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${JSON.stringify(String(item.dbId))})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
+                            ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
                             : '';
 
                         const yieldTag = Number(item.harvestWeight || 0) > 0
@@ -1800,11 +1752,11 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                             : '';
 
                         const actionBtn = stage === 'Fruiting'
-                            ? `<button type="button" class="btn btn-outline" onclick="revertToBulkSubstrate(${JSON.stringify(String(item.dbId))})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">↩ Bulk</button><a href="harvest.html?id=${encodeURIComponent(String(item.dbId))}" class="btn" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: #d97706;">Harvest ➔</a>`
-                            : `<button type="button" class="btn" onclick="advanceStage(${JSON.stringify(String(item.dbId))})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
+                            ? `<button type="button" class="btn btn-outline" onclick="revertToBulkSubstrate(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">↩ Bulk</button><a href="harvest.html?id=${item.dbId}" class="btn" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: #d97706;">Harvest ➔</a>`
+                            : `<button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.22rem 0.5rem; font-size: 0.65rem; background-color: var(--accent);">Advance ➔</button>`;
 
                         return `
-                            <div class="sub-batch-row" id="pipeline-${item.dbId}" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
+                            <div class="sub-batch-row" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                     <div>
                                         <div style="font-weight: 700; font-size: 0.78rem; color: var(--text-main);">${escapeAttr(formatDisplayBatchId(item.batchId, item.strain, item.date, item.quantity))} ${itemShake}</div>
@@ -1812,8 +1764,8 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                                     </div>
                                     <div style="display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                                         ${shakeBtn}
-                                        <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${JSON.stringify(String(item.dbId))})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Set Days</button>
-                                        <a href="new-batch.html?id=${encodeURIComponent(String(item.dbId))}" class="btn btn-outline" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Edit</a>
+                                        <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${item.dbId})" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Set Days</button>
+                                        <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.22rem 0.45rem; font-size: 0.65rem;">Edit</a>
                                         ${actionBtn}
                                     </div>
                                 </div>
@@ -1863,13 +1815,13 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                                     : '');
 
                             const shakeBtn = (days >= shakeThreshold && !alreadyShaken)
-                                ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${JSON.stringify(String(item.dbId))})" style="padding: 0.2rem 0.42rem; font-size: 0.62rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
+                                ? `<button type="button" class="btn btn-outline" onclick="markBatchShaken(${item.dbId})" style="padding: 0.2rem 0.42rem; font-size: 0.62rem; color: #b45309; border-color: #d97706;">Shaken ✓</button>`
                                 : '';
 
                             const subInfo = item.substrate ? ` • ${escapeAttr(item.substrate)}` : '';
 
                             return `
-                                <div class="sub-batch-row" id="pipeline-${item.dbId}" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
+                                <div class="sub-batch-row" data-batch-db-id="${item.dbId}" style="flex-direction: column; align-items: stretch; background-color: ${theme.bg}; border: 1px solid rgba(0,0,0,0.08); border-left: 3px solid ${theme.border};">
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.4rem;">
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.8rem; color: var(--text-main);">
@@ -1881,9 +1833,9 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                                         </div>
                                         <div style="display: flex; gap: 0.25rem; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
                                             ${shakeBtn}
-                                            <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${JSON.stringify(String(item.dbId))})" style="padding: 0.2rem 0.42rem; font-size: 0.62rem;">Set Days</button>
-                                            <a href="new-batch.html?id=${encodeURIComponent(String(item.dbId))}" class="btn btn-outline" style="padding: 0.2rem 0.42rem; font-size: 0.62rem;">Edit</a>
-                                            <button type="button" class="btn" onclick="advanceStage(${JSON.stringify(String(item.dbId))})" style="padding: 0.2rem 0.45rem; font-size: 0.62rem; background-color: var(--accent);">Advance ➔</button>
+                                            <button type="button" class="btn btn-outline" onclick="setStageDaysPrompt(${item.dbId})" style="padding: 0.2rem 0.42rem; font-size: 0.62rem;">Set Days</button>
+                                            <a href="new-batch.html?id=${item.dbId}" class="btn btn-outline" style="padding: 0.2rem 0.42rem; font-size: 0.62rem;">Edit</a>
+                                            <button type="button" class="btn" onclick="advanceStage(${item.dbId})" style="padding: 0.2rem 0.45rem; font-size: 0.62rem; background-color: var(--accent);">Advance ➔</button>
                                         </div>
                                     </div>
                                     ${renderContinuousStageBar(days, targetDays, stageTargetDays, 'Grain Spawn', item)}
@@ -2084,7 +2036,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             if (jumpLink) {
                 e.preventDefault();
                 jumpToUpcomingBatch(
-                    jumpLink.getAttribute('data-dbid'),
+                    Number(jumpLink.getAttribute('data-dbid')),
                     jumpLink.getAttribute('data-strain') || '',
                     jumpLink.getAttribute('data-stage') || ''
                 );
@@ -2098,7 +2050,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
 
         function dashboardCardCount(card) {
             const title = card.querySelector('.card-header h2')?.textContent.trim() || '';
-            if (title === 'Production Pipeline') return batches.filter(b => isActiveBatch(b)).length;
+            if (title === 'Production Pipeline') return batches.filter(b => b.status === 'Active').length;
             if (title === 'Harvests & Flush History') {
                 const rows = [...(card.querySelectorAll('#dashboardHarvestBody tr') || [])];
                 return rows.filter(r => !/loading|no harvest/i.test(r.textContent)).length;
@@ -2215,7 +2167,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
 
             tbody.innerHTML = filtered.map(b => {
                 const theme = getStrainCardTheme(b.strain);
-                const badgeClass = isActiveBatch(b) ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
+                const badgeClass = b.status === 'Active' ? 'badge-active' : (b.status === 'Harvested' ? 'badge-harvested' : 'badge-contaminated');
                 return `
                     <tr style="background-color: ${theme.bg}; border-left: 4px solid ${theme.border};">
                         <td><strong>${escapeAttr(formatDisplayBatchId(b.batchId, b.strain, b.date, b.quantity))}</strong><div style="min-width:180px;max-width:260px;">${renderContinuousStageBar(0, 0, 0, b.stage, b)}</div></td>
@@ -2289,7 +2241,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         function renderFarmForecastTimeline() {
             const host = document.getElementById('farmForecastTimeline');
             if (!host) return;
-            const active = batches.filter(b => isActiveBatch(b));
+            const active = batches.filter(b => b.status === 'Active');
             if (!active.length) {
                 host.innerHTML = '<div style="font-size:.75rem;color:var(--text-muted);">No active batches to forecast yet.</div>';
                 return;
@@ -2333,8 +2285,8 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                     const overdue = today >= targetEnd;
                     const label = escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity));
                     const dbId = encodeURIComponent(String(b.dbId || b.id || ''));
-                    const href = `index.html?focusBatch=${dbId}`;
-                    return `<a href="${href}" title="${label} · ${stageNames[stage]} · started ${escapeAttr(startValue)} · target ${localIsoDate(targetEnd)}" style="display:grid;grid-template-columns:minmax(105px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:underline;text-decoration-color:#9ab39a;color:inherit;padding:.18rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><span style="height:10px;background:#edf0ed;border-radius:8px;position:relative;display:block;overflow:visible;">${actualBar}${projectedBar}<i aria-hidden="true" style="position:absolute;left:${todayPct}%;top:-3px;height:16px;width:2px;background:#172b1c;z-index:3;transform:translateX(-50%);"></i></span><span style="grid-column:2;font-size:.54rem;color:var(--text-muted);margin-top:-.12rem;">${stageNames[stage]} · ${overdue ? `${Math.floor((today-targetEnd)/86400000)}d past target` : `${Math.max(0,Math.ceil((targetEnd-today)/86400000))}d to target`}</span></a>`;
+                    const href = `index.html#pipelineContainer`;
+                    return `<a href="${href}" title="${label} · ${stageNames[stage]} · started ${escapeAttr(startValue)} · target ${localIsoDate(targetEnd)}" style="display:grid;grid-template-columns:minmax(105px,28%) 1fr;gap:.45rem;align-items:center;text-decoration:none;color:inherit;padding:.18rem 0;"><span style="font-size:.64rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><span style="height:10px;background:#edf0ed;border-radius:8px;position:relative;display:block;overflow:visible;">${actualBar}${projectedBar}<i aria-hidden="true" style="position:absolute;left:${todayPct}%;top:-3px;height:16px;width:2px;background:#172b1c;z-index:3;transform:translateX(-50%);"></i></span><span style="grid-column:2;font-size:.54rem;color:var(--text-muted);margin-top:-.12rem;">${stageNames[stage]} · ${overdue ? `${Math.floor((today-targetEnd)/86400000)}d past target` : `${Math.max(0,Math.ceil((targetEnd-today)/86400000))}d to target`}</span></a>`;
                 }).join('');
                 return `<section style="border:1px solid ${theme.border};border-left:4px solid ${theme.border};background:${theme.bg};border-radius:8px;padding:.45rem .55rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.75rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><div style="margin-top:.25rem;">${rows}</div></section>`;
             }).join('');
@@ -2383,18 +2335,18 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             const targets = getAppSettings().stageTargets || {};
             const stageDefs = [
                 { name:'Grain Spawn', key:'jar', icon:`<svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Mason Jar" title="Mason Jar" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><rect x="7" y="2" width="10" height="2.4" rx="0.7" fill="#94a3b8" stroke="#475569" stroke-width="1.2"/><rect x="6.2" y="4.2" width="11.6" height="2" rx="0.6" fill="#cbd5e1" stroke="#475569" stroke-width="1.1"/><path d="M5.5 7.5 C5.5 6.6 6.2 6.2 7.2 6.2 L16.8 6.2 C17.8 6.2 18.5 6.6 18.5 7.5 L18.5 19.8 C18.5 21 17.6 21.8 16.3 21.8 L7.7 21.8 C6.4 21.8 5.5 21 5.5 19.8 Z" fill="#f8fafc" stroke="#475569" stroke-width="1.4"/><path d="M6.5 12.2 L17.5 12.2 L17.5 19.6 C17.5 20.3 17 20.8 16.2 20.8 L7.8 20.8 C7 20.8 6.5 20.3 6.5 19.6 Z" fill="#d6c3a5"/><circle cx="10.2" cy="15.8" r="0.85" fill="#8c7355" opacity="0.75"/><circle cx="13.8" cy="14.9" r="0.75" fill="#8c7355" opacity="0.7"/><circle cx="12" cy="17.8" r="0.9" fill="#8c7355" opacity="0.75"/></svg>`, stage:'Grain Spawn' },
-                { name:'Bulk Substrate · Bags', key:'bag', icon:`<svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg>`, stage:'Bulk Substrate' },
-                { name:'Fruiting · Bags', key:'fruit', icon:'🍄', stage:'Fruiting' }
+                { name:'Bulk Substrate', key:'bag', icon:`<svg class="vessel-icon" viewBox="0 0 24 24" width="14" height="14" aria-label="Square Substrate Bag" title="Square Substrate Bag" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path d="M7.5 5.2 L16.5 5.2 L18.5 7.2 L18.5 19.8 C18.5 20.8 17.8 21.5 16.8 21.5 L7.2 21.5 C6.2 21.5 5.5 20.8 5.5 19.8 L5.5 7.2 Z" fill="#8d5b34" stroke="#452712" stroke-width="1.4" stroke-linejoin="round"/><line x1="6.2" y1="7.6" x2="17.8" y2="7.6" stroke="#5c381c" stroke-width="1.2"/><rect x="9" y="3.2" width="6" height="2" rx="0.6" fill="#6f4626" stroke="#452712" stroke-width="1.1"/><path d="M6.5 11.2 L17.5 11.2 L17.5 19.6 C17.5 20.2 17 20.5 16.5 20.5 L7.5 20.5 C7 20.5 6.5 20.2 6.5 19.6 Z" fill="#6b4223"/><rect x="14.2" y="12.6" width="2.2" height="4.2" rx="0.5" fill="#d6b48c" opacity="0.55"/></svg>`, stage:'Bulk Substrate' },
+                { name:'Fruiting', key:'fruit', icon:'🍄', stage:'Fruiting' }
             ];
             host.innerHTML = strains.map(strain => {
                 const cfg = settings[strain] || {};
                 const weeklyLbs = Number(cfg.weeklyLbs || 0);
                 const lbsPerBlock = Number(cfg.lbsPerBlock || 1);
                 const spawnPerBlock = Number(cfg.spawnPerBlock || 1);
-                const bagsPerWeek = weeklyLbs > 0 && lbsPerBlock > 0 ? Math.ceil(weeklyLbs / lbsPerBlock) : 0;
-                const jarGoal = bagsPerWeek * spawnPerBlock;
+                const blocksPerWeek = weeklyLbs > 0 && lbsPerBlock > 0 ? Math.ceil(weeklyLbs / lbsPerBlock) : 0;
+                const jarGoal = blocksPerWeek * spawnPerBlock;
                 const items = batches.filter(b => b.strain === strain);
-                const active = items.filter(b => isActiveBatch(b));
+                const active = items.filter(b => b.status === 'Active');
                 const counts = {
                     jar: active.filter(b => b.stage === 'Grain Spawn').reduce((n,b)=>n+Number(b.quantity||1),0),
                     bag: active.filter(b => b.stage === 'Bulk Substrate').reduce((n,b)=>n+Number(b.quantity||1),0),
@@ -2407,7 +2359,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                         return d && d >= weekAgo && d <= today;
                     }).reduce((n,b)=>n+Number(b.quantity||1),0);
                 });
-                const goals = { jar:jarGoal, bag:bagsPerWeek, fruit:bagsPerWeek };
+                const goals = { jar:jarGoal, bag:blocksPerWeek, fruit:blocksPerWeek };
                 const actualDates = stageDefs.map(def => [...new Set(items.map(b=>rhythmStageDate(b,def.stage)).filter(Boolean))].sort()).map(a=>a.length?a[a.length-1]:'');
                 const lastStarts = actualDates.map(d=>d || '—');
                 const gaps = stageDefs.map(def => {
@@ -2434,14 +2386,13 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.45rem;"><a href="strain.html?strain=${encodeURIComponent(strain)}" style="font-size:.78rem;font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(strain)}</a><span style="font-size:.62rem;color:var(--text-muted);">${active.length} active batches</span></div>
                   <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem;margin-bottom:.45rem;">
                     <label style="font-size:.59rem;color:#475569;">Weekly goal (lbs)<input aria-label="${escapeAttr(strain)} weekly pounds goal" type="number" min="0" step="0.5" value="${weeklyLbs||''}" placeholder="e.g. 5" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="weeklyLbs" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
-                    <label style="font-size:.59rem;color:#475569;">Expected harvest (lbs / bag)<input aria-label="${escapeAttr(strain)} expected harvest pounds per bag" type="number" min="0.1" step="0.1" value="${lbsPerBlock}" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="lbsPerBlock" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
-                    <label style="font-size:.59rem;color:#475569;">Jars / bag<input aria-label="${escapeAttr(strain)} spawn jars per bag" type="number" min="0.1" step="0.5" value="${spawnPerBlock}" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="spawnPerBlock" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
+                    <label style="font-size:.59rem;color:#475569;">lbs / block<input aria-label="${escapeAttr(strain)} pounds per block estimate" type="number" min="0.1" step="0.1" value="${lbsPerBlock}" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="lbsPerBlock" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
+                    <label style="font-size:.59rem;color:#475569;">Jars / block<input aria-label="${escapeAttr(strain)} spawn units per block" type="number" min="0.1" step="0.5" value="${spawnPerBlock}" data-rhythm-strain="${escapeAttr(strain)}" data-rhythm-field="spawnPerBlock" style="display:block;width:100%;min-width:0;margin-top:.18rem;padding:.38rem;border:1px solid #cbd5e1;border-radius:6px;font-size:.75rem;background:#fff;"></label>
                   </div>
-                  <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.3rem;margin-bottom:.45rem;">
-                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:1rem;color:#2d5a27;">${bagsPerWeek||'—'}</strong><span style="font-size:.57rem;color:#64748b;">Bags needed / week</span></div>
-                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:1rem;color:#2d5a27;">${jarGoal||'—'}</strong><span style="font-size:.57rem;color:#64748b;">Spawn jars needed / week</span></div>
-                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:1rem;color:#2d5a27;">${bagsPerWeek?Math.round(bagsPerWeek*lbsPerBlock*10)/10:'—'}</strong><span style="font-size:.57rem;color:#64748b;">Expected harvest lbs / week</span></div>
-                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:.76rem;color:#2d5a27;">${bagsPerWeek?expectedHarvest:'—'}</strong><span style="font-size:.57rem;color:#64748b;">If started today</span></div>
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.3rem;margin-bottom:.45rem;">
+                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:1rem;color:#2d5a27;">${blocksPerWeek||'—'}</strong><span style="font-size:.57rem;color:#64748b;">Blocks / week</span></div>
+                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:1rem;color:#2d5a27;">${jarGoal||'—'}</strong><span style="font-size:.57rem;color:#64748b;">Jars / week</span></div>
+                    <div style="background:#ffffffb8;border-radius:7px;padding:.4rem;text-align:center;"><strong style="display:block;font-size:.76rem;color:#2d5a27;">${blocksPerWeek?expectedHarvest:'—'}</strong><span style="font-size:.57rem;color:#64748b;">If started today</span></div>
                   </div>
                   <div style="display:grid;gap:.3rem;">${rows}</div>
                   <div style="font-size:.59rem;color:#475569;margin-top:.4rem;">Lead-time estimate: ${durationLabel}</div>
@@ -2459,7 +2410,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             const strainMap = {};
             batches.forEach(b => {
                 if (!strainMap[b.strain]) strainMap[b.strain] = { strain:b.strain, activeBatches:0, totalContainers:0, stages:{'Grain Spawn':0,'Bulk Substrate':0,'Fruiting':0}, totalYield:0 };
-                if (isActiveBatch(b)) {
+                if (b.status === 'Active') {
                     strainMap[b.strain].activeBatches++;
                     strainMap[b.strain].totalContainers += Number(b.quantity || 0);
                     if (strainMap[b.strain].stages[b.stage] !== undefined) strainMap[b.strain].stages[b.stage] += Number(b.quantity || 0);
@@ -2470,7 +2421,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             if (!strains.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No strain data available.</td></tr>'; return; }
             tbody.innerHTML = strains.map(s => {
                 const theme=getStrainCardTheme(s.strain);
-                const stageText=`${productionIcon('jar')} ${s.stages['Grain Spawn']} &nbsp; ${productionIcon('bag')} ${s.stages['Bulk Substrate']} &nbsp; ${productionIcon('fruit')} ${s.stages['Fruiting']}`;
+                const stageText=`🫙 ${s.stages['Grain Spawn']} &nbsp; 🧱 ${s.stages['Bulk Substrate']} &nbsp; 🍄 ${s.stages['Fruiting']}`;
                 return `<tr style="background-color:${theme.bg};border-left:4px solid ${theme.border};">
                     <td><a href="strain.html?strain=${encodeURIComponent(s.strain)}" style="font-weight:800;color:var(--primary);text-decoration:underline;">${formatStrainWithScientific(s.strain)}</a></td>
                     <td style="font-size:.75rem;white-space:nowrap;">${stageText}</td>
@@ -2490,7 +2441,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
             if(!items.length){list.innerHTML='<div style="font-size:.72rem;color:var(--text-muted);">No active batches for this selection.</div>';return;}
             list.innerHTML=items.map(b=>{
                 const theme=getStrainCardTheme(b.strain);
-                const icon=b.stage==='Grain Spawn'?productionIcon('jar'):(b.stage==='Bulk Substrate'?productionIcon('bag'):productionIcon('fruit'));
+                const icon=b.stage==='Grain Spawn'?'🫙':(b.stage==='Bulk Substrate'?'🧱':'🍄');
                 return `<a href="strain.html?strain=${encodeURIComponent(b.strain)}#batch-${encodeURIComponent(String(b.dbId))}" style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.38rem .48rem;border-radius:6px;background:${theme.bg};border-left:4px solid ${theme.border};color:var(--text-main);text-decoration:none;font-size:.72rem;"><span><strong>${escapeAttr(formatDisplayBatchId(b.batchId,b.strain,b.date,b.quantity))}</strong> · ${formatStrainWithScientific(b.strain)}</span><span style="white-space:nowrap;font-weight:700;color:var(--primary);">${icon} ${escapeAttr(b.stage)}</span></a>`;
             }).join('');
         }
@@ -2498,7 +2449,7 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         function renderChart() {
             const ctx = document.getElementById('strainChart').getContext('2d');
             const strainCounts = {};
-            batches.filter(b => isActiveBatch(b)).forEach(b => {
+            batches.filter(b => b.status === 'Active').forEach(b => {
                 strainCounts[b.strain] = (strainCounts[b.strain] || 0) + Number(b.quantity);
             });
 
@@ -2555,30 +2506,5 @@ function productionIcon(kind){return kind==='jar'?`<svg class="vessel-icon" view
         }
     </script>
 <script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
-<script>
-(()=>{
- const q=new URLSearchParams(location.search); const file=location.pathname.split('/').pop()||'index.html';
- const type=(q.get('type')||'').toLowerCase(); const strain=q.get('strain')||'';
- const activeHref = file==='list.html' ? `list.html?type=${type||'jars'}` : file;
- document.querySelectorAll('.gf-site-header a').forEach(a=>{
-   const href=a.getAttribute('href')||'';
-   if(href==='list.html?type=all' && (file==='batch.html'||(file==='list.html'&&type==='all'))) a.classList.add('gf-active');
-   if(href==='list.html?type=jars' && file==='list.html'&&type==='jars') a.classList.add('gf-active');
-   if(href==='list.html?type=bags' && file==='list.html'&&type==='bags') a.classList.add('gf-active');
-   if(href==='list.html?type=fruiting' && file==='list.html'&&type==='fruiting') a.classList.add('gf-active');
-   if(href==='new-batch.html'&&file==='new-batch.html') a.classList.add('gf-active');
-   if(href==='harvest.html'&&file==='harvest.html') a.classList.add('gf-active');
-   if(href==='yield.html'&&file==='yield.html') a.classList.add('gf-active');
-   if(href==='settings.html'&&file==='settings.html') a.classList.add('gf-active');
-   if(a.hasAttribute('data-strain')){
-     const name=a.getAttribute('data-strain');
-     if(file==='list.html') a.href=`list.html?type=${encodeURIComponent(type||'jars')}&strain=${encodeURIComponent(name)}`;
-     else if(file==='strain.html') a.href=`strain.html?strain=${encodeURIComponent(name)}`;
-     if(strain && strain.toLowerCase()===name.toLowerCase()) a.classList.add('gf-strain-active');
-   }
- });
-})();
-</script>
-<script src="gf-data.js?v=4"></script><script src="shared-header.js?v=3"></script>
 </body>
 </html>

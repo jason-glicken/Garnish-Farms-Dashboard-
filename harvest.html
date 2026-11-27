@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Harvest Log - Garnish Farms</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="gf-auth.js?v=1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -42,12 +42,13 @@
         th, td { padding: 0.55rem 0.45rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
         th { background: var(--bg-light); color: var(--text-muted); font-weight: 600; }
             .strain-scientific { font-size: .78em; color: var(--text-muted); font-style: italic; font-weight: 500; }
-    .strain-nav-card{width:100%;min-width:0;margin-top:.25rem;padding:.45rem .5rem;background:#fff;border:1px solid var(--border,#e5e7eb);border-radius:9px;overflow:hidden}.strain-nav-scroll{display:flex;gap:.35rem;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;padding:.1rem 0}.strain-nav-scroll a{flex:0 0 auto;border-radius:999px!important;text-decoration:none!important;font-weight:700!important}
-
-</style>
-<style>.gf-record-link{cursor:pointer;text-decoration:underline;text-decoration-color:#9ab39a;text-underline-offset:2px}.gf-record-link:focus-visible{outline:2px solid #6b8f5e;outline-offset:2px}</style></head>
+    </style>
+</head>
 <body>
-    <div id="gf-shared-header" aria-label="Garnish Farms site header"></div>
+    <header>
+        <h1>Log Harvest</h1>
+        <a href="index.html" class="btn btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.78rem;">← Dashboard</a>
+    <details open style="width:100%;margin-top:.18rem;font-size:.68rem;color:#2d5a27;"><summary style="cursor:pointer;font-weight:800;padding:.2rem 0;">Browse strains ▾</summary><div style="display:flex;gap:.3rem;overflow-x:auto;padding:.25rem 0 .35rem;white-space:nowrap;"><a href="strain.html?strain=Blue%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#3b82f6;text-decoration:underline;background:#fff;">Blue Oyster</a><a href="strain.html?strain=Lion%27s%20Mane" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#64748b;text-decoration:underline;background:#fff;">Lion's Mane</a><a href="strain.html?strain=Shiitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#7c3aed;text-decoration:underline;background:#fff;">Shiitake</a><a href="strain.html?strain=Maitake" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#15803d;text-decoration:underline;background:#fff;">Maitake</a><a href="strain.html?strain=Pink%20Oyster" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#db2777;text-decoration:underline;background:#fff;">Pink Oyster</a><a href="strain.html?strain=Chestnut" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#92400e;text-decoration:underline;background:#fff;">Chestnut</a><a href="strain.html?strain=Golden%20Teacher" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#ca8a04;text-decoration:underline;background:#fff;">Golden Teacher</a><a href="strain.html?strain=Reishi" style="border:1px solid #d1d5db;border-radius:999px;padding:.25rem .5rem;color:#c2410c;text-decoration:underline;background:#fff;">Reishi</a></div></details></header>
 
     <main>
         <div class="card">
@@ -293,32 +294,5 @@
         });
     </script>
 <script>function formatDateDisplay(value){if(!value)return '';const m=String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[2]}/${m[3]}/${m[1].slice(2)}`:String(value);}</script>
-<script>
-(()=>{
- const q=new URLSearchParams(location.search); const file=location.pathname.split('/').pop()||'index.html';
- const type=(q.get('type')||'').toLowerCase(); const strain=q.get('strain')||'';
- const activeHref = file==='list.html' ? `list.html?type=${type||'jars'}` : file;
- document.querySelectorAll('.gf-site-header a').forEach(a=>{
-   const href=a.getAttribute('href')||'';
-   if(href==='list.html?type=all' && (file==='batch.html'||(file==='list.html'&&type==='all'))) a.classList.add('gf-active');
-   if(href==='list.html?type=jars' && file==='list.html'&&type==='jars') a.classList.add('gf-active');
-   if(href==='list.html?type=bags' && file==='list.html'&&type==='bags') a.classList.add('gf-active');
-   if(href==='list.html?type=fruiting' && file==='list.html'&&type==='fruiting') a.classList.add('gf-active');
-   if(href==='new-batch.html'&&file==='new-batch.html') a.classList.add('gf-active');
-   if(href==='harvest.html'&&file==='harvest.html') a.classList.add('gf-active');
-   if(href==='yield.html'&&file==='yield.html') a.classList.add('gf-active');
-   if(href==='settings.html'&&file==='settings.html') a.classList.add('gf-active');
-   if(a.hasAttribute('data-strain')){
-     const name=a.getAttribute('data-strain');
-     if(file==='list.html') a.href=`list.html?type=${encodeURIComponent(type||'jars')}&strain=${encodeURIComponent(name)}`;
-     else if(file==='strain.html') a.href=`strain.html?strain=${encodeURIComponent(name)}`;
-     if(strain && strain.toLowerCase()===name.toLowerCase()) a.classList.add('gf-strain-active');
-   }
- });
-})();
-</script>
-
-
-<script src="gf-data.js?v=4"></script><script src="shared-header.js?v=3"></script>
 </body>
 </html>
