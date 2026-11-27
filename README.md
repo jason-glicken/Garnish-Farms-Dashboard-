@@ -1,32 +1,17 @@
-# Garnish Farms — Clean Rebuild (V3)
+# Garnish Farms Dashboard — V6
 
-Standalone replacement front-end. No legacy page scripts, shared-header files, or compatibility redirects are included.
+Frontend-only dashboard package. Uses the existing Supabase project and current data tables; it does not include database migrations or destructive data operations.
 
-## Runtime
-- `index.html`, `login.html`: entry pages.
-- `gf3-data.js`: Supabase client and shared data access.
-- `gf3-production.js`: lifecycle calculations, counts, timelines, forecasts and tasks.
-- `gf3-ui.js`: shared header, navigation, cards and timelines.
-- `gf3-app.js`: page routing and interactions.
-- `gf3-styles.css`: styling.
-- `gf3-login.js`: sign-in.
+## Global navigation and strain filtering
+- The strain ribbon is available on every dashboard page.
+- Selecting a strain filters the current page's records and keeps that page's navigation tab selected.
+- The selected strain chip stays highlighted until changed or cleared.
+- The **All strains** chip clears the filter.
+- On an individual strain detail page, selecting another strain opens that strain's detail page.
+- Page navigation preserves an active strain filter, so moving from Jars to Bags, for example, keeps the chosen strain filter.
 
-Runtime assets use unique `gf3-` names to avoid reusing cached legacy `app.js`, `ui.js`, `gf-data.js`, or `styles.css`.
+## Install
+Upload the contents of this folder to the existing GitHub Pages repository root, replacing files with matching names. Do not delete unrelated old files as part of this update. Keep the existing Supabase project and credentials in `gf3-data.js` unchanged.
 
-## Dashboard layout
-- Home includes the live strain-mix donut chart and Strain Summary & Inventory table.
-- Strain links open dedicated pages with active jar/bag/fruiting counts, a 90-day actual/target timeline, batch-spacing summary, stage-grouped records, and harvest history.
-- The Garnish Farms title in the header links back to Home.
-- Header KPI cards and action row use reduced vertical padding for a thinner mobile header.
-
-## Clean deployment
-1. Back up the current repository/site.
-2. Remove old front-end HTML/JS/CSS entrypoints and scripts from the GitHub Pages site root, including legacy `app.js`, `ui.js`, `gf-data.js`, `shared-header.js` and old page scripts.
-3. Upload the contents of this package to the site root.
-4. Confirm deployed `index.html` references only `gf3-*.js` and `gf3-styles.css`.
-5. Test in a private/incognito browser window.
-
-Preserve the Supabase project, tables, migrations, authentication settings and all database records. No SQL migration is included.
-
-## Data safety and verification
-Reads existing `batches`, `batch_items`, `harvests`, and `cultures` tables. User-initiated writes use existing tables; no schema changes are included. Historical transition dates are not invented. Existing parents without child rows remain represented as legacy placeholders. JavaScript syntax and ZIP integrity were checked; authenticated live browser testing was not available, so verify sign-in and a small test workflow before relying on writes.
+## Safety
+No SQL, schema changes, database resets, or production-record modifications are included.

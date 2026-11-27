@@ -48,3 +48,70 @@
 .spacing-card small{font-size:10px;color:var(--muted);margin-top:5px}
 .spacing-card strong{font-size:12px;overflow-wrap:anywhere}
 @media(max-width:520px){.site-header{padding:5px 9px 4px}.brand h1{font-size:16px}.head-actions .btn{padding:6px 8px}.kpis{gap:4px;margin-top:5px}.kpi{min-height:39px;padding:3px 1px}.kpi span{font-size:9px}.kpi strong{font-size:16px}.actions-row{gap:4px;margin-top:4px}.actions-row .btn{min-height:28px;padding:5px 3px;font-size:11px}.yield-pill{font-size:10px}.yield-pill strong{font-size:12px}.strain-nav{padding-top:4px}.mix-layout{gap:14px}.donut-chart{width:170px;height:170px}.mix-legend{min-width:130px}.strain-timeline-row{grid-template-columns:105px 1fr;gap:7px}.spacing-grid{gap:5px}.spacing-card{padding:8px 6px}.spacing-card b{font-size:12px}}
+
+
+/* V5: spacious, inset production workspace inspired by the earlier strain page */
+#app{width:min(100%,820px);margin:0 auto;padding:14px 16px 30px}
+.page-title{margin:2px 4px 16px;min-height:52px}
+.page-title h2{font-size:21px;letter-spacing:-.25px}
+.page-title p{font-size:14px}
+.panel{padding:18px;margin:0 0 16px;border-radius:19px;box-shadow:0 2px 10px #1d39200b}
+.section-title{margin-bottom:14px;align-items:flex-start}
+.section-title h3{font-size:18px;line-height:1.25}
+.section-title>.muted{font-size:13px;text-align:right;max-width:42%}
+.records{gap:14px}
+.record{padding:17px 16px;border-radius:17px;margin:0 0 12px}
+.stage-breakdown{gap:10px}
+.stage-breakdown div{padding:15px 8px;border:1px solid var(--line);border-radius:13px}
+.stage-breakdown b{font-size:25px}
+.stage-breakdown span{font-size:13px}
+.strain-timeline{gap:14px;margin-top:12px}
+.strain-timeline-row{grid-template-columns:minmax(118px,34%) minmax(0,1fr);gap:12px;min-height:36px}
+.strain-timeline-name b{font-size:13px}
+.strain-timeline-name small{font-size:11px;line-height:1.25}
+.strain-timeline-track{height:20px}
+.actual-bar{top:3px;height:12px}
+.target-bar{top:2px;height:14px}
+.timeline-key{font-size:12px;margin:8px 0}
+.spacing-grid{gap:9px}
+.spacing-card{padding:12px 10px;border-radius:12px}
+.spacing-card b{font-size:14px}
+.spacing-card small{font-size:11px;line-height:1.3}
+.spacing-card strong{font-size:13px}
+.strain-table{min-width:520px}
+.strain-table th,.strain-table td{padding:12px 10px}
+.mix-layout{padding:14px 4px;gap:28px}
+.donut-chart{width:220px;height:220px}
+.mix-legend{gap:10px;min-width:170px}
+.mix-legend>div{font-size:14px}
+@media(max-width:520px){
+ #app{padding:12px 14px 28px}
+ .page-title{margin:2px 3px 14px;min-height:46px}
+ .page-title h2{font-size:20px}
+ .panel{padding:16px;margin-bottom:14px;border-radius:18px}
+ .section-title h3{font-size:17px}
+ .section-title>.muted{font-size:12px;max-width:44%}
+ .record{padding:16px 14px;border-radius:16px}
+ .strain-timeline{gap:13px}
+ .strain-timeline-row{grid-template-columns: minmax(108px,36%) minmax(0,1fr);gap:9px}
+ .strain-timeline-name b{font-size:12px}
+ .strain-timeline-name small{font-size:10px}
+ .spacing-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+ .spacing-card{padding:10px 7px}
+ .spacing-card b{font-size:12px}
+ .spacing-card small{font-size:10px}
+ .spacing-card strong{font-size:11px}
+ .stage-breakdown{gap:7px}
+ .stage-breakdown div{padding:13px 5px}
+ .mix-layout{gap:14px;padding:8px 0}
+ .donut-chart{width:158px;height:158px}
+ .mix-legend{min-width:128px;gap:7px}
+ .mix-legend>div{font-size:12px;gap:6px}
+}
+/* Global strain filter and persistent page selection */
+.strain-nav a.active{background:var(--c,#2d5a27);color:#fff;box-shadow:0 0 0 2px #ffffff inset;font-weight:800}
+.strain-nav .strain-filter-all{--c:#2d5a27;--bgc:#eef5ec;border-color:#2d5a27;background:#eef5ec;color:#2d5a27}
+.strain-nav .strain-filter-all.active{background:#2d5a27;color:#fff}
+.page-nav a.active{background:#2d5a27;color:#fff;border-color:#2d5a27;box-shadow:0 1px 3px #244b2922}
+.active-filter-note{margin:0 2px 12px;padding:8px 11px;border:1px solid #d7e6d2;border-radius:10px;background:#f0f7ed;color:#315b2b;font-size:13px;font-weight:650}
+.active-filter-note a{margin-left:5px;color:#2458bd;font-weight:700}

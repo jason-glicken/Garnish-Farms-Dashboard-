@@ -1,7 +1,2 @@
-GARNISH FARMS FRESH MODULAR REBUILD
-Architecture: shared data repository + shared production domain + shared UI + focused page views.
-Existing tables used: batches, batch_items, harvests, cultures.
-No SQL migrations included. No database reset.
-Legacy parents with no child rows remain visible as non-editable placeholders.
-Historical lifecycle dates are never fabricated.
-Authenticated live browser testing was not available during packaging.
+V6 update: global strain ribbon filtering and persistent page navigation selection.
+The strain ribbon now filters the currently selected page instead of forcing navigation to a strain detail page. The selected page tab remains highlighted, and the selected strain chip remains highlighted. An All strains chip clears the filter. On the dedicated strain detail page, selecting a strain continues to switch the detail page to that strain. Existing Supabase data access and database schema are unchanged.
