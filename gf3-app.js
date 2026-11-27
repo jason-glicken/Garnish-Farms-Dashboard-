@@ -12,6 +12,7 @@ function donut(rows){const groups=P.groupByStrain(rows),total=groups.reduce((n,[
 function strainInventory(rows){return `<div class="table-wrap"><table class="strain-table"><thead><tr><th>Strain</th><th>Stage Breakdown</th><th>Active</th></tr></thead><tbody>${P.groupByStrain(rows).map(([s,rs])=>{const a=rs.filter(P.active),g=a.filter(x=>P.stage(x)==='Grain Spawn').length,b=a.filter(x=>P.stage(x)==='Bulk Substrate').length,f=a.filter(x=>P.stage(x)==='Fruiting').length;return `<tr><td><a href="${U.href('strain',{strain:s})}"><b>${esc(s)}</b></a><small>${esc(scientific[s]||'')}</small></td><td><span>🫙 ${g}</span><span>🟫 ${b}</span><span>🍄 ${f}</span></td><td><b>${a.length}</b></td></tr>`}).join('')}</tbody></table></div>`}
 function home(d){const rows=active(d);return U.title('Production at a Glance',`${rows.length} active containers across ${d.parents.length} parent batches`)+U.panel('Strain Breakdown · Current Production Mix',donut(rows))+U.panel('Strain Summary & Inventory',strainInventory(rows))}
 function strainPage(d){
+if(!strain)return home(d);
 const rows=d.containers.filter(x=>x.strain===strain),a=rows.filter(P.active),c=P.counts(a),grouped=[['Grain Spawn','Jars',a.filter(x=>P.stage(x)==='Grain Spawn')],['Bulk Substrate','Bags',a.filter(x=>P.stage(x)==='Bulk Substrate')],['Fruiting','Blocks',a.filter(x=>P.stage(x)==='Fruiting')]];
 const left=new Date(P.today()+'T12:00:00');left.setDate(left.getDate()-30);
 const right=new Date(P.today()+'T12:00:00');right.setDate(right.getDate()+60);
