@@ -1,0 +1,101 @@
+/* Garnish Farms V68 — static header cards match production tile styling;
+   item-card identity always follows the individual record's strain. */
+
+/* Header KPI tiles: same compact rounded-card treatment as Production at a Glance.
+   Keep the existing soft fills, but use the same Garnish green bottom accent on all. */
+.site-header .kpis {
+  gap: 6px !important;
+}
+.site-header .kpis .kpi {
+  position: relative !important;
+  box-sizing: border-box !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  padding: 5px 4px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+  border: 1px solid #dfe4e1 !important;
+  border-radius: 12px !important;
+  text-align: center !important;
+}
+.site-header .kpis .kpi:nth-child(1) { background: #f1f5f1 !important; }
+.site-header .kpis .kpi:nth-child(2) { background: #eef3fb !important; }
+.site-header .kpis .kpi:nth-child(3) { background: #fbf5ed !important; }
+.site-header .kpis .kpi:nth-child(4) { background: #f4f0f8 !important; }
+.site-header .kpis .kpi > span {
+  font-size: 8px !important;
+  line-height: 1 !important;
+  letter-spacing: .4px !important;
+}
+.site-header .kpis .kpi > strong {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+.site-header .kpis .kpi > strong b {
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+.site-header .kpis .kpi .kpi-icon {
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-style: normal !important;
+}
+
+/* A consistent green lower accent on every header KPI, not stage-specific colors. */
+.site-header .kpis .kpi::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 3px !important;
+  background: #16a34a !important;
+  border-radius: 0 0 9px 9px !important;
+}
+.site-header .kpis .kpi.active {
+  outline: 2px solid #2d5a27 !important;
+  outline-offset: 1px !important;
+  transform: translateY(-1px);
+}
+.site-header .kpis .kpi.active::after {
+  background: #16a34a !important;
+}
+
+/* Item card edge, heading, and stage badge use the strain assigned to that record.
+   This intentionally overrides the former active-filter rule that recolored every
+   visible record to the currently selected strain. */
+.record,
+html[data-active-strain] .record {
+  border-left: 4px solid var(--strain-color, #64748b) !important;
+  background: linear-gradient(90deg, var(--strain-bg, #f8fafc) 0%, #fff 34%) !important;
+}
+.record h3 {
+  color: var(--strain-color, #2d5a27) !important;
+}
+.record .stage-pill {
+  background: var(--strain-bg, #f1f5f9) !important;
+  color: var(--strain-color, #475569) !important;
+  border: 1px solid color-mix(in srgb, var(--strain-color, #64748b) 20%, white) !important;
+}
+
+@media (max-width: 520px) {
+  .site-header .kpis .kpi {
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 4px 3px 7px !important;
+  }
+  .site-header .kpis .kpi > span { font-size: 8px !important; }
+  .site-header .kpis .kpi > strong,
+  .site-header .kpis .kpi > strong b { font-size: 15px !important; }
+  .site-header .kpis .kpi .kpi-icon { font-size: 11px !important; }
+}
