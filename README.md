@@ -27,3 +27,9 @@ The previous visual behavior was preserved rather than redesigning page componen
 
 ## V10 header cleanup
 The main page navigation is rendered inside the shared `.site-header` rather than appended as a separate sibling strip. The shared header wrapper owns sticky positioning and visual continuity. CSS tightens spacing and integrates the page navigation and strain ribbon into one visual unit. Production and data modules are unchanged.
+
+## V11 header refinement
+Replaced the visible horizontal page-navigation strip with a compact expandable Pages menu inside the shared header. This keeps global links available without a second-looking navigation bar between the header and page content. New Batch now uses a softer sage-green treatment. Production and database logic are unchanged.
+
+## V12 header simplification
+Removed the global page-navigation row/menu entirely. The shared header ends at the strain ribbon; no Pages dropdown or body navigation is provided. New Batch uses a softer sage-green treatment. Production and database logic are unchanged.

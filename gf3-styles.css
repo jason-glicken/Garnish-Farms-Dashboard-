@@ -209,3 +209,54 @@ button, .btn, .kpi, .yield-pill, .page-nav a, .strain-nav a {
  .strain-nav{padding:6px 0 7px}.page-nav{gap:5px;padding:6px 0 0}
  .page-nav a{min-height:31px;padding:5px 11px;font-size:11px;border-radius:9px}
 }
+
+
+/* V11: keep page navigation inside a compact header menu, not a body-like row */
+.page-nav { display:none !important; }
+.header-pages { position:relative; display:inline-flex; align-items:center; margin-left:auto; }
+.header-pages summary {
+  list-style:none; cursor:pointer; user-select:none;
+  display:inline-flex; align-items:center; gap:6px;
+  min-height:34px; padding:6px 11px;
+  border:1px solid #d8e3d5; border-radius:10px;
+  background:#f5f8f3; color:#315b2b;
+  font-size:12px; font-weight:750;
+}
+.header-pages summary::-webkit-details-marker { display:none; }
+.header-pages[open] summary { background:#eaf2e7; border-color:#b8cbb2; }
+.header-pages-menu {
+  position:absolute; right:0; top:calc(100% + 7px); z-index:80;
+  display:grid; grid-template-columns:1fr 1fr; gap:4px;
+  width:min(290px, calc(100vw - 24px)); padding:8px;
+  border:1px solid #dfe6dc; border-radius:13px;
+  background:#fff; box-shadow:0 10px 28px rgba(28,50,30,.18);
+}
+.header-pages-menu a {
+  display:flex; align-items:center; min-height:36px;
+  padding:7px 9px; border-radius:8px;
+  color:#315b2b; text-decoration:none; font-size:12px; font-weight:650;
+}
+.header-pages-menu a.active { background:#eaf2e7; color:#244b29; font-weight:800; }
+.header-pages-menu a:active { background:#dfeadd; }
+
+/* Softer sage action color for New Batch; other buttons retain their colors. */
+.actions-row > .btn:first-child {
+  background:#dcebd8; border-color:#c6ddc0; color:#315b2b;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.actions-row > .btn:first-child:hover { background:#d2e5cd; }
+@media(max-width:520px) {
+  .header-pages summary { min-height:32px; padding:5px 9px; font-size:11px; }
+  .header-pages-menu { width:min(270px, calc(100vw - 18px)); }
+}
+
+
+/* V12: header ends at the strain ribbon; no global page menu or body nav */
+.page-nav, .header-pages, .header-pages-menu { display:none !important; }
+.actions-row > a.btn[href*="new-batch"] {
+  background:#dcebd8 !important;
+  border-color:#c6ddc0 !important;
+  color:#315b2b !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.actions-row > a.btn[href*="new-batch"]:hover { background:#d2e5cd !important; }

@@ -38,7 +38,6 @@ function header(data){
   <a class="strain-filter-all ${selected?'':'active'}" href="${filterHref('')}">All strains</a>
   ${strains.map(([s,c,b])=>`<a class="${selected===s?'active':''}" data-strain-index="${strains.findIndex(x=>x[0]===s)}" href="${filterHref(s)}" aria-pressed="${selected===s}">${esc(s)}</a>`).join('')}
  </nav>
- <nav class="page-nav" aria-label="Main navigation">${[['Home','home'],['All Batches','batches'],['Jars','jars'],['Bags','bags'],['Fruiting','fruiting'],['Upcoming','upcoming'],['Calendar','calendar'],['Yield','yield'],['Cultures','cultures'],['Activities','activities']].map(([label,key])=>`<a class="${page===key?'active':''}" href="${href(key,selected?{filter:selected}:{})}" aria-current="${page===key?'page':'false'}">${label}</a>`).join('')}</nav>
  </header>`;
 }
 function title(t,sub=''){return `<div class="page-title"><div><h2>${t}</h2>${sub?`<p class="muted">${sub}</p>`:''}</div></div>`}

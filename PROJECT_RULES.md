@@ -24,3 +24,17 @@
 - `GFUI.header(data)` renders exactly one `.site-header`, one `.strain-nav`, and one `.page-nav` inside `#gf-header`.
 - Never append `.page-nav` as a sibling after `.site-header`.
 - `#app` contains page content only; global navigation belongs exclusively in `#gf-header`.
+
+## V11 navigation and action styling
+- Do not render a permanent horizontal page-navigation strip between the shared header and page content.
+- Global page links live in the compact `details.header-pages` menu inside the shared header.
+- `#app` begins directly after the shared header; no global navigation is rendered in page content.
+- The New Batch action uses the central soft-sage action style in `gf3-styles.css`; do not add page-specific button colors.
+
+## V12 shared header contract — locked
+- The shared header contains only: brand/sync/Settings/Home; production count cards; New Batch/Harvest/Total Farm Yield; strain ribbon.
+- The strain ribbon is the final header row.
+- Do not render a Pages dropdown, page-navigation row, or any global navigation menu.
+- Do not render global navigation inside #app. Page content begins immediately after the strain ribbon.
+- New Batch uses the central soft-sage style in gf3-styles.css.
+- Keep this architecture unchanged unless the user explicitly requests a header change.
