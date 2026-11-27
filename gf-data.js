@@ -224,6 +224,8 @@
       containers.push({
         ...parent, ...item,
         id: item.id, itemId: item.id, parentId: parent.id ?? item.batch_id,
+        batch_id: parent.id ?? item.batch_id,
+        batchId: parent.batch_id || item.batch_id || item.container_id || item.item_id || '',
         parentBatchId: parent.batch_id || item.container_id || item.item_id || '',
         dbId: parent.id ?? item.batch_id,
         container_id: item.container_id || item.item_id || parent.batch_id || '',

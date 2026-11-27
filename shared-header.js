@@ -6,19 +6,16 @@
   if (!mount) return;
   window.__GF_LAYOUT_LOADED__ = true;
   const base = new URL('.', document.currentScript.src);
-  const css = document.createElement('link');
-  css.rel = 'stylesheet';
-  css.href = new URL('shared-header.css?v=2', base).href;
-  document.head.appendChild(css);
+  const root = mount.shadowRoot || mount.attachShadow({ mode: 'open' });
 
   const status = (state, message) => {
-    const dot = document.getElementById('syncDot');
-    const label = document.getElementById('syncStatus');
+    const dot = root.getElementById ? root.getElementById('syncDot') : root.querySelector('#syncDot');
+    const label = root.getElementById ? root.getElementById('syncStatus') : root.querySelector('#syncStatus');
     if (dot) dot.className = 'sync-dot ' + state;
     if (label) label.textContent = message;
   };
   const set = (id, value) => {
-    const el = document.getElementById(id);
+    const el = root.querySelector('#' + id);
     if (el) el.textContent = String(value);
   };
   const norm = value => window.GFData.normalize(value);
@@ -30,7 +27,7 @@
     const params = new URLSearchParams(location.search);
     const type = (params.get('type') || '').toLowerCase();
     const strain = (params.get('strain') || '').toLowerCase();
-    mount.querySelectorAll('a').forEach(a => {
+    root.querySelectorAll('a').forEach(a => {
       const href = a.getAttribute('href') || '';
       if ((href === 'list.html?type=all' && (file === 'batch.html' || (file === 'list.html' && type === 'all'))) ||
           (href === 'list.html?type=jars' && file === 'list.html' && type === 'jars') ||
@@ -86,10 +83,15 @@
 
   async function init() {
     try {
-      const response = await fetch(new URL('shared-header.html?v=2', base), { cache: 'no-store' });
+      const [response, cssResponse] = await Promise.all([
+        fetch(new URL('shared-header.html?v=11', base), { cache: 'no-store' }),
+        fetch(new URL('shared-header.css?v=11', base), { cache: 'no-store' })
+      ]);
       if (!response.ok) throw new Error('Unable to load shared header (' + response.status + ')');
-      mount.innerHTML = await response.text();
-      const signOutButton = document.getElementById('gfSignOut');
+      if (!cssResponse.ok) throw new Error('Unable to load shared header styles (' + cssResponse.status + ')');
+      const cssText = await cssResponse.text();
+      root.innerHTML = `<style>${cssText}</style>${await response.text()}`;
+      const signOutButton = root.querySelector('#gfSignOut');
       if (signOutButton) signOutButton.addEventListener('click', async () => {
         signOutButton.disabled = true; signOutButton.textContent = 'Signing out…';
         const result = await window.GFData.signOut();
@@ -97,7 +99,8 @@
         location.replace(new URL('login.html', base).href);
       });
       markActiveLinks();
-      document.dispatchEvent(new CustomEvent('gf:shared-header-ready'));
+      mount.dataset.ready = 'true';
+      document.dispatchEvent(new CustomEvent('gf:shared-header-ready')); 
       await refreshHeader();
     } catch (error) {
       console.error('Garnish Farms global layout:', error);

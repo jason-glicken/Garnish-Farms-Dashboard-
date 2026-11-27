@@ -1,0 +1,9 @@
+Version 61 verification
+
+1. shared-header.js: node --check passed.
+2. gf-data.js: node --check passed.
+3. Inline JavaScript blocks extracted from every HTML page and checked with node --check.
+4. Header markup and CSS are now loaded into one Shadow DOM root, isolating the component from page-level header selectors and styles.
+5. Production pipeline source now uses GFData production snapshot container records.
+6. No Supabase writes, migrations, or production data changes were performed.
+7. Live signed-in browser testing was not available; deploy only after user reviews the ZIP.
