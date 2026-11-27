@@ -1,5 +1,1 @@
-Add this line immediately after the existing gf3-styles.css link in index.html:
-
-<link rel="stylesheet" href="gf3-visual-refinement.css">
-
-Do not remove the existing stylesheet link.
+index.html in this ZIP already includes the gf3-visual-refinement.css stylesheet reference. Replace your current index.html with this file.
