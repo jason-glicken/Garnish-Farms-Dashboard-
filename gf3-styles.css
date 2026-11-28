@@ -256,3 +256,6 @@ select:focus-visible, textarea:focus-visible {
 .calendar-task small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
 .calendar-task strong{white-space:nowrap;color:var(--green);font-size:11px}
 @media(max-width:520px){.calendar-days .day,.calendar-days .empty-day{min-height:59px;padding:3px 2px}.day-select{margin-bottom:2px}.day-number{font-size:10px}.day-task-count{font-size:7px}.calendar-event{font-size:7px}.shared-timeline-track{height:10px}.timeline-baseline-note{font-size:9px}}
+
+/* Reconciled target timeline: soft stage-tinted fill with a solid edge. */
+.target-bar{background:color-mix(in srgb,var(--stage-color) 28%,white);border:1px solid color-mix(in srgb,var(--stage-color) 62%,white);border-left:0;border-radius:0 99px 99px 0;opacity:1}

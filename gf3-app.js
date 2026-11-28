@@ -17,13 +17,13 @@ function home(d){
  const cultureRows=cultures.slice(0,8).map(c=>`<article class="culture-row"><div><b>${esc(c.culture_id||'Culture')}</b><small>${esc(c.strain||'Unknown strain')} · ${P.fmt(c.date||c.created_at)}</small></div><span class="badge">${esc(c.status||'Unspecified')}</span>${c.notes?`<p>${esc(c.notes)}</p>`:''}</article>`).join('')||'<p class="muted">No liquid culture records yet.</p>';
  const batchRows=parents.slice(0,10).map(p=>{const units=d.containers.filter(x=>String(x.parentId)===String(p.id));return `<details class="batch-group"><summary><b>${esc(p.batch_id||'Batch')}</b><span>${esc(p.strain||'Unknown')} · ${units.length||Number(p.quantity)||1} containers · ${esc(p.stage||'Grain Spawn')}</span></summary><div class="batch-log-details"><small>Started ${P.fmt(p.date||p.created_at)}</small>${units.length?U.cards(units):`<p class="muted">Legacy batch · ${Number(p.quantity)||1} planned containers</p>`}<a href="${U.href('batch',{id:p.id})}">Open batch details →</a></div></details>`}).join('')||'<p class="muted">No batches recorded.</p>';
  return U.title('Production at a Glance',`${rows.length} active containers across ${d.parents.length} parent batches`)
+ +U.panel('Strain Breakdown · Current Production Mix',donut(rows))
+ +U.panel('Strain Summary & Inventory',strainInventory(rows))
  +U.panel('Production Pipeline',`<div class="home-pipeline-summary"><span><b>${rows.length}</b> active containers</span><span><b>${tasks.length}</b> care tasks</span><a href="${U.href('upcoming')}">All upcoming tasks →</a></div><div class="home-task-list">${taskRows}</div>`,'Next actions across the farm')
  +U.panel('Production Calendar',calendarBody(rows),'Current month · select a record to open its card')
  +U.panel('Harvests & Flush History',harvestTable(harvestRows),'Most recent 8 harvest records')
  +U.panel('Liquid Culture',`<div class="culture-list">${cultureRows}</div><p class="home-module-link"><a href="${U.href('cultures')}">Manage liquid cultures →</a></p>` ,`${cultures.length} culture records`)
- +U.panel('Batches Log',`${batchRows}<p class="home-module-link"><a href="${U.href('batches')}">View all batches →</a></p>`,`${d.parents.length} parent batches · showing latest 10`)
- +U.panel('Strain Breakdown · Current Production Mix',donut(rows))
- +U.panel('Strain Summary & Inventory',strainInventory(rows));
+ +U.panel('Batches Log',`${batchRows}<p class="home-module-link"><a href="${U.href('batches')}">View all batches →</a></p>`,`${d.parents.length} parent batches · showing latest 10`);
 }
 function strainPage(d){
 if(!strain)return home(d);
