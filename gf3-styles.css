@@ -262,8 +262,14 @@ select:focus-visible, textarea:focus-visible {
 
 /* Container card actions and concise physical-container/stage descriptor. */
 .record-kind{margin-top:5px;color:var(--muted);font-size:12px;font-weight:650;line-height:1.25}
-.record-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.record-controls{display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:8px;flex-wrap:nowrap}
 .record-controls .promote-btn{order:0}
 .record-controls>a.btn.outline{order:1}
 .promote-btn{min-height:36px;padding:7px 12px;border-radius:10px;font-weight:750}
 @media(max-width:520px){.record-controls{gap:6px}.promote-btn{min-height:34px;padding:6px 9px;font-size:11px}.record-kind{font-size:11px}}
+
+
+/* Promotion action stacks above Manage Container; keep both right-aligned. */
+.record-controls{flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:8px;flex-wrap:nowrap}
+.record-controls .promote-btn,.record-controls>a.btn.outline{align-self:flex-end}
+@media(max-width:520px){.record-controls{gap:6px}.record-controls .promote-btn,.record-controls>a.btn.outline{max-width:100%}}
