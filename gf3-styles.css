@@ -214,3 +214,20 @@ select:focus-visible, textarea:focus-visible {
   box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
 }
 .actions-row > a.btn[href*="new-batch"]:hover { background:#d2e5cd !important; }
+
+
+/* Garnish Farms — home modules share the centralized panel and record system. */
+.home-pipeline-summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 9px;color:var(--muted);font-size:12px}
+.home-pipeline-summary b{color:var(--green);font-size:17px}
+.home-pipeline-summary a,.home-module-link a{color:var(--green);font-weight:750}
+.home-task-list{display:grid;gap:6px}
+.culture-list{display:grid;gap:7px}
+.culture-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fbfcfa}
+.culture-row b,.culture-row small{display:block}
+.culture-row small{margin-top:3px;color:var(--muted);font-size:11px}
+.culture-row p{grid-column:1/-1;margin:2px 0 0;color:var(--muted);font-size:12px}
+.batch-log-details{padding-top:9px}
+.batch-log-details>.records{margin-top:8px}
+.batch-log-details>a,.home-module-link{display:block;margin:8px 0 0;font-size:12px}
+.home-module-link{margin-bottom:0}
+@media(max-width:520px){.home-pipeline-summary{gap:8px;font-size:11px}.home-pipeline-summary b{font-size:15px}.culture-row{padding:8px}}

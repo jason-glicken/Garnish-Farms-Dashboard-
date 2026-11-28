@@ -20,17 +20,7 @@ function header(data){
  }
  const rows=data.containers.filter(P.active),c=P.counts(rows);
  const yieldLbs=data.harvests.reduce((n,h)=>n+Number(h.weight_lbs||0),0);
- const filterHref=name=>{
-  // On a strain detail page, "All strains" returns to the all-strains dashboard.
-  // Keeping page=strain while deleting strain created a blank detail page.
-  if(page==='strain'){
-    if(!name)return href('home');
-    return href('strain',{strain:name});
-  }
-  const q=new URLSearchParams(location.search);
-  if(name)q.set('filter',name);else q.delete('filter');
-  return 'index.html?'+q.toString();
-};
+ const filterHref=name=>{if(page==='strain'){if(!name)return href('home');return href('strain',{strain:name})}const q=new URLSearchParams(location.search);if(name)q.set('filter',name);else q.delete('filter');return 'index.html?'+q.toString()};
  const host=document.querySelector('#gf-header');if(!host)return;
  const kpis=[['BATCHES','',c.batches,'batches'],['JARS','🫙',c.jars,'jars'],['BAGS','🟫',c.bags,'bags'],['FRUITING','🍄',c.fruiting,'fruiting']];
  host.innerHTML=`<header class="site-header">
