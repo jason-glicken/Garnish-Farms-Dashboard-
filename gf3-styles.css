@@ -243,7 +243,7 @@ select:focus-visible, textarea:focus-visible {
 .shared-timeline-segment{position:absolute;left:var(--left);width:var(--width);top:0;bottom:0;background:var(--stage-color);border-right:1px solid rgba(255,255,255,.9);min-width:1px}
 .target-track{background:#f8faf8;border-style:dashed}
 .target-segment{background:color-mix(in srgb,var(--stage-color) 28%,white);border:1px solid color-mix(in srgb,var(--stage-color) 62%,white);border-right-width:2px;opacity:1}
-.elapsed-marker{position:absolute;z-index:3;left:var(--marker);top:-2px;bottom:-2px;border-left:2px solid #26352b;transform:translateX(-1px)}
+.elapsed-marker{position:absolute;z-index:3;left:var(--marker);top:50%;width:10px;height:10px;box-sizing:border-box;border-radius:50%;background:#173c28;border:2px solid #fff;box-shadow:0 0 0 1px #173c28;transform:translate(-50%,-50%);pointer-events:none}
 .timeline-baseline-note{font-size:10px;color:var(--muted);text-align:right;margin-top:4px}
 .day-select{display:flex;align-items:center;justify-content:space-between;gap:2px;color:inherit;text-decoration:none;margin-bottom:3px}
 .day-task-count{font-size:8px;color:var(--green);font-weight:800;white-space:nowrap}
@@ -259,3 +259,11 @@ select:focus-visible, textarea:focus-visible {
 
 /* Reconciled target timeline: soft stage-tinted fill with a solid edge. */
 .target-bar{background:color-mix(in srgb,var(--stage-color) 28%,white);border:1px solid color-mix(in srgb,var(--stage-color) 62%,white);border-left:0;border-radius:0 99px 99px 0;opacity:1}
+
+/* Container card actions and concise physical-container/stage descriptor. */
+.record-kind{margin-top:5px;color:var(--muted);font-size:12px;font-weight:650;line-height:1.25}
+.record-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.record-controls .promote-btn{order:0}
+.record-controls>a.btn.outline{order:1}
+.promote-btn{min-height:36px;padding:7px 12px;border-radius:10px;font-weight:750}
+@media(max-width:520px){.record-controls{gap:6px}.promote-btn{min-height:34px;padding:6px 9px;font-size:11px}.record-kind{font-size:11px}}
