@@ -29,7 +29,7 @@ const store={
  invalidate(){snapshot=null},
  async createBatch(payload,count){
   const {data:p,error}=await q().from('batches').insert([payload]).select().single();if(error)throw error;
-  const rows=Array.from({length:count},(_,i)=>({batch_id:p.id,container_id:count>1?`${payload.batch_id}-${i+1}`:payload.batch_id,strain:payload.strain,date:payload.date,stage:'Grain Spawn',status:'Active',container:payload.container||'Jar',substrate:payload.substrate||null,notes:payload.notes||null,grain_started_on:payload.date,current_stage_started_on:payload.date,target_days:payload.target_days||{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},stage_history:[]}));
+  const rows=Array.from({length:count},(_,i)=>({batch_id:p.id,container_id:`${payload.batch_id}-${i+1}`,strain:payload.strain,date:payload.date,stage:'Grain Spawn',status:'Active',container:payload.container||'Jar',substrate:payload.substrate||null,notes:payload.notes||null,grain_started_on:payload.date,current_stage_started_on:payload.date,target_days:payload.target_days||{'Grain Spawn':14,'Bulk Substrate':14,'Fruiting':14},stage_history:[]}));
   const ins=await q().from('batch_items').insert(rows);if(ins.error){await q().from('batches').delete().eq('id',p.id);throw ins.error}this.invalidate();return p;
  },
  async updateContainer(id,patch){const {data,error}=await q().from('batch_items').update({...patch,updated_at:new Date().toISOString()}).eq('id',id).select().single();if(error)throw error;this.invalidate();return data},

@@ -1,4 +1,13 @@
-Garnish Farms modular home modules update
+Garnish Farms — ID Format + Calendar Refinement
 
-Replace these three files in the repository root: gf3-app.js, gf3-ui.js, gf3-styles.css.
-The home page now restores the lower dashboard modules using the existing normalized Supabase data and shared GFUI/production helpers. Styling is added to the centralized gf3-styles.css. No schema or production data changes. The All Strains navigation guard is retained.
+Replace these four files in the repository root:
+- gf3-app.js
+- gf3-data.js
+- gf3-production.js
+- gf3-styles.css
+
+ID rule: parent batch ID is STRAIN-MMDDYY; every child container ID is parent ID plus its 1-based position, including single-container batches (example: GT-112726-1). Existing displayed IDs are normalized from parent ID + position; no existing Supabase records are rewritten. New batches store the parent ID without a trailing sequence, and child container IDs always receive exactly one position suffix.
+
+Calendar: adds previous/next month navigation, a compact responsive 7-column grid, non-wrapping event chips, a today marker, and a +N more indicator when a day has more than two records. Existing record links remain intact.
+
+No schema changes, data migrations, or Supabase settings changes.
