@@ -33,20 +33,24 @@ function header(data){
 }
 function title(t,sub=''){return `<div class="page-title"><div><h2>${t}</h2>${sub?`<p class="muted">${sub}</p>`:''}</div></div>`}
 function timeline(x){
- const l=P.lifecycle(x),total=l.totalTarget,meta=strainMeta[x.strain]||{color:'#64748b',bg:'#f1f5f9'};
- const widths=l.forecast.map(f=>f.days/total*100),actual=l.segments;
- const actualTrack=l.forecast.map((f,i)=>{
-  const seg=actual.find(a=>a.stage===f.stage),w=widths[i],fill=seg?Math.min(100,seg.days/Math.max(1,f.days)*100):0;
-  return `<div class="tl-stage" style="--segment-width:${w}%;--segment-bg:${meta.bg};--fill-color:${meta.color}"><i style="--fill-width:${fill}%;--fill-color:${meta.color}"></i></div>`;
- }).join('');
- const targetTrack=l.forecast.map((f,i)=>`<div class="tl-stage" style="--segment-width:${widths[i]}%;--target-color:${meta.color}"></div>`).join('');
- return `<div class="timeline-block" style="--strain-color:${meta.color};--strain-bg:${meta.bg}">
- <div class="lane-head"><b>ACTUAL</b><span>${l.elapsed===null?'Dates not recorded':l.elapsed+'d in '+l.current}</span></div>
- <div class="timeline-track actual-strain-track">${actualTrack}</div>
- <div class="timeline-labels"><span>Grain: ${actual.find(a=>a.stage===P.stages[0])?.days??'—'}d</span><span>Substrate: ${actual.find(a=>a.stage===P.stages[1])?.days??'—'}d</span><span>Fruiting: ${actual.find(a=>a.stage===P.stages[2])?.days??'—'}d</span></div>
- <div class="lane-head targeted"><b>TARGETED</b><span>${total} days planned</span></div>
- <div class="timeline-track targeted-track target-strain-track">${targetTrack}</div>
- <div class="timeline-labels"><span>Grain ${l.targets['Grain Spawn']}d</span><span>Substrate ${l.targets['Bulk Substrate']}d</span><span>Fruiting ${l.targets.Fruiting}d</span></div>
+ const l=P.lifecycle(x),meta=strainMeta[x.strain]||{color:'#64748b',bg:'#f1f5f9'};
+ const first=P.stageStart(x,'Grain Spawn')||P.iso(x.date)||P.iso(x.created_at)||P.today();
+ const elapsed=Math.max(0,P.diff(first)||0),t=l.targets,stages=P.stages;
+ const total=Math.max(elapsed+1,l.totalTarget,1),pct=n=>Math.max(0,Math.min(100,n/total*100));
+ const stageColors=['#16a34a','#d97706','#3b82f6'];
+ let targetCursor=0;
+ const targetSegments=stages.map((s,i)=>{const begin=targetCursor,end=begin+t[s];targetCursor=end;return `<i class="shared-timeline-segment target-segment" style="--left:${pct(begin)}%;--width:${Math.max(.35,pct(end)-pct(begin))}%;--stage-color:${stageColors[i]}"></i>`}).join('');
+ const actualSegments=stages.map((s,i)=>{const from=P.stageStart(x,s);if(!from)return '';const begin=Math.max(0,P.diff(first,from)||0);const next=stages.slice(i+1).map(n=>P.stageStart(x,n)).find(Boolean);const finish=next?Math.max(begin,P.diff(first,next)||begin):(P.active(x)||P.stage(x)==='Harvested'?elapsed:begin);if(finish<=begin)return '';return `<i class="shared-timeline-segment actual-segment" style="--left:${pct(begin)}%;--width:${Math.max(.35,pct(finish)-pct(begin))}%;--stage-color:${stageColors[i]}"></i>`}).join('');
+ const marker=pct(elapsed),variance=elapsed-l.totalTarget;
+ const varianceLabel=variance>0?`${variance}d past total target`:variance<0?`${Math.abs(variance)}d before total target`:'At total target';
+ return `<div class="timeline-block shared-clock-timeline" style="--strain-color:${meta.color};--strain-bg:${meta.bg}">
+ <div class="lane-head"><b>ACTUAL</b><span>Day ${elapsed} · recorded stage transitions</span></div>
+ <div class="shared-timeline-track"><div class="shared-timeline-segments">${actualSegments}</div><i class="elapsed-marker" style="--marker:${marker}%"></i></div>
+ <div class="timeline-labels"><span>Grain ${l.segments.find(a=>a.stage===stages[0])?.days??(P.stage(x)===stages[0]?elapsed:'—')}d</span><span>Substrate ${l.segments.find(a=>a.stage===stages[1])?.days??(P.stage(x)===stages[1]?Math.max(0,P.diff(P.stageStart(x,stages[1]))||0):'—')}d</span><span>Fruiting ${l.segments.find(a=>a.stage===stages[2])?.days??(P.stage(x)===stages[2]?Math.max(0,P.diff(P.stageStart(x,stages[2]))||0):'—')}d</span></div>
+ <div class="lane-head targeted"><b>TARGETED</b><span>${l.totalTarget}d current plan · ${varianceLabel}</span></div>
+ <div class="shared-timeline-track target-track"><div class="shared-timeline-segments">${targetSegments}</div><i class="elapsed-marker" style="--marker:${marker}%"></i></div>
+ <div class="timeline-labels"><span>Grain ${t[stages[0]]}d</span><span>Substrate ${t[stages[1]]}d</span><span>Fruiting ${t[stages[2]]}d</span></div>
+ <div class="timeline-baseline-note">Original baseline: ${l.originalTotal} days · Current plan: ${l.totalTarget} days</div>
  </div>`;
 }
 function card(x){const id=P.unitLabel(x),key=x.itemId||`legacy-${x.parentId}`,link=href('container',{id:key});const st=P.stage(x),meta=strainMeta[x.strain]||{color:'#64748b',bg:'#f1f5f9'};return `<article class="record" id="record-${esc(key)}" data-stage="${esc(st)}" data-strain="${esc(x.strain||'')}" style="--strain-color:${meta.color};--strain-bg:${meta.bg}"><div class="record-top"><div><h3>${esc(x.strain||'Unknown strain')}</h3><a class="record-id" href="${link}">${esc(id)}</a> ${x.unitTotal>1?`<span class="badge">${x.unitIndex} of ${x.unitTotal}</span>`:''}</div><span class="stage-pill">${esc(st)}</span></div><div class="record-controls"><span class="badge">${esc(x.container||'Container')}</span><a class="btn outline" href="${link}">Manage container</a></div><p class="record-meta">Stage start: ${P.fmt(P.start(x))} · Parent batch: ${esc(x.parentBatchId||'—')}</p>${timeline(x)}</article>`}
