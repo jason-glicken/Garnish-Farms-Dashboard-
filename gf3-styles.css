@@ -347,3 +347,50 @@ footer { padding:20px; color:var(--muted); font-size:12px; text-align:center; }
   flex: 0 0 auto !important;
   white-space: nowrap;
 }
+
+/* Header refinements: tighter action row and a white strain-navigation card. */
+.actions-row > .btn,
+.actions-row > .yield-pill {
+  min-height:40px;
+  padding:4px 6px;
+  border-radius:11px;
+  font-size:12px;
+}
+.actions-row > .btn:first-child,
+.actions-row > a.btn[href*="new-batch"],
+.actions-row > .harvest-btn,
+.actions-row > a.harvest-btn {
+  background:#d6e5d1 !important;
+  border-color:#bfd4b8 !important;
+  color:#315b2b !important;
+}
+.actions-row > .yield-pill {
+  background:#fff;
+  border-color:#dfe4e1;
+}
+.actions-row > .yield-pill strong { font-size:14px; }
+.strain-nav {
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+  margin-top:8px;
+  padding:9px 10px;
+  border:1px solid #e1e6e1;
+  border-radius:15px;
+  background:#fff;
+  box-shadow:0 2px 8px #1d39200b;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+}
+.strain-nav a { white-space:nowrap; }
+@media (max-width:420px) {
+  .actions-row > .btn,
+  .actions-row > .yield-pill {
+    min-height:36px;
+    padding:3px 4px;
+    font-size:10px;
+  }
+  .actions-row > .yield-pill strong { font-size:12px; }
+  .strain-nav { flex-wrap:nowrap; margin-top:7px; padding:8px; }
+  .strain-nav a { padding:4px 8px; font-size:10px; }
+}
