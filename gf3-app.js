@@ -22,8 +22,8 @@ function home(d){
  +U.panel('Harvests & Flush History',harvestTable(harvestRows),'Most recent 8 harvest records')
  +U.panel('Liquid Culture',`<div class="culture-list">${cultureRows}</div><p class="home-module-link"><a href="${U.href('cultures')}">Manage liquid cultures →</a></p>` ,`${cultures.length} culture records`)
  +U.panel('Batches Log',`${batchRows}<p class="home-module-link"><a href="${U.href('batches')}">View all batches →</a></p>`,`${d.parents.length} parent batches · showing latest 10`)
- +U.panel('Strain Summary & Inventory',strainInventory(rows))
- +U.panel('Strain Breakdown · Current Production Mix',donut(rows));
+ +U.panel('Strain Breakdown · Current Production Mix',donut(rows))
+ +U.panel('Strain Summary & Inventory',strainInventory(rows));
 }
 function strainPage(d){
 if(!strain)return home(d);
