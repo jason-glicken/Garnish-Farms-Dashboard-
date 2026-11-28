@@ -317,3 +317,33 @@ footer { padding:20px; color:var(--muted); font-size:12px; text-align:center; }
   .stage-pill { font-size:10px; padding:4px 7px; }
   .panel { padding:13px; }
 }
+
+/* Garnish Farms header refinements — white KPI cards and a single-row strain ribbon. */
+#gf-header .site-header .kpis .kpi,
+#gf-header .site-header .kpis .kpi:nth-child(n) {
+  background: #fff !important;
+}
+#gf-header .site-header .actions-row > .yield-pill {
+  background: #fff !important;
+}
+/* Keep New Batch and Harvest button treatments unchanged. */
+#gf-header .site-header nav.strain-nav {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 7px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding: 7px 1px 9px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+#gf-header .site-header nav.strain-nav a {
+  flex: 0 0 auto !important;
+  white-space: nowrap;
+}
