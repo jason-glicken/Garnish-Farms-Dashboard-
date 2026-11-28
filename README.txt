@@ -1,13 +1,7 @@
-Garnish Farms — ID Format + Calendar Refinement
+Garnish Farms centralized styling refinement
 
-Replace these four files in the repository root:
-- gf3-app.js
-- gf3-data.js
-- gf3-production.js
-- gf3-styles.css
+Replace the repository's gf3-styles.css with the included file.
 
-ID rule: parent batch ID is STRAIN-MMDDYY; every child container ID is parent ID plus its 1-based position, including single-container batches (example: GT-112726-1). Existing displayed IDs are normalized from parent ID + position; no existing Supabase records are rewritten. New batches store the parent ID without a trailing sequence, and child container IDs always receive exactly one position suffix.
+This stylesheet keeps all visual rules centralized. It also stacks the container promotion action above Manage Container and standardizes the inner presentation of the home dashboard modules (Strain Breakdown, Inventory, Pipeline, Calendar, Harvests, Liquid Culture, and Batches Log) while retaining their shared U.panel shell.
 
-Calendar: adds previous/next month navigation, a compact responsive 7-column grid, non-wrapping event chips, a today marker, and a +N more indicator when a day has more than two records. Existing record links remain intact.
-
-No schema changes, data migrations, or Supabase settings changes.
+No page-specific stylesheet, JavaScript, or database changes are included.

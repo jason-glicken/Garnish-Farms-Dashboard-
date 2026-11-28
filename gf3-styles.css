@@ -273,3 +273,46 @@ select:focus-visible, textarea:focus-visible {
 .record-controls{flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:8px;flex-wrap:nowrap}
 .record-controls .promote-btn,.record-controls>a.btn.outline{align-self:flex-end}
 @media(max-width:520px){.record-controls{gap:6px}.record-controls .promote-btn,.record-controls>a.btn.outline{max-width:100%}}
+
+/* Home dashboard modules — shared visual system, centralized here only. */
+.panel > .mix-layout,
+.panel > .table-wrap,
+.panel > .home-pipeline-summary,
+.panel > .home-task-list,
+.panel > .calendar-toolbar,
+.panel > .calendar,
+.panel > .culture-list,
+.panel > .batch-group,
+.panel > .home-module-link {
+  min-width:0;
+}
+.panel .mix-layout{justify-content:flex-start;gap:clamp(14px,3vw,26px);padding:4px 0}
+.panel .donut-chart{width:clamp(148px,28vw,190px);height:clamp(148px,28vw,190px)}
+.panel .mix-legend{gap:9px;min-width:min(150px,42%)}
+.panel .mix-legend>div{padding:3px 0;font-size:13px}
+.panel .strain-table{min-width:0;width:100%}
+.panel .strain-table th,.panel .strain-table td{padding:10px 8px;vertical-align:middle}
+.panel .strain-table td span{display:inline-block;margin:2px 6px 2px 0}
+.panel .home-task-list,.panel .culture-list{gap:7px}
+.panel .task-row,.panel .calendar-task,.panel .culture-row,.panel .batch-group{border:1px solid var(--line);border-radius:12px;background:#fbfcfa}
+.panel .task-row{padding:11px 12px}
+.panel .culture-row{padding:11px 12px}
+.panel .batch-group{padding:11px 12px;margin:0 0 8px}
+.panel .batch-group summary{align-items:center;flex-wrap:wrap}
+.panel .calendar{min-width:0}
+.panel .calendar-day-detail{background:#fbfcfa}
+.panel .home-module-link{padding-top:2px}
+.panel .table-wrap{max-width:100%;border:1px solid var(--line);border-radius:11px}
+.panel .table-wrap table{margin:0}
+@media(max-width:520px){
+ .panel .mix-layout{justify-content:center;gap:12px}
+ .panel .donut-chart{width:142px;height:142px}
+ .panel .donut-chart>span{font-size:21px}
+ .panel .mix-legend{min-width:118px;gap:6px}
+ .panel .mix-legend>div{font-size:12px;gap:6px}
+ .panel .strain-table th,.panel .strain-table td{padding:8px 6px;font-size:12px}
+ .panel .strain-table td span{font-size:11px;margin-right:4px}
+ .panel .task-row,.panel .culture-row{padding:9px 10px}
+ .panel .task-row strong{font-size:11px}
+ .panel .batch-group{padding:9px 10px}
+}
